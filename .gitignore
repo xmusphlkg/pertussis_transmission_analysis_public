@@ -1,0 +1,35 @@
+# Python/R/runtime caches
+__pycache__/
+.pytest_cache/
+.Rhistory
+.RData
+.Renviron
+
+# Local environments
+.venv/
+venv/
+env/
+.conda/
+
+# Pipeline stamps and local project files
+.pipeline_stamps/
+.Rproj.user/
+*.Rproj
+
+# Large generated intermediates
+outputs/simulations/
+*.parquet
+
+# Private or submission-only materials should not be added to this public repo
+manuscript/
+outputs/submission/
+agents/
+archive/
+refer/
+publication_inputs/*.md
+outputs/appendix/*.md
+
+# Local scratch files
+*.log
+*.tmp
+*.bak

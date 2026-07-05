@@ -1,0 +1,11 @@
+country,iso3,source_sheet,first_year,latest_year,source_age_group_count,exact_infant_year_count,under5_year_count,exact_model_aligned_row_count,latest_target_year,latest_preferred_age_group,latest_preferred_target_role,latest_preferred_reported_cases,latest_preferred_case_share,latest_preferred_incidence_per_100k,age_case_data_availability
+Australia,AUS,AU,2015,2025,19,0,11,22,2025.0,00-04,under5_aggregate_not_infant,3468.0,0.13719982592870988,223.96329791768383,under5_only_no_infant_split
+Brazil,BRA,BR,0,0,0,0,0,0,,,,,,,not_available_in_local_age_xlsx
+China,CHN,CN,2015,2023,29,9,0,12,2023.0,0-0,direct_infant_under1,15684.0,0.36012950334091065,171.79538998177878,direct_infant_under1_available
+Japan,JPN,JP,2015,2024,13,10,0,30,2024.0,00-01,direct_infant_under1,137.0,0.0345175107079869,18.207238241047886,direct_infant_under1_available
+New_Zealand,NZL,NZ,2015,2024,11,10,0,30,2024.0,00-00,direct_infant_under1,120.0,0.06864988558352403,202.09505203947592,direct_infant_under1_available
+South_Africa,ZAF,ZA,0,0,0,0,0,0,,,,,,,not_available_in_local_age_xlsx
+Sweden,SWE,SE,2015,2025,11,0,11,22,2025.0,00-04,under5_aggregate_not_infant,140.0,0.1794871794871795,26.318559848405094,under5_only_no_infant_split
+Thailand,THA,TH,0,0,0,0,0,0,,,,,,,not_available_in_local_age_xlsx
+United_Kingdom,GBR,GB,2015,2024,9,10,0,40,2024.0,<1,direct_infant_under1,923.0,0.048077924783831646,133.5009206211915,direct_infant_under1_available
+United_States,USA,US,2015,2025,12,11,0,32,2025.0,00-00,direct_infant_under1,3590.0,0.12476107732406604,97.69281677508121,direct_infant_under1_available

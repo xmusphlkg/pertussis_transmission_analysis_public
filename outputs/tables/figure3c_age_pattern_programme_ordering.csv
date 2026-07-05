@@ -1,0 +1,22 @@
+ordering_basis,strategy,strategy_label,country_count,effective_country_weight_sum,weighted_median_primary_case_reduction,weighted_median_primary_cases_per_100k,strategy_rank_within_basis
+age_data_profiles_unweighted,timeliness_only,Timeliness,4,4,0.1402013334381662,404.48304499639033,5
+age_data_profiles_unweighted,maternal_immunization,Infant exposure,4,4,0.08612597844818348,428.8780377636333,6
+age_data_profiles_unweighted,cocooning_adjunct,Adult/contact,4,4,0.0759706537409498,433.6438978039015,7
+age_data_profiles_unweighted,targeted_pep_high_risk,Targeted PEP,4,4,0.04665644414692993,447.4009590567873,8
+age_data_profiles_unweighted,pregnancy_tdap_scaleup,Pregnancy Tdap,4,4,0.01204825108093987,463.64246876947465,9
+age_data_profiles_unweighted,adolescent_booster,Adolescent,4,4,-0.00668025794317128,469.26508079648534,11
+age_data_profiles_unweighted,higher_child_coverage,Coverage,4,4,-0.00701194338800004,471.9432409263772,12
+age_pattern_weighted,timeliness_only,Timeliness,4,2.09250378029132,0.14125958534543634,113.83565452005988,4
+age_pattern_weighted,maternal_immunization,Infant exposure,4,2.09250378029132,0.0922872052359766,115.99594427130576,5
+age_pattern_weighted,cocooning_adjunct,Adult/contact,4,2.09250378029132,0.07999344281449489,117.23262423732918,7
+age_pattern_weighted,targeted_pep_high_risk,Targeted PEP,4,2.09250378029132,0.0791775952084789,105.584630446978,8
+age_pattern_weighted,pregnancy_tdap_scaleup,Pregnancy Tdap,4,2.09250378029132,0.01048093082879219,131.13550827119838,9
+age_pattern_weighted,adolescent_booster,Adolescent,4,2.09250378029132,-0.00817449302635952,132.9507534174137,11
+age_pattern_weighted,higher_child_coverage,Coverage,4,2.09250378029132,-0.01188697375061682,133.8608565183676,12
+all_profiles_unweighted,timeliness_only,Timeliness,10,10,0.13801268978111714,309.4927315600563,5
+all_profiles_unweighted,maternal_immunization,Infant exposure,10,10,0.09744117809023368,296.54997247161845,6
+all_profiles_unweighted,cocooning_adjunct,Adult/contact,10,10,0.08314746652372673,300.0876677997302,7
+all_profiles_unweighted,targeted_pep_high_risk,Targeted PEP,10,10,0.05016764322937928,327.9377723223489,8
+all_profiles_unweighted,pregnancy_tdap_scaleup,Pregnancy Tdap,10,10,0.0136433491796708,339.72832561365374,9
+all_profiles_unweighted,adolescent_booster,Adolescent,10,10,6.731831350270667e-5,329.8444972328031,10
+all_profiles_unweighted,higher_child_coverage,Coverage,10,10,-0.01365178362162522,344.616843485688,12

@@ -1,0 +1,12 @@
+{
+  "run_date": "2026-07-04",
+  "search_start": "2000-01-01",
+  "search_end": "2026-07-04",
+  "search_end_human": "July 4, 2026",
+  "raw_records": 2141,
+  "deduplicated_records": 1622,
+  "included_records": 850,
+  "direct_model_records": 54,
+  "related_strategy_records": 30,
+  "api_errors": []
+}

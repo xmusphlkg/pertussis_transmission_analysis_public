@@ -1,0 +1,38 @@
+{
+  "config_hash": "706629619ee12ac3aea55eb14e571e3b693e1448b799f3d64aa6934ed14c167b",
+  "countries": [
+    "Australia",
+    "China",
+    "United_Kingdom",
+    "Japan",
+    "New_Zealand",
+    "Sweden",
+    "United_States",
+    "Brazil",
+    "Thailand",
+    "South_Africa"
+  ],
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "generated_at_utc": "2026-07-04T05:41:03.531341+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "b8290d9eee175340761c2a0a402cbfac808de08f",
+    "dirty": true
+  },
+  "recent_years": 6,
+  "row_counts": {
+    "fit_diagnostics_summary": 29,
+    "interval_diagnostics": 1269
+  },
+  "schema_version": 1,
+  "stem": "calibration_diagnostics"
+}

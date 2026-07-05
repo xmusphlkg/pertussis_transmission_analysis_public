@@ -1,0 +1,9 @@
+strategy,infant_contact_multiplier,median_infant_cases_per_100k,iqr_infant_cases_per_100k,median_all_infections_per_100k,countries,interpretation
+current,0.75,145.26976540390837,57.41-508.9,273.01163517669534,10,Multiplier applied to contact-matrix entries from child/adolescent/adult sources into infant target age groups.
+current,1.0,172.69738048444594,66.79-546.7,285.42660149057167,10,Multiplier applied to contact-matrix entries from child/adolescent/adult sources into infant target age groups.
+current,1.25,214.00046055575257,77.09-573.2,314.43483953738644,10,Multiplier applied to contact-matrix entries from child/adolescent/adult sources into infant target age groups.
+current,1.5,280.81634317013686,89.01-656,369.26641425314267,10,Multiplier applied to contact-matrix entries from child/adolescent/adult sources into infant target age groups.
+maternal_immunization,0.75,69.15572175986372,48.29-121.8,173.87915205873614,10,Multiplier applied to contact-matrix entries from child/adolescent/adult sources into infant target age groups.
+maternal_immunization,1.0,95.96961717698457,63.27-159.3,175.86799104779925,10,Multiplier applied to contact-matrix entries from child/adolescent/adult sources into infant target age groups.
+maternal_immunization,1.25,134.38585439104125,78.44-203.7,182.7771666987263,10,Multiplier applied to contact-matrix entries from child/adolescent/adult sources into infant target age groups.
+maternal_immunization,1.5,174.0639202742955,93.82-284.1,219.67748553398366,10,Multiplier applied to contact-matrix entries from child/adolescent/adult sources into infant target age groups.

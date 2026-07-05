@@ -1,0 +1,7 @@
+temporal_dimension,scenario,countries,burn_in_years,npi_reduction_scale,median_infant_cases_per_100k_5y,iqr_infant_cases_per_100k_5y,median_all_infections_per_100k_5y,median_end_resistant_fraction_5y,implementation_note
+burn_in,burnin_10y,10,10.0,1.0,33.60800772043591,10.4-3044,63.450206855921344,0.5122399774653168,Near-term current-practice run varying pre-analysis burn-in duration.
+burn_in,burnin_15y,10,15.0,1.0,172.69738048444594,66.79-546.7,285.42660149057167,0.8929598648667318,Near-term current-practice run varying pre-analysis burn-in duration.
+burn_in,burnin_30y,10,30.0,1.0,1053.7372486362028,117.6-2232,2218.678512919395,0.9972890529569931,Near-term current-practice run varying pre-analysis burn-in duration.
+npi_contact_shock,npi_country_profile,10,15.0,1.0,73.91371313411776,50.9-722.9,185.80057073254224,0.9044961159742487,Near-term current-practice run varying COVID-19 NPI contact-reduction assumptions for countries with explicit NPI periods.
+npi_contact_shock,npi_reduction_half,10,15.0,0.5,76.5549218565889,54.89-819.5,188.95854591191204,0.9114442136769507,Near-term current-practice run varying COVID-19 NPI contact-reduction assumptions for countries with explicit NPI periods.
+npi_contact_shock,npi_none,10,15.0,,248.91475282818834,100.1-1098,517.6283545949794,0.9626088768025829,Near-term current-practice run varying COVID-19 NPI contact-reduction assumptions for countries with explicit NPI periods.

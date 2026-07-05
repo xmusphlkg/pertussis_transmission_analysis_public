@@ -1,0 +1,61 @@
+country,strategy,strategy_label,primary_case_reduction,primary_cases_per_100k,current_primary_cases_per_100k,implementation_intensity,primary_case_rank_within_constraint,preferred_in_program_only,non_dominated_lancet_outcome
+Australia,adolescent_booster,Adolescent booster,-1.7365923172563e-4,1072.3284896019056,1072.1423025667305,1,7,FALSE,FALSE
+Australia,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,0.01259061769993286,1058.6433682342988,1072.1423025667305,1,3,FALSE,FALSE
+Australia,targeted_pep_high_risk,Targeted high-risk PEP,0.00657655856717054,1065.091295567517,1072.1423025667305,1,4,FALSE,FALSE
+Australia,timeliness_only,Routine timeliness,0.1025243853451988,962.039059608392,1072.1423025667305,1,1,TRUE,TRUE
+Australia,cocooning_adjunct,Close-contact adult adjunct,0.00101071873576219,1071.0586679287733,1072.1423025667305,2,5,FALSE,FALSE
+Australia,maternal_immunization,Infant-exposure reduction composite,0.01376025960853299,1057.3893459595693,1072.1423025667305,3,2,FALSE,FALSE
+Brazil,adolescent_booster,Adolescent booster,0.02306780114156603,348.10753207775826,356.3272170672158,1,5,FALSE,FALSE
+Brazil,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,0.01143185110900746,352.2537373945296,356.3272170672158,1,6,FALSE,FALSE
+Brazil,targeted_pep_high_risk,Targeted high-risk PEP,0.07037178877691785,331.25183358391547,356.3272170672158,1,4,FALSE,TRUE
+Brazil,timeliness_only,Routine timeliness,0.08800523276497019,325.0504303813221,356.3272170672158,1,3,FALSE,TRUE
+Brazil,cocooning_adjunct,Close-contact adult adjunct,0.15783119078620278,300.0876677997302,356.3272170672158,2,2,FALSE,TRUE
+Brazil,maternal_immunization,Infant-exposure reduction composite,0.16775941307521525,296.54997247161845,356.3272170672158,3,1,TRUE,TRUE
+China,adolescent_booster,Adolescent booster,0.34717629662115157,100.78635169836366,154.38525086572383,1,3,FALSE,TRUE
+China,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,0.02377524784118379,150.71470309300665,154.38525086572383,1,5,FALSE,FALSE
+China,targeted_pep_high_risk,Targeted high-risk PEP,0.13705406251593089,133.2261248803362,154.38525086572383,1,4,FALSE,FALSE
+China,timeliness_only,Routine timeliness,-0.02514644748113914,158.25047354909782,154.38525086572383,1,8,FALSE,FALSE
+China,cocooning_adjunct,Close-contact adult adjunct,0.424783724596264,88.8049089159145,154.38525086572383,2,2,FALSE,TRUE
+China,maternal_immunization,Infant-exposure reduction composite,0.4389743999913137,86.61407796372208,154.38525086572383,3,1,TRUE,TRUE
+Japan,adolescent_booster,Adolescent booster,0.06747800919741997,319.01058866141864,342.0944405222172,1,3,FALSE,TRUE
+Japan,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,0.0156596287087184,336.7373685512138,342.0944405222172,1,5,FALSE,FALSE
+Japan,targeted_pep_high_risk,Targeted high-risk PEP,0.04327805781613247,327.2892575472866,342.0944405222172,1,4,FALSE,TRUE
+Japan,timeliness_only,Routine timeliness,0.01443729154698503,337.0846907405567,342.0944405222172,1,6,FALSE,FALSE
+Japan,cocooning_adjunct,Close-contact adult adjunct,0.1820137320170805,279.82855467566503,342.0944405222172,2,2,FALSE,TRUE
+Japan,maternal_immunization,Infant-exposure reduction composite,0.19341905731435904,275.9268561605266,342.0944405222172,3,1,TRUE,TRUE
+New_Zealand,adolescent_booster,Adolescent booster,-0.07229674691618393,969.2706455825016,903.920157885482,1,7,FALSE,FALSE
+New_Zealand,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,0.0136433491796708,891.5876594940919,903.920157885482,1,4,FALSE,FALSE
+New_Zealand,targeted_pep_high_risk,Targeted high-risk PEP,0.0243033091135747,881.9519071473202,903.920157885482,1,2,FALSE,TRUE
+New_Zealand,timeliness_only,Routine timeliness,0.11114060621250976,802.7354782656888,903.920157885482,1,1,TRUE,TRUE
+New_Zealand,cocooning_adjunct,Close-contact adult adjunct,0.00699115826399887,897.6007088113048,903.920157885482,2,5,FALSE,FALSE
+New_Zealand,maternal_immunization,Infant-exposure reduction composite,0.01853191626026473,887.1687854714013,903.920157885482,3,3,FALSE,FALSE
+South_Africa,adolescent_booster,Adolescent booster,0.04464504408040415,329.8444972328031,345.25858220364154,1,6,FALSE,FALSE
+South_Africa,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,0.01601772311312033,339.72832561365374,345.25858220364154,1,7,FALSE,FALSE
+South_Africa,targeted_pep_high_risk,Targeted high-risk PEP,0.05016764322937928,327.9377723223489,345.25858220364154,1,4,FALSE,FALSE
+South_Africa,timeliness_only,Routine timeliness,0.15639451041401609,291.1706014621226,345.25858220364154,1,1,TRUE,TRUE
+South_Africa,cocooning_adjunct,Close-contact adult adjunct,0.08314746652372673,316.5512055912224,345.25858220364154,2,3,FALSE,TRUE
+South_Africa,maternal_immunization,Infant-exposure reduction composite,0.09744117809023368,311.61617881594583,345.25858220364154,3,2,FALSE,TRUE
+Sweden,adolescent_booster,Adolescent booster,6.731831350270667e-5,469.26508079648534,469.2966728957474,1,5,FALSE,FALSE
+Sweden,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,0.01204825108093987,463.64246876947465,469.2966728957474,1,4,FALSE,FALSE
+Sweden,targeted_pep_high_risk,Targeted high-risk PEP,0.04665644414692993,447.4009590567873,469.2966728957474,1,3,FALSE,TRUE
+Sweden,timeliness_only,Routine timeliness,-0.02640928627338512,481.6371984870536,469.2966728957474,1,8,FALSE,FALSE
+Sweden,cocooning_adjunct,Close-contact adult adjunct,0.0759706537409498,433.6438978039015,469.2966728957474,2,2,FALSE,TRUE
+Sweden,maternal_immunization,Infant-exposure reduction composite,0.08612597844818348,428.8780377636333,469.2966728957474,3,1,TRUE,TRUE
+Thailand,adolescent_booster,Adolescent booster,0.10270112492417004,272.53902003890124,303.73271103385906,1,3,FALSE,TRUE
+Thailand,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,0.01717455298889458,298.5162375288538,303.73271103385906,1,6,FALSE,FALSE
+Thailand,targeted_pep_high_risk,Targeted high-risk PEP,0.08693980862417017,277.3262475047296,303.73271103385906,1,5,FALSE,TRUE
+Thailand,timeliness_only,Routine timeliness,0.08743989474176461,277.1103689497083,303.73271103385906,1,4,FALSE,FALSE
+Thailand,cocooning_adjunct,Close-contact adult adjunct,0.29893333190771776,212.9368797680799,303.73271103385906,2,2,FALSE,TRUE
+Thailand,maternal_immunization,Infant-exposure reduction composite,0.3133694151375499,208.55216897971593,303.73271103385906,3,1,TRUE,TRUE
+United_Kingdom,adolescent_booster,Adolescent booster,-0.01855971379904053,982.76283680716,964.8553970789704,1,8,FALSE,FALSE
+United_Kingdom,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,0.01535481365798197,950.0402221077056,964.8553970789704,1,5,FALSE,FALSE
+United_Kingdom,targeted_pep_high_risk,Targeted high-risk PEP,0.10433877912660594,864.1835630503932,964.8553970789704,1,2,FALSE,TRUE
+United_Kingdom,timeliness_only,Routine timeliness,0.14920739661994364,821.2660834398181,964.8553970789704,1,1,TRUE,TRUE
+United_Kingdom,cocooning_adjunct,Close-contact adult adjunct,0.08310582144930201,884.6702964666644,964.8553970789704,2,4,FALSE,FALSE
+United_Kingdom,maternal_immunization,Infant-exposure reduction composite,0.0970540648122431,871.2122587795232,964.8553970789704,3,3,FALSE,FALSE
+United_States,adolescent_booster,Adolescent booster,-0.00668025794317128,57.66684999665931,57.284176863378654,1,7,FALSE,FALSE
+United_States,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,0.01013008646420143,56.70388326146187,57.284176863378654,1,5,FALSE,FALSE
+United_States,targeted_pep_high_risk,Targeted high-risk PEP,0.49254564545052215,29.069105012068828,57.284176863378654,1,1,TRUE,TRUE
+United_States,timeliness_only,Routine timeliness,0.08445514846882263,52.4498649820895,57.284176863378654,1,4,FALSE,FALSE
+United_States,cocooning_adjunct,Close-contact adult adjunct,0.18993309371523204,46.40401593491032,57.284176863378654,2,3,FALSE,FALSE
+United_States,maternal_immunization,Infant-exposure reduction composite,0.1977305987818679,45.9573423118651,57.284176863378654,3,2,FALSE,FALSE

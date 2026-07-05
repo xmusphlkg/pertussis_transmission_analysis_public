@@ -1,0 +1,251 @@
+iso3,country_name,who_region,year,introduced,source_type
+AUS,Australia,WPRO,2001,False,measured
+BRA,Brazil,AMRO,2001,False,measured
+CHN,China,WPRO,2001,False,measured
+JPN,Japan,WPRO,2001,False,measured
+NZL,New Zealand,WPRO,2001,False,measured
+ZAF,South Africa,AFRO,2001,False,measured
+SWE,Sweden,EURO,2001,False,measured
+THA,Thailand,SEARO,2001,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2001,False,measured
+USA,United States of America,AMRO,2001,False,measured
+AUS,Australia,WPRO,2002,True,measured
+BRA,Brazil,AMRO,2002,False,measured
+CHN,China,WPRO,2002,False,measured
+JPN,Japan,WPRO,2002,True,measured
+NZL,New Zealand,WPRO,2002,True,measured
+ZAF,South Africa,AFRO,2002,False,measured
+SWE,Sweden,EURO,2002,True,measured
+THA,Thailand,SEARO,2002,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2002,True,measured
+USA,United States of America,AMRO,2002,False,measured
+AUS,Australia,WPRO,2003,True,measured
+BRA,Brazil,AMRO,2003,False,measured
+CHN,China,WPRO,2003,False,measured
+JPN,Japan,WPRO,2003,True,measured
+NZL,New Zealand,WPRO,2003,True,measured
+ZAF,South Africa,AFRO,2003,False,measured
+SWE,Sweden,EURO,2003,True,measured
+THA,Thailand,SEARO,2003,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2003,True,measured
+USA,United States of America,AMRO,2003,False,measured
+AUS,Australia,WPRO,2004,True,measured
+BRA,Brazil,AMRO,2004,False,measured
+CHN,China,WPRO,2004,False,measured
+JPN,Japan,WPRO,2004,True,measured
+NZL,New Zealand,WPRO,2004,True,measured
+ZAF,South Africa,AFRO,2004,False,measured
+SWE,Sweden,EURO,2004,True,measured
+THA,Thailand,SEARO,2004,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2004,True,measured
+USA,United States of America,AMRO,2004,False,measured
+AUS,Australia,WPRO,2005,True,measured
+BRA,Brazil,AMRO,2005,False,measured
+CHN,China,WPRO,2005,False,measured
+JPN,Japan,WPRO,2005,True,measured
+NZL,New Zealand,WPRO,2005,True,measured
+ZAF,South Africa,AFRO,2005,False,measured
+SWE,Sweden,EURO,2005,True,measured
+THA,Thailand,SEARO,2005,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2005,True,measured
+USA,United States of America,AMRO,2005,False,measured
+AUS,Australia,WPRO,2006,True,measured
+BRA,Brazil,AMRO,2006,False,measured
+CHN,China,WPRO,2006,False,measured
+JPN,Japan,WPRO,2006,True,measured
+NZL,New Zealand,WPRO,2006,True,measured
+ZAF,South Africa,AFRO,2006,False,measured
+SWE,Sweden,EURO,2006,True,measured
+THA,Thailand,SEARO,2006,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2006,True,measured
+USA,United States of America,AMRO,2006,True,measured
+AUS,Australia,WPRO,2007,True,measured
+BRA,Brazil,AMRO,2007,False,measured
+CHN,China,WPRO,2007,False,measured
+JPN,Japan,WPRO,2007,True,measured
+NZL,New Zealand,WPRO,2007,True,measured
+ZAF,South Africa,AFRO,2007,False,measured
+SWE,Sweden,EURO,2007,True,measured
+THA,Thailand,SEARO,2007,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2007,True,measured
+USA,United States of America,AMRO,2007,True,measured
+AUS,Australia,WPRO,2008,True,measured
+BRA,Brazil,AMRO,2008,False,measured
+CHN,China,WPRO,2008,False,measured
+JPN,Japan,WPRO,2008,True,measured
+NZL,New Zealand,WPRO,2008,True,measured
+ZAF,South Africa,AFRO,2008,False,measured
+SWE,Sweden,EURO,2008,True,measured
+THA,Thailand,SEARO,2008,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2008,True,measured
+USA,United States of America,AMRO,2008,True,measured
+AUS,Australia,WPRO,2009,True,measured
+BRA,Brazil,AMRO,2009,False,measured
+CHN,China,WPRO,2009,False,measured
+JPN,Japan,WPRO,2009,True,measured
+NZL,New Zealand,WPRO,2009,True,measured
+ZAF,South Africa,AFRO,2009,False,measured
+SWE,Sweden,EURO,2009,True,measured
+THA,Thailand,SEARO,2009,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2009,True,measured
+USA,United States of America,AMRO,2009,True,measured
+AUS,Australia,WPRO,2010,True,measured
+BRA,Brazil,AMRO,2010,False,measured
+CHN,China,WPRO,2010,False,measured
+JPN,Japan,WPRO,2010,True,measured
+NZL,New Zealand,WPRO,2010,True,measured
+ZAF,South Africa,AFRO,2010,True,measured
+SWE,Sweden,EURO,2010,True,measured
+THA,Thailand,SEARO,2010,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2010,True,measured
+USA,United States of America,AMRO,2010,True,measured
+AUS,Australia,WPRO,2011,True,measured
+BRA,Brazil,AMRO,2011,False,measured
+CHN,China,WPRO,2011,False,measured
+JPN,Japan,WPRO,2011,True,measured
+NZL,New Zealand,WPRO,2011,True,measured
+ZAF,South Africa,AFRO,2011,True,measured
+SWE,Sweden,EURO,2011,True,measured
+THA,Thailand,SEARO,2011,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2011,True,measured
+USA,United States of America,AMRO,2011,True,measured
+AUS,Australia,WPRO,2012,True,measured
+BRA,Brazil,AMRO,2012,False,measured
+CHN,China,WPRO,2012,True,measured
+JPN,Japan,WPRO,2012,True,measured
+NZL,New Zealand,WPRO,2012,True,measured
+ZAF,South Africa,AFRO,2012,True,measured
+SWE,Sweden,EURO,2012,True,measured
+THA,Thailand,SEARO,2012,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2012,True,measured
+USA,United States of America,AMRO,2012,True,measured
+AUS,Australia,WPRO,2013,True,measured
+BRA,Brazil,AMRO,2013,True,measured
+CHN,China,WPRO,2013,True,measured
+JPN,Japan,WPRO,2013,True,measured
+NZL,New Zealand,WPRO,2013,True,measured
+ZAF,South Africa,AFRO,2013,True,measured
+SWE,Sweden,EURO,2013,True,measured
+THA,Thailand,SEARO,2013,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2013,True,measured
+USA,United States of America,AMRO,2013,True,measured
+AUS,Australia,WPRO,2014,True,measured
+BRA,Brazil,AMRO,2014,True,measured
+CHN,China,WPRO,2014,True,measured
+JPN,Japan,WPRO,2014,True,measured
+NZL,New Zealand,WPRO,2014,True,measured
+ZAF,South Africa,AFRO,2014,True,measured
+SWE,Sweden,EURO,2014,True,measured
+THA,Thailand,SEARO,2014,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2014,True,measured
+USA,United States of America,AMRO,2014,True,measured
+AUS,Australia,WPRO,2015,True,measured
+BRA,Brazil,AMRO,2015,True,measured
+CHN,China,WPRO,2015,True,measured
+JPN,Japan,WPRO,2015,True,measured
+NZL,New Zealand,WPRO,2015,True,measured
+ZAF,South Africa,AFRO,2015,True,measured
+SWE,Sweden,EURO,2015,True,measured
+THA,Thailand,SEARO,2015,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2015,True,measured
+USA,United States of America,AMRO,2015,True,measured
+AUS,Australia,WPRO,2016,True,measured
+BRA,Brazil,AMRO,2016,True,measured
+CHN,China,WPRO,2016,True,measured
+JPN,Japan,WPRO,2016,True,measured
+NZL,New Zealand,WPRO,2016,True,measured
+ZAF,South Africa,AFRO,2016,True,measured
+SWE,Sweden,EURO,2016,True,measured
+THA,Thailand,SEARO,2016,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2016,True,measured
+USA,United States of America,AMRO,2016,True,measured
+AUS,Australia,WPRO,2017,True,measured
+BRA,Brazil,AMRO,2017,True,measured
+CHN,China,WPRO,2017,True,measured
+JPN,Japan,WPRO,2017,True,measured
+NZL,New Zealand,WPRO,2017,True,measured
+ZAF,South Africa,AFRO,2017,True,measured
+SWE,Sweden,EURO,2017,True,measured
+THA,Thailand,SEARO,2017,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2017,True,measured
+USA,United States of America,AMRO,2017,True,measured
+AUS,Australia,WPRO,2018,True,measured
+BRA,Brazil,AMRO,2018,True,measured
+CHN,China,WPRO,2018,True,measured
+JPN,Japan,WPRO,2018,True,measured
+NZL,New Zealand,WPRO,2018,True,measured
+ZAF,South Africa,AFRO,2018,True,measured
+SWE,Sweden,EURO,2018,True,measured
+THA,Thailand,SEARO,2018,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2018,True,measured
+USA,United States of America,AMRO,2018,True,measured
+AUS,Australia,WPRO,2019,True,measured
+BRA,Brazil,AMRO,2019,True,measured
+CHN,China,WPRO,2019,True,measured
+JPN,Japan,WPRO,2019,True,measured
+NZL,New Zealand,WPRO,2019,True,measured
+ZAF,South Africa,AFRO,2019,True,measured
+SWE,Sweden,EURO,2019,True,measured
+THA,Thailand,SEARO,2019,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2019,True,measured
+USA,United States of America,AMRO,2019,True,measured
+AUS,Australia,WPRO,2020,True,measured
+BRA,Brazil,AMRO,2020,True,measured
+CHN,China,WPRO,2020,True,measured
+JPN,Japan,WPRO,2020,True,measured
+NZL,New Zealand,WPRO,2020,True,measured
+ZAF,South Africa,AFRO,2020,True,measured
+SWE,Sweden,EURO,2020,True,measured
+THA,Thailand,SEARO,2020,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2020,True,measured
+USA,United States of America,AMRO,2020,True,measured
+AUS,Australia,WPRO,2021,True,measured
+BRA,Brazil,AMRO,2021,True,measured
+CHN,China,WPRO,2021,True,measured
+JPN,Japan,WPRO,2021,True,measured
+NZL,New Zealand,WPRO,2021,True,measured
+ZAF,South Africa,AFRO,2021,True,measured
+SWE,Sweden,EURO,2021,True,measured
+THA,Thailand,SEARO,2021,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2021,True,measured
+USA,United States of America,AMRO,2021,True,measured
+AUS,Australia,WPRO,2022,True,measured
+BRA,Brazil,AMRO,2022,True,measured
+CHN,China,WPRO,2022,True,measured
+JPN,Japan,WPRO,2022,True,measured
+NZL,New Zealand,WPRO,2022,True,measured
+ZAF,South Africa,AFRO,2022,True,measured
+SWE,Sweden,EURO,2022,True,measured
+THA,Thailand,SEARO,2022,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2022,True,measured
+USA,United States of America,AMRO,2022,True,measured
+AUS,Australia,WPRO,2023,True,measured
+BRA,Brazil,AMRO,2023,True,measured
+CHN,China,WPRO,2023,True,measured
+JPN,Japan,WPRO,2023,True,measured
+NZL,New Zealand,WPRO,2023,True,measured
+ZAF,South Africa,AFRO,2023,True,measured
+SWE,Sweden,EURO,2023,True,measured
+THA,Thailand,SEARO,2023,False,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2023,True,measured
+USA,United States of America,AMRO,2023,True,measured
+AUS,Australia,WPRO,2024,True,measured
+BRA,Brazil,AMRO,2024,True,measured
+CHN,China,WPRO,2024,True,measured
+JPN,Japan,WPRO,2024,True,measured
+NZL,New Zealand,WPRO,2024,True,measured
+ZAF,South Africa,AFRO,2024,True,measured
+SWE,Sweden,EURO,2024,True,measured
+THA,Thailand,SEARO,2024,True,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2024,True,measured
+USA,United States of America,AMRO,2024,True,measured
+AUS,Australia,WPRO,2025,True,measured
+BRA,Brazil,AMRO,2025,True,measured
+CHN,China,WPRO,2025,True,measured
+JPN,Japan,WPRO,2025,True,measured
+NZL,New Zealand,WPRO,2025,True,measured
+ZAF,South Africa,AFRO,2025,True,measured
+SWE,Sweden,EURO,2025,True,measured
+THA,Thailand,SEARO,2025,True,measured
+GBR,United Kingdom of Great Britain and Northern Ireland,EURO,2025,True,measured
+USA,United States of America,AMRO,2025,True,measured

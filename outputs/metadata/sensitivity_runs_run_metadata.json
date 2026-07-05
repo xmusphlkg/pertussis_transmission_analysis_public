@@ -1,0 +1,25 @@
+{
+  "config_hash": "706629619ee12ac3aea55eb14e571e3b693e1448b799f3d64aa6934ed14c167b",
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "generated_at_utc": "2026-07-04T04:47:11.054430+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "b8290d9eee175340761c2a0a402cbfac808de08f",
+    "dirty": true
+  },
+  "row_counts": {
+    "summary": 48,
+    "timeseries": 1042944
+  },
+  "schema_version": 1,
+  "stem": "sensitivity_runs"
+}

@@ -1,0 +1,236 @@
+resistance_weight_lambda,strategy,strategy_label,countries_preferred,median_preference_score,median_infant_case_reduction,median_resistant_infection_reduction
+0.0,resistance_guided_treatment,Resistance-guided management,6,0.6111590671437799,0.6111590671437799,0.6371545530243488
+0.0,targeted_pep_high_risk,Targeted high-risk PEP,1,0.4864109737874125,0.4864109737874125,0.0
+0.0,timeliness_only,Routine timeliness,3,0.31636867534012414,0.31636867534012414,0.022792610111358247
+0.01,resistance_guided_treatment,Resistance-guided management,6,0.6116024307065673,0.6111590671437799,0.6371545530243488
+0.01,targeted_pep_high_risk,Targeted high-risk PEP,1,0.48154686404953834,0.4864109737874125,0.0
+0.01,timeliness_only,Routine timeliness,3,0.3135958579320096,0.31636867534012414,0.022792610111358247
+0.02,resistance_guided_treatment,Resistance-guided management,6,0.6120457942693547,0.6111590671437799,0.6371545530243488
+0.02,targeted_pep_high_risk,Targeted high-risk PEP,1,0.47668275431166424,0.4864109737874125,0.0
+0.02,timeliness_only,Routine timeliness,3,0.3108230405238951,0.31636867534012414,0.022792610111358247
+0.03,resistance_guided_treatment,Resistance-guided management,6,0.612489157832142,0.6111590671437799,0.6371545530243488
+0.03,targeted_pep_high_risk,Targeted high-risk PEP,1,0.4718186445737901,0.4864109737874125,0.0
+0.03,timeliness_only,Routine timeliness,3,0.30805022311578056,0.31636867534012414,0.022792610111358247
+0.04,resistance_guided_treatment,Resistance-guided management,6,0.6129325213949293,0.6111590671437799,0.6371545530243488
+0.04,targeted_pep_high_risk,Targeted high-risk PEP,1,0.466954534835916,0.4864109737874125,0.0
+0.04,timeliness_only,Routine timeliness,3,0.3052774057076661,0.31636867534012414,0.022792610111358247
+0.05,resistance_guided_treatment,Resistance-guided management,6,0.6133758849577167,0.6111590671437799,0.6371545530243488
+0.05,targeted_pep_high_risk,Targeted high-risk PEP,1,0.4620904250980418,0.4864109737874125,0.0
+0.05,timeliness_only,Routine timeliness,3,0.30250458829955157,0.31636867534012414,0.022792610111358247
+0.06,resistance_guided_treatment,Resistance-guided management,6,0.6138192485205041,0.6111590671437799,0.6371545530243488
+0.06,targeted_pep_high_risk,Targeted high-risk PEP,1,0.4572263153601677,0.4864109737874125,0.0
+0.06,timeliness_only,Routine timeliness,3,0.299731770891437,0.31636867534012414,0.022792610111358247
+0.07,resistance_guided_treatment,Resistance-guided management,6,0.6142626120832915,0.6111590671437799,0.6371545530243488
+0.07,targeted_pep_high_risk,Targeted high-risk PEP,1,0.45236220562229357,0.4864109737874125,0.0
+0.07,timeliness_only,Routine timeliness,3,0.2969589534833225,0.31636867534012414,0.022792610111358247
+0.08,resistance_guided_treatment,Resistance-guided management,6,0.6147059756460789,0.6111590671437799,0.6371545530243488
+0.08,targeted_pep_high_risk,Targeted high-risk PEP,1,0.4474980958844195,0.4864109737874125,0.0
+0.08,timeliness_only,Routine timeliness,3,0.294186136075208,0.31636867534012414,0.022792610111358247
+0.09,resistance_guided_treatment,Resistance-guided management,6,0.615149339208866,0.6111590671437799,0.6371545530243488
+0.09,targeted_pep_high_risk,Targeted high-risk PEP,1,0.44263398614654537,0.4864109737874125,0.0
+0.09,timeliness_only,Routine timeliness,3,0.29141331866709347,0.31636867534012414,0.022792610111358247
+0.1,resistance_guided_treatment,Resistance-guided management,6,0.6155927027716535,0.6111590671437799,0.6371545530243488
+0.1,targeted_pep_high_risk,Targeted high-risk PEP,1,0.43776987640867127,0.4864109737874125,0.0
+0.1,timeliness_only,Routine timeliness,3,0.288640501258979,0.31636867534012414,0.022792610111358247
+0.11,resistance_guided_treatment,Resistance-guided management,6,0.6160360663344409,0.6111590671437799,0.6371545530243488
+0.11,targeted_pep_high_risk,Targeted high-risk PEP,1,0.4329057666707971,0.4864109737874125,0.0
+0.11,timeliness_only,Routine timeliness,3,0.2858676838508645,0.31636867534012414,0.022792610111358247
+0.12,resistance_guided_treatment,Resistance-guided management,6,0.6164794298972283,0.6111590671437799,0.6371545530243488
+0.12,targeted_pep_high_risk,Targeted high-risk PEP,1,0.428041656932923,0.4864109737874125,0.0
+0.12,timeliness_only,Routine timeliness,3,0.28309486644274995,0.31636867534012414,0.022792610111358247
+0.13,resistance_guided_treatment,Resistance-guided management,6,0.6169227934600157,0.6111590671437799,0.6371545530243488
+0.13,targeted_pep_high_risk,Targeted high-risk PEP,1,0.42317754719504885,0.4864109737874125,0.0
+0.13,timeliness_only,Routine timeliness,3,0.2803220490346354,0.31636867534012414,0.022792610111358247
+0.14,resistance_guided_treatment,Resistance-guided management,6,0.6173661570228031,0.6111590671437799,0.6371545530243488
+0.14,targeted_pep_high_risk,Targeted high-risk PEP,1,0.41831343745717475,0.4864109737874125,0.0
+0.14,timeliness_only,Routine timeliness,3,0.2775492316265209,0.31636867534012414,0.022792610111358247
+0.15,resistance_guided_treatment,Resistance-guided management,6,0.6178095205855902,0.6111590671437799,0.6371545530243488
+0.15,targeted_pep_high_risk,Targeted high-risk PEP,1,0.4134493277193006,0.4864109737874125,0.0
+0.15,timeliness_only,Routine timeliness,3,0.27477641421840643,0.31636867534012414,0.022792610111358247
+0.16,resistance_guided_treatment,Resistance-guided management,6,0.6182528841483776,0.6111590671437799,0.6371545530243488
+0.16,targeted_pep_high_risk,Targeted high-risk PEP,1,0.4085852179814265,0.4864109737874125,0.0
+0.16,timeliness_only,Routine timeliness,3,0.27200359681029185,0.31636867534012414,0.022792610111358247
+0.17,resistance_guided_treatment,Resistance-guided management,6,0.618696247711165,0.6111590671437799,0.6371545530243488
+0.17,targeted_pep_high_risk,Targeted high-risk PEP,1,0.40372110824355234,0.4864109737874125,0.0
+0.17,timeliness_only,Routine timeliness,3,0.2692307794021773,0.31636867534012414,0.022792610111358247
+0.18,resistance_guided_treatment,Resistance-guided management,6,0.6191396112739525,0.6111590671437799,0.6371545530243488
+0.18,targeted_pep_high_risk,Targeted high-risk PEP,1,0.3988569985056783,0.4864109737874125,0.0
+0.18,timeliness_only,Routine timeliness,3,0.26645796199406285,0.31636867534012414,0.022792610111358247
+0.19,resistance_guided_treatment,Resistance-guided management,6,0.6195829748367399,0.6111590671437799,0.6371545530243488
+0.19,targeted_pep_high_risk,Targeted high-risk PEP,1,0.39399288876780414,0.4864109737874125,0.0
+0.19,timeliness_only,Routine timeliness,3,0.26368514458594833,0.31636867534012414,0.022792610111358247
+0.2,resistance_guided_treatment,Resistance-guided management,6,0.6200263383995273,0.6111590671437799,0.6371545530243488
+0.2,targeted_pep_high_risk,Targeted high-risk PEP,1,0.38912877902993004,0.4864109737874125,0.0
+0.2,timeliness_only,Routine timeliness,3,0.26091232717783386,0.31636867534012414,0.022792610111358247
+0.21,resistance_guided_treatment,Resistance-guided management,6,0.6204697019623147,0.6111590671437799,0.6371545530243488
+0.21,targeted_pep_high_risk,Targeted high-risk PEP,1,0.3842646692920559,0.4864109737874125,0.0
+0.21,timeliness_only,Routine timeliness,3,0.2581395097697193,0.31636867534012414,0.022792610111358247
+0.22,resistance_guided_treatment,Resistance-guided management,6,0.6209130655251018,0.6111590671437799,0.6371545530243488
+0.22,targeted_pep_high_risk,Targeted high-risk PEP,1,0.3794005595541818,0.4864109737874125,0.0
+0.22,timeliness_only,Routine timeliness,3,0.2553666923616048,0.31636867534012414,0.022792610111358247
+0.23,resistance_guided_treatment,Resistance-guided management,6,0.6213564290878892,0.6111590671437799,0.6371545530243488
+0.23,targeted_pep_high_risk,Targeted high-risk PEP,1,0.3745364498163076,0.4864109737874125,0.0
+0.23,timeliness_only,Routine timeliness,3,0.2525938749534903,0.31636867534012414,0.022792610111358247
+0.24,resistance_guided_treatment,Resistance-guided management,6,0.6216343242284699,0.6111590671437799,0.6371545530243488
+0.24,targeted_pep_high_risk,Targeted high-risk PEP,1,0.3696723400784335,0.4864109737874125,0.0
+0.24,timeliness_only,Routine timeliness,3,0.24982105754537576,0.31636867534012414,0.022792610111358247
+0.25,resistance_guided_treatment,Resistance-guided management,8,0.568908494545277,0.562538433171355,0.5880186786670429
+0.25,targeted_pep_high_risk,Targeted high-risk PEP,1,0.36480823034055937,0.4864109737874125,0.0
+0.25,timeliness_only,Routine timeliness,1,0.2149228006708864,0.2872850622227273,-0.002163983984636353
+0.26,resistance_guided_treatment,Resistance-guided management,8,0.5691632970002338,0.562538433171355,0.5880186786670429
+0.26,targeted_pep_high_risk,Targeted high-risk PEP,1,0.3599441206026852,0.4864109737874125,0.0
+0.26,timeliness_only,Routine timeliness,1,0.21202831020881274,0.2872850622227273,-0.002163983984636353
+0.27,resistance_guided_treatment,Resistance-guided management,8,0.5694180994551907,0.562538433171355,0.5880186786670429
+0.27,targeted_pep_high_risk,Targeted high-risk PEP,1,0.3550800108648111,0.4864109737874125,0.0
+0.27,timeliness_only,Routine timeliness,1,0.2091338197467391,0.2872850622227273,-0.002163983984636353
+0.28,resistance_guided_treatment,Resistance-guided management,8,0.5696729019101476,0.562538433171355,0.5880186786670429
+0.28,targeted_pep_high_risk,Targeted high-risk PEP,1,0.35021590112693696,0.4864109737874125,0.0
+0.28,timeliness_only,Routine timeliness,1,0.20623932928466546,0.2872850622227273,-0.002163983984636353
+0.29,resistance_guided_treatment,Resistance-guided management,8,0.5699277043651045,0.562538433171355,0.5880186786670429
+0.29,targeted_pep_high_risk,Targeted high-risk PEP,1,0.34535179138906286,0.4864109737874125,0.0
+0.29,timeliness_only,Routine timeliness,1,0.20334483882259186,0.2872850622227273,-0.002163983984636353
+0.3,resistance_guided_treatment,Resistance-guided management,8,0.5701825068200614,0.562538433171355,0.5880186786670429
+0.3,targeted_pep_high_risk,Targeted high-risk PEP,1,0.3404876816511887,0.4864109737874125,0.0
+0.3,timeliness_only,Routine timeliness,1,0.2004503483605182,0.2872850622227273,-0.002163983984636353
+0.31,resistance_guided_treatment,Resistance-guided management,8,0.5704373092750182,0.562538433171355,0.5880186786670429
+0.31,targeted_pep_high_risk,Targeted high-risk PEP,1,0.3356235719133146,0.4864109737874125,0.0
+0.31,timeliness_only,Routine timeliness,1,0.19755585789844457,0.2872850622227273,-0.002163983984636353
+0.32,resistance_guided_treatment,Resistance-guided management,8,0.5706921117299751,0.562538433171355,0.5880186786670429
+0.32,targeted_pep_high_risk,Targeted high-risk PEP,1,0.33075946217544044,0.4864109737874125,0.0
+0.32,timeliness_only,Routine timeliness,1,0.1946613674363709,0.2872850622227273,-0.002163983984636353
+0.33,resistance_guided_treatment,Resistance-guided management,9,0.5258930811225475,0.5192841598124808,0.5393111940854105
+0.33,targeted_pep_high_risk,Targeted high-risk PEP,1,0.32589535243756634,0.4864109737874125,0.0
+0.34,resistance_guided_treatment,Resistance-guided management,9,0.5260933514652769,0.5192841598124808,0.5393111940854105
+0.34,targeted_pep_high_risk,Targeted high-risk PEP,1,0.3210312426996922,0.4864109737874125,0.0
+0.35,resistance_guided_treatment,Resistance-guided management,9,0.5262936218080062,0.5192841598124808,0.5393111940854105
+0.35,targeted_pep_high_risk,Targeted high-risk PEP,1,0.31616713296181814,0.4864109737874125,0.0
+0.36,resistance_guided_treatment,Resistance-guided management,9,0.5264938921507355,0.5192841598124808,0.5393111940854105
+0.36,targeted_pep_high_risk,Targeted high-risk PEP,1,0.311303023223944,0.4864109737874125,0.0
+0.37,resistance_guided_treatment,Resistance-guided management,9,0.5266941624934648,0.5192841598124808,0.5393111940854105
+0.37,targeted_pep_high_risk,Targeted high-risk PEP,1,0.3064389134860699,0.4864109737874125,0.0
+0.38,resistance_guided_treatment,Resistance-guided management,9,0.5268944328361941,0.5192841598124808,0.5393111940854105
+0.38,targeted_pep_high_risk,Targeted high-risk PEP,1,0.30157480374819573,0.4864109737874125,0.0
+0.39,resistance_guided_treatment,Resistance-guided management,9,0.5270947031789234,0.5192841598124808,0.5393111940854105
+0.39,targeted_pep_high_risk,Targeted high-risk PEP,1,0.29671069401032163,0.4864109737874125,0.0
+0.4,resistance_guided_treatment,Resistance-guided management,9,0.5272949735216527,0.5192841598124808,0.5393111940854105
+0.4,targeted_pep_high_risk,Targeted high-risk PEP,1,0.2918465842724475,0.4864109737874125,0.0
+0.41,resistance_guided_treatment,Resistance-guided management,9,0.527495243864382,0.5192841598124808,0.5393111940854105
+0.41,targeted_pep_high_risk,Targeted high-risk PEP,1,0.28698247453457343,0.4864109737874125,0.0
+0.42,resistance_guided_treatment,Resistance-guided management,9,0.5276955142071112,0.5192841598124808,0.5393111940854105
+0.42,targeted_pep_high_risk,Targeted high-risk PEP,1,0.2821183647966993,0.4864109737874125,0.0
+0.43,resistance_guided_treatment,Resistance-guided management,9,0.5278957845498407,0.5192841598124808,0.5393111940854105
+0.43,targeted_pep_high_risk,Targeted high-risk PEP,1,0.27725425505882517,0.4864109737874125,0.0
+0.44,resistance_guided_treatment,Resistance-guided management,9,0.5280960548925699,0.5192841598124808,0.5393111940854105
+0.44,targeted_pep_high_risk,Targeted high-risk PEP,1,0.272390145320951,0.4864109737874125,0.0
+0.45,resistance_guided_treatment,Resistance-guided management,9,0.5282963252352991,0.5192841598124808,0.5393111940854105
+0.45,targeted_pep_high_risk,Targeted high-risk PEP,1,0.2675260355830769,0.4864109737874125,0.0
+0.46,resistance_guided_treatment,Resistance-guided management,9,0.5284965955780285,0.5192841598124808,0.5393111940854105
+0.46,targeted_pep_high_risk,Targeted high-risk PEP,1,0.26266192584520276,0.4864109737874125,0.0
+0.47,resistance_guided_treatment,Resistance-guided management,9,0.5286968659207578,0.5192841598124808,0.5393111940854105
+0.47,targeted_pep_high_risk,Targeted high-risk PEP,1,0.25779781610732866,0.4864109737874125,0.0
+0.48,resistance_guided_treatment,Resistance-guided management,9,0.528897136263487,0.5192841598124808,0.5393111940854105
+0.48,targeted_pep_high_risk,Targeted high-risk PEP,1,0.2529337063694545,0.4864109737874125,0.0
+0.49,resistance_guided_treatment,Resistance-guided management,9,0.5290974066062164,0.5192841598124808,0.5393111940854105
+0.49,targeted_pep_high_risk,Targeted high-risk PEP,1,0.24806959663158037,0.4864109737874125,0.0
+0.5,resistance_guided_treatment,Resistance-guided management,9,0.5292976769489457,0.5192841598124808,0.5393111940854105
+0.5,targeted_pep_high_risk,Targeted high-risk PEP,1,0.24320548689370625,0.4864109737874125,0.0
+0.51,resistance_guided_treatment,Resistance-guided management,9,0.529497947291675,0.5192841598124808,0.5393111940854105
+0.51,targeted_pep_high_risk,Targeted high-risk PEP,1,0.23834137715583212,0.4864109737874125,0.0
+0.52,resistance_guided_treatment,Resistance-guided management,9,0.5296982176344043,0.5192841598124808,0.5393111940854105
+0.52,targeted_pep_high_risk,Targeted high-risk PEP,1,0.233477267417958,0.4864109737874125,0.0
+0.53,resistance_guided_treatment,Resistance-guided management,9,0.5298984879771336,0.5192841598124808,0.5393111940854105
+0.53,targeted_pep_high_risk,Targeted high-risk PEP,1,0.22861315768008386,0.4864109737874125,0.0
+0.54,resistance_guided_treatment,Resistance-guided management,9,0.5300987583198629,0.5192841598124808,0.5393111940854105
+0.54,targeted_pep_high_risk,Targeted high-risk PEP,1,0.22374904794220973,0.4864109737874125,0.0
+0.55,resistance_guided_treatment,Resistance-guided management,9,0.5302990286625922,0.5192841598124808,0.5393111940854105
+0.55,targeted_pep_high_risk,Targeted high-risk PEP,1,0.2188849382043356,0.4864109737874125,0.0
+0.56,resistance_guided_treatment,Resistance-guided management,9,0.5304992990053214,0.5192841598124808,0.5393111940854105
+0.56,targeted_pep_high_risk,Targeted high-risk PEP,1,0.21402082846646148,0.4864109737874125,0.0
+0.57,resistance_guided_treatment,Resistance-guided management,9,0.5306995693480507,0.5192841598124808,0.5393111940854105
+0.57,targeted_pep_high_risk,Targeted high-risk PEP,1,0.2091567187285874,0.4864109737874125,0.0
+0.58,resistance_guided_treatment,Resistance-guided management,9,0.53089983969078,0.5192841598124808,0.5393111940854105
+0.58,targeted_pep_high_risk,Targeted high-risk PEP,1,0.20429260899071328,0.4864109737874125,0.0
+0.59,resistance_guided_treatment,Resistance-guided management,9,0.5311001100335093,0.5192841598124808,0.5393111940854105
+0.59,targeted_pep_high_risk,Targeted high-risk PEP,1,0.19942849925283915,0.4864109737874125,0.0
+0.6,resistance_guided_treatment,Resistance-guided management,9,0.5313003803762386,0.5192841598124808,0.5393111940854105
+0.6,targeted_pep_high_risk,Targeted high-risk PEP,1,0.19456438951496502,0.4864109737874125,0.0
+0.61,resistance_guided_treatment,Resistance-guided management,9,0.5315006507189679,0.5192841598124808,0.5393111940854105
+0.61,targeted_pep_high_risk,Targeted high-risk PEP,1,0.1897002797770909,0.4864109737874125,0.0
+0.62,resistance_guided_treatment,Resistance-guided management,9,0.5317009210616972,0.5192841598124808,0.5393111940854105
+0.62,targeted_pep_high_risk,Targeted high-risk PEP,1,0.18483617003921676,0.4864109737874125,0.0
+0.63,resistance_guided_treatment,Resistance-guided management,9,0.5319011914044265,0.5192841598124808,0.5393111940854105
+0.63,targeted_pep_high_risk,Targeted high-risk PEP,1,0.1799720603013426,0.4864109737874125,0.0
+0.64,resistance_guided_treatment,Resistance-guided management,9,0.5321014617471558,0.5192841598124808,0.5393111940854105
+0.64,targeted_pep_high_risk,Targeted high-risk PEP,1,0.17510795056346848,0.4864109737874125,0.0
+0.65,resistance_guided_treatment,Resistance-guided management,9,0.5323017320898851,0.5192841598124808,0.5393111940854105
+0.65,targeted_pep_high_risk,Targeted high-risk PEP,1,0.17024384082559435,0.4864109737874125,0.0
+0.66,resistance_guided_treatment,Resistance-guided management,9,0.5325020024326144,0.5192841598124808,0.5393111940854105
+0.66,targeted_pep_high_risk,Targeted high-risk PEP,1,0.16537973108772022,0.4864109737874125,0.0
+0.67,resistance_guided_treatment,Resistance-guided management,9,0.5327022727753437,0.5192841598124808,0.5393111940854105
+0.67,targeted_pep_high_risk,Targeted high-risk PEP,1,0.1605156213498461,0.4864109737874125,0.0
+0.68,resistance_guided_treatment,Resistance-guided management,9,0.532902543118073,0.5192841598124808,0.5393111940854105
+0.68,targeted_pep_high_risk,Targeted high-risk PEP,1,0.15565151161197197,0.4864109737874125,0.0
+0.69,resistance_guided_treatment,Resistance-guided management,9,0.5331028134608022,0.5192841598124808,0.5393111940854105
+0.69,targeted_pep_high_risk,Targeted high-risk PEP,1,0.1507874018740979,0.4864109737874125,0.0
+0.7,resistance_guided_treatment,Resistance-guided management,9,0.5333030838035315,0.5192841598124808,0.5393111940854105
+0.7,targeted_pep_high_risk,Targeted high-risk PEP,1,0.14592329213622376,0.4864109737874125,0.0
+0.71,resistance_guided_treatment,Resistance-guided management,9,0.5335033541462608,0.5192841598124808,0.5393111940854105
+0.71,targeted_pep_high_risk,Targeted high-risk PEP,1,0.14105918239834964,0.4864109737874125,0.0
+0.72,resistance_guided_treatment,Resistance-guided management,9,0.5337036244889902,0.5192841598124808,0.5393111940854105
+0.72,targeted_pep_high_risk,Targeted high-risk PEP,1,0.1361950726604755,0.4864109737874125,0.0
+0.73,resistance_guided_treatment,Resistance-guided management,9,0.5339038948317194,0.5192841598124808,0.5393111940854105
+0.73,targeted_pep_high_risk,Targeted high-risk PEP,1,0.13133096292260138,0.4864109737874125,0.0
+0.74,resistance_guided_treatment,Resistance-guided management,9,0.5341041651744487,0.5192841598124808,0.5393111940854105
+0.74,targeted_pep_high_risk,Targeted high-risk PEP,1,0.12646685318472725,0.4864109737874125,0.0
+0.75,resistance_guided_treatment,Resistance-guided management,9,0.5343044355171781,0.5192841598124808,0.5393111940854105
+0.75,targeted_pep_high_risk,Targeted high-risk PEP,1,0.12160274344685312,0.4864109737874125,0.0
+0.76,resistance_guided_treatment,Resistance-guided management,9,0.5345047058599074,0.5192841598124808,0.5393111940854105
+0.76,targeted_pep_high_risk,Targeted high-risk PEP,1,0.116738633708979,0.4864109737874125,0.0
+0.77,resistance_guided_treatment,Resistance-guided management,9,0.5347049762026367,0.5192841598124808,0.5393111940854105
+0.77,targeted_pep_high_risk,Targeted high-risk PEP,1,0.11187452397110487,0.4864109737874125,0.0
+0.78,resistance_guided_treatment,Resistance-guided management,9,0.534905246545366,0.5192841598124808,0.5393111940854105
+0.78,targeted_pep_high_risk,Targeted high-risk PEP,1,0.10701041423323074,0.4864109737874125,0.0
+0.79,resistance_guided_treatment,Resistance-guided management,9,0.5351055168880953,0.5192841598124808,0.5393111940854105
+0.79,targeted_pep_high_risk,Targeted high-risk PEP,1,0.10214630449535661,0.4864109737874125,0.0
+0.8,resistance_guided_treatment,Resistance-guided management,9,0.5353057872308246,0.5192841598124808,0.5393111940854105
+0.8,targeted_pep_high_risk,Targeted high-risk PEP,1,0.09728219475748248,0.4864109737874125,0.0
+0.81,resistance_guided_treatment,Resistance-guided management,9,0.5355060575735539,0.5192841598124808,0.5393111940854105
+0.81,targeted_pep_high_risk,Targeted high-risk PEP,1,0.09241808501960835,0.4864109737874125,0.0
+0.82,resistance_guided_treatment,Resistance-guided management,9,0.5357063279162831,0.5192841598124808,0.5393111940854105
+0.82,targeted_pep_high_risk,Targeted high-risk PEP,1,0.08755397528173427,0.4864109737874125,0.0
+0.83,resistance_guided_treatment,Resistance-guided management,9,0.5359065982590124,0.5192841598124808,0.5393111940854105
+0.83,targeted_pep_high_risk,Targeted high-risk PEP,1,0.08268986554386014,0.4864109737874125,0.0
+0.84,resistance_guided_treatment,Resistance-guided management,9,0.5361068686017417,0.5192841598124808,0.5393111940854105
+0.84,targeted_pep_high_risk,Targeted high-risk PEP,1,0.07782575580598601,0.4864109737874125,0.0
+0.85,resistance_guided_treatment,Resistance-guided management,9,0.5363071389444711,0.5192841598124808,0.5393111940854105
+0.85,targeted_pep_high_risk,Targeted high-risk PEP,1,0.07296164606811188,0.4864109737874125,0.0
+0.86,resistance_guided_treatment,Resistance-guided management,9,0.5365074092872003,0.5192841598124808,0.5393111940854105
+0.86,targeted_pep_high_risk,Targeted high-risk PEP,1,0.06809753633023775,0.4864109737874125,0.0
+0.87,resistance_guided_treatment,Resistance-guided management,9,0.5367076796299296,0.5192841598124808,0.5393111940854105
+0.87,targeted_pep_high_risk,Targeted high-risk PEP,1,0.06323342659236363,0.4864109737874125,0.0
+0.88,resistance_guided_treatment,Resistance-guided management,9,0.5369079499726589,0.5192841598124808,0.5393111940854105
+0.88,targeted_pep_high_risk,Targeted high-risk PEP,1,0.0583693168544895,0.4864109737874125,0.0
+0.89,resistance_guided_treatment,Resistance-guided management,9,0.5371082203153883,0.5192841598124808,0.5393111940854105
+0.89,targeted_pep_high_risk,Targeted high-risk PEP,1,0.05350520711661537,0.4864109737874125,0.0
+0.9,resistance_guided_treatment,Resistance-guided management,9,0.5373084906581175,0.5192841598124808,0.5393111940854105
+0.9,targeted_pep_high_risk,Targeted high-risk PEP,1,0.04864109737874124,0.4864109737874125,0.0
+0.91,resistance_guided_treatment,Resistance-guided management,9,0.5375087610008468,0.5192841598124808,0.5393111940854105
+0.91,targeted_pep_high_risk,Targeted high-risk PEP,1,0.04377698764086711,0.4864109737874125,0.0
+0.92,resistance_guided_treatment,Resistance-guided management,9,0.5377090313435762,0.5192841598124808,0.5393111940854105
+0.92,targeted_pep_high_risk,Targeted high-risk PEP,1,0.03891287790299298,0.4864109737874125,0.0
+0.93,resistance_guided_treatment,Resistance-guided management,9,0.5379093016863054,0.5192841598124808,0.5393111940854105
+0.93,targeted_pep_high_risk,Targeted high-risk PEP,1,0.03404876816511885,0.4864109737874125,0.0
+0.94,resistance_guided_treatment,Resistance-guided management,9,0.5381095720290348,0.5192841598124808,0.5393111940854105
+0.94,targeted_pep_high_risk,Targeted high-risk PEP,1,0.029184658427244776,0.4864109737874125,0.0
+0.95,resistance_guided_treatment,Resistance-guided management,9,0.538309842371764,0.5192841598124808,0.5393111940854105
+0.95,targeted_pep_high_risk,Targeted high-risk PEP,1,0.024320548689370645,0.4864109737874125,0.0
+0.96,resistance_guided_treatment,Resistance-guided management,9,0.5385101127144932,0.5192841598124808,0.5393111940854105
+0.96,targeted_pep_high_risk,Targeted high-risk PEP,1,0.019456438951496517,0.4864109737874125,0.0
+0.97,resistance_guided_treatment,Resistance-guided management,9,0.5387103830572226,0.5192841598124808,0.5393111940854105
+0.97,targeted_pep_high_risk,Targeted high-risk PEP,1,0.014592329213622388,0.4864109737874125,0.0
+0.98,resistance_guided_treatment,Resistance-guided management,9,0.5389106533999519,0.5192841598124808,0.5393111940854105
+0.98,targeted_pep_high_risk,Targeted high-risk PEP,1,0.009728219475748258,0.4864109737874125,0.0
+0.99,resistance_guided_treatment,Resistance-guided management,9,0.5391109237426812,0.5192841598124808,0.5393111940854105
+0.99,targeted_pep_high_risk,Targeted high-risk PEP,1,0.004864109737874129,0.4864109737874125,0.0
+1.0,resistance_guided_treatment,Resistance-guided management,9,0.5393111940854105,0.5192841598124808,0.5393111940854105
+1.0,targeted_pep_high_risk,Targeted high-risk PEP,1,0.0,0.4864109737874125,0.0

@@ -1,0 +1,11 @@
+country,preferred_strategy,preferred_strategy_label,preferred_primary_cases_per_100k,preferred_primary_case_reduction
+Australia,timeliness_only,Routine timeliness,921.6516743818108,0.1402013334381662
+Brazil,maternal_immunization,Infant-exposure reduction,296.54997247161845,0.16775941307521525
+China,maternal_immunization,Infant-exposure reduction,86.61407796372208,0.4389743999913137
+Japan,maternal_immunization,Infant-exposure reduction,275.9268561605266,0.19341905731435904
+New_Zealand,timeliness_only,Routine timeliness,809.6190137832613,0.10351854872877651
+South_Africa,timeliness_only,Routine timeliness,289.5069239795293,0.16121466574286814
+Sweden,timeliness_only,Routine timeliness,404.48304499639033,0.13801268978111714
+Thailand,maternal_immunization,Infant-exposure reduction,208.55216897971593,0.3133694151375499
+United_Kingdom,timeliness_only,Routine timeliness,821.8038610707852,0.1486502832626595
+United_States,targeted_pep_high_risk,Targeted high-risk PEP,29.069105012068828,0.49254564545052215

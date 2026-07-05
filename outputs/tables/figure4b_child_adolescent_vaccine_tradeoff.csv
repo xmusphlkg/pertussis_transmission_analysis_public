@@ -1,0 +1,61 @@
+country,strategy,scenario_label,relative_reduction_total_infections,primary_case_reduction
+Australia,next_generation_vaccine,"High-blocking
+vaccine target",0.2776039591389924,0.4546251746088638
+Australia,transmission_blocking_vaccine,"Transmission-
+blocking target",0.21106467775790871,0.2981985941531039
+Australia,combined_strategy,"Combined
+future stress test",0.34864846537255767,0.4740596418251424
+Brazil,next_generation_vaccine,"High-blocking
+vaccine target",0.9640233260111328,0.9742753084682207
+Brazil,transmission_blocking_vaccine,"Transmission-
+blocking target",0.6769661413043379,0.7207481291817717
+Brazil,combined_strategy,"Combined
+future stress test",0.9932969182689754,0.9945503511839368
+China,next_generation_vaccine,"High-blocking
+vaccine target",0.9927672495326524,0.9945411329480758
+China,transmission_blocking_vaccine,"Transmission-
+blocking target",0.9372997988781622,0.9442323382422184
+China,combined_strategy,"Combined
+future stress test",0.996281647008341,0.996953573209151
+Japan,next_generation_vaccine,"High-blocking
+vaccine target",0.5587507780167429,0.6784890159247754
+Japan,transmission_blocking_vaccine,"Transmission-
+blocking target",0.31271121756011866,0.3891905100953791
+Japan,combined_strategy,"Combined
+future stress test",0.9392756376692916,0.955699782469108
+New_Zealand,next_generation_vaccine,"High-blocking
+vaccine target",0.21015017074997044,0.4155172776851046
+New_Zealand,transmission_blocking_vaccine,"Transmission-
+blocking target",0.14784554117126336,0.2471534520225832
+New_Zealand,combined_strategy,"Combined
+future stress test",0.4887783528927705,0.5891438801845936
+South_Africa,next_generation_vaccine,"High-blocking
+vaccine target",0.9951248616381876,0.9957593608243532
+South_Africa,transmission_blocking_vaccine,"Transmission-
+blocking target",0.7346212009709905,0.7521520777479055
+South_Africa,combined_strategy,"Combined
+future stress test",0.9957219928390376,0.9963079368385002
+Sweden,next_generation_vaccine,"High-blocking
+vaccine target",0.984528557268903,0.9907224445325752
+Sweden,transmission_blocking_vaccine,"Transmission-
+blocking target",0.6682376582549834,0.7365379312209892
+Sweden,combined_strategy,"Combined
+future stress test",0.9630463217976158,0.972359730694664
+Thailand,next_generation_vaccine,"High-blocking
+vaccine target",0.9032494691095097,0.931169523825778
+Thailand,transmission_blocking_vaccine,"Transmission-
+blocking target",0.6478511305418861,0.694619480449357
+Thailand,combined_strategy,"Combined
+future stress test",0.991898811682262,0.993416852066225
+United_Kingdom,next_generation_vaccine,"High-blocking
+vaccine target",0.3874867436813778,0.5241806704064828
+United_Kingdom,transmission_blocking_vaccine,"Transmission-
+blocking target",0.25087250237387515,0.33475732404556646
+United_Kingdom,combined_strategy,"Combined
+future stress test",0.5749072613026398,0.6603212073394578
+United_States,next_generation_vaccine,"High-blocking
+vaccine target",0.993252727197284,0.994832365290066
+United_States,transmission_blocking_vaccine,"Transmission-
+blocking target",0.9403041105959192,0.9460768142891072
+United_States,combined_strategy,"Combined
+future stress test",0.983724551712951,0.9849022860260308

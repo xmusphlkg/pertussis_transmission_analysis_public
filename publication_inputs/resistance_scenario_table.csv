@@ -1,0 +1,13 @@
+scenario,target_prevalence_at_analysis_start,initial_resistance_prevalence_deprecated,importation_fraction,prevalence_anchor_rate_per_year,anchor_during_dynamics,uses_country_resistance_timeline,fitness_R,treatment_effect_resistant,PEP_effectiveness_resistant,description
+country_timeline,0.3,0.3,0.3,2.0,False,True,1.0,0.1,0.1,"Country-specific macrolide resistance prevalence from data/raw/country_resistance_timeline.csv. The prevalence anchors are data-derived. Fitness_R = 1.0 is an epidemiologically motivated neutral baseline, not a directly measured strain-fitness estimate: China MRBP rose from 36% (2016) to near-fixation (>99%, 2024), and related MRBP lineages were reported internationally without clear transmission disadvantage. The fitness_grid and fitness_sensitivity scenarios explore the full range [0.70-1.25].
+"
+low,0.05,0.05,0.05,2.0,False,False,1.0,0.1,0.1,Low macrolide resistance prevalence with fitness-neutral strain.
+moderate,0.3,0.3,0.3,2.0,False,False,1.0,0.1,0.1,Moderate macrolide resistance prevalence with fitness-neutral strain.
+high,0.7,0.7,0.7,2.0,False,False,1.0,0.1,0.1,High macrolide resistance prevalence with fitness-neutral strain.
+very_high,0.95,0.95,0.95,2.0,False,False,1.0,0.1,0.1,Very high macrolide resistance prevalence with fitness-neutral strain.
+country_timeline_fitness_cost,0.3,0.3,0.3,2.0,False,True,0.85,0.1,0.1,"Country-timeline resistance with moderate fitness cost (15%). Retained as a sensitivity scenario representing the traditional assumption that ribosomal mutations impose a growth penalty. Recent rapid expansion makes a large persistent cost less plausible, but this scenario is included to bound the optimistic end of resistance projections.
+"
+country_timeline_fitness_advantage,0.3,0.3,0.3,2.0,False,True,1.1,0.1,0.1,"Country-timeline resistance with fitness advantage (10%). The MT28-ptxP3 MRBP clone has been reported with resistance and vaccine-antigen lineages in rapidly expanding outbreaks. This scenario tests whether a modest fitness advantage materially changes long-term resistance burden projections; the 10% value is a stress-test assumption, not a measured relative-fitness estimate.
+"
+high_fitness_advantage,0.7,0.7,0.7,2.0,False,False,1.15,0.1,0.1,"High resistance prevalence with fitness advantage (15%). Worst-case scenario combining high initial resistance with a fitness-advantaged strain, representing the upper bound of resistant infection burden. Motivated by genomic reports of co-selection between resistance and vaccine-antigen lineages; retained as a stress-test assumption rather than a directly estimated fitness value.
+"

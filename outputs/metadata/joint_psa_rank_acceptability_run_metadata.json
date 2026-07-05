@@ -1,0 +1,93 @@
+{
+  "config_hash": "706629619ee12ac3aea55eb14e571e3b693e1448b799f3d64aa6934ed14c167b",
+  "countries": [
+    "Australia",
+    "China",
+    "United_Kingdom",
+    "Japan",
+    "New_Zealand",
+    "Sweden",
+    "United_States",
+    "Brazil",
+    "Thailand",
+    "South_Africa"
+  ],
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "generated_at_utc": "2026-07-04T05:48:31.555683+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "b8290d9eee175340761c2a0a402cbfac808de08f",
+    "dirty": true
+  },
+  "keep_timeseries": false,
+  "parameter_ranges": {
+    "PEP_coverage_multiplier": [
+      0.5,
+      1.5
+    ],
+    "VE_inf_baseline": [
+      0.05,
+      0.6
+    ],
+    "fitness_R": [
+      0.7,
+      1.25
+    ],
+    "infant_contact_multiplier": [
+      0.75,
+      1.5
+    ],
+    "infectious_duration_asymptomatic": [
+      7.0,
+      21.0
+    ],
+    "relative_infectiousness_asymptomatic": [
+      0.25,
+      0.85
+    ],
+    "reporting_multiplier": [
+      0.5,
+      1.5
+    ],
+    "resistance_management_uptake": [
+      0.4,
+      1.0
+    ]
+  },
+  "resume": true,
+  "row_counts": {
+    "parameter_samples": 128,
+    "rank_acceptability": 1584,
+    "rank_samples": 15360,
+    "run_summary": 132
+  },
+  "sample_batch_size": 8,
+  "sample_seed": 20260521,
+  "sample_size_requested": 128,
+  "schema_version": 1,
+  "smoke_runtime": false,
+  "stem": "joint_psa_rank_acceptability",
+  "strategies": [
+    "current",
+    "higher_child_coverage",
+    "timeliness_only",
+    "adolescent_booster",
+    "pregnancy_tdap_scaleup",
+    "cocooning_adjunct",
+    "maternal_immunization",
+    "targeted_pep_high_risk",
+    "resistance_guided_treatment",
+    "transmission_blocking_vaccine",
+    "next_generation_vaccine",
+    "combined_strategy"
+  ]
+}

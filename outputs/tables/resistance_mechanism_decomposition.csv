@@ -1,0 +1,7 @@
+scenario,importation,treatment_differential,pep_differential,fitness_R,median_end_resistant_fraction,iqr_end_resistant_fraction,median_infant_cases_per_100k,median_resistant_infections_per_100k,interpretation
+baseline_full_mechanism,yes,yes,yes,1.0,0.9989754903230673,0.9973-0.9996,633.2591707745669,1309.615208991415,"Full baseline mechanism: country anchor, resistant importation, strain-specific treatment and PEP, neutral fitness."
+no_resistant_importation,no,yes,yes,1.0,0.9980689640959777,0.9966-0.9995,629.7398718770307,1310.4021496751088,Tests dependence on ongoing resistant-strain importation after the analysis-start anchor.
+equal_treatment_effect,yes,no,yes,1.0,0.9984661566689162,0.9971-0.9996,618.5134191373108,1285.6638895635883,Tests treatment-mediated selection by making resistant treatment effects equal to sensitive-strain effects.
+equal_pep_effect,yes,yes,no,1.0,0.04918783499738946,0.03569-0.1746,213.04547983884237,20.928340536551246,Tests PEP-mediated selection by making resistant PEP effectiveness equal to sensitive-strain PEP effectiveness.
+no_treatment_or_pep_differential,yes,no,no,1.0,0.010000000000000016,0.01-0.03725,210.06929203506144,7.5537489640937885,Tests neutral strain competition under importation when treatment and PEP do not favor resistant strains.
+fitness_cost,yes,yes,yes,0.85,0.015536318383398938,0.0006141-0.7576,206.59245757662535,7.5855352790118795,Fitness-cost stress test retaining baseline importation and management assumptions.

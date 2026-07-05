@@ -1,0 +1,71 @@
+country,strategy,strategy_label,infant_0_11m_rank,child_adolescent_0_17y_rank,rank_shift_child_adolescent_vs_infant
+Australia,timeliness_only,Timeliness,4,5,1
+Australia,maternal_immunization,Infant exposure,6,6,0
+Australia,pregnancy_tdap_scaleup,Pregnancy Tdap,7,7,0
+Australia,targeted_pep_high_risk,Targeted PEP,9,8,-1
+Australia,cocooning_adjunct,Adult/contact,8,9,1
+Australia,adolescent_booster,Adolescent,11,11,0
+Australia,higher_child_coverage,Coverage,12,12,0
+Brazil,maternal_immunization,Infant exposure,6,5,-1
+Brazil,cocooning_adjunct,Adult/contact,7,6,-1
+Brazil,timeliness_only,Timeliness,5,7,2
+Brazil,targeted_pep_high_risk,Targeted PEP,9,8,-1
+Brazil,adolescent_booster,Adolescent,10,9,-1
+Brazil,pregnancy_tdap_scaleup,Pregnancy Tdap,8,10,2
+Brazil,higher_child_coverage,Coverage,12,12,0
+China,maternal_immunization,Infant exposure,5,5,0
+China,cocooning_adjunct,Adult/contact,6,6,0
+China,adolescent_booster,Adolescent,8,7,-1
+China,timeliness_only,Timeliness,7,8,1
+China,targeted_pep_high_risk,Targeted PEP,10,9,-1
+China,pregnancy_tdap_scaleup,Pregnancy Tdap,9,10,1
+China,higher_child_coverage,Coverage,12,12,0
+Japan,maternal_immunization,Infant exposure,5,5,0
+Japan,cocooning_adjunct,Adult/contact,7,6,-1
+Japan,timeliness_only,Timeliness,6,7,1
+Japan,adolescent_booster,Adolescent,10,8,-2
+Japan,targeted_pep_high_risk,Targeted PEP,9,9,0
+Japan,pregnancy_tdap_scaleup,Pregnancy Tdap,8,10,2
+Japan,higher_child_coverage,Coverage,12,12,0
+New_Zealand,timeliness_only,Timeliness,4,5,1
+New_Zealand,targeted_pep_high_risk,Targeted PEP,9,6,-3
+New_Zealand,maternal_immunization,Infant exposure,6,7,1
+New_Zealand,pregnancy_tdap_scaleup,Pregnancy Tdap,7,8,1
+New_Zealand,cocooning_adjunct,Adult/contact,8,9,1
+New_Zealand,adolescent_booster,Adolescent,11,11,0
+New_Zealand,higher_child_coverage,Coverage,12,12,0
+South_Africa,timeliness_only,Timeliness,6,5,-1
+South_Africa,maternal_immunization,Infant exposure,5,6,1
+South_Africa,cocooning_adjunct,Adult/contact,7,7,0
+South_Africa,targeted_pep_high_risk,Targeted PEP,10,8,-2
+South_Africa,higher_child_coverage,Coverage,9,9,0
+South_Africa,adolescent_booster,Adolescent,11,10,-1
+South_Africa,pregnancy_tdap_scaleup,Pregnancy Tdap,8,11,3
+Sweden,timeliness_only,Timeliness,5,5,0
+Sweden,maternal_immunization,Infant exposure,6,6,0
+Sweden,cocooning_adjunct,Adult/contact,7,7,0
+Sweden,targeted_pep_high_risk,Targeted PEP,9,8,-1
+Sweden,pregnancy_tdap_scaleup,Pregnancy Tdap,8,9,1
+Sweden,adolescent_booster,Adolescent,10,10,0
+Sweden,higher_child_coverage,Coverage,12,12,0
+Thailand,maternal_immunization,Infant exposure,5,5,0
+Thailand,cocooning_adjunct,Adult/contact,6,6,0
+Thailand,timeliness_only,Timeliness,7,7,0
+Thailand,adolescent_booster,Adolescent,10,8,-2
+Thailand,targeted_pep_high_risk,Targeted PEP,9,9,0
+Thailand,pregnancy_tdap_scaleup,Pregnancy Tdap,8,10,2
+Thailand,higher_child_coverage,Coverage,11,12,1
+United_Kingdom,timeliness_only,Timeliness,4,5,1
+United_Kingdom,targeted_pep_high_risk,Targeted PEP,9,6,-3
+United_Kingdom,maternal_immunization,Infant exposure,5,7,2
+United_Kingdom,cocooning_adjunct,Adult/contact,7,8,1
+United_Kingdom,pregnancy_tdap_scaleup,Pregnancy Tdap,8,9,1
+United_Kingdom,higher_child_coverage,Coverage,11,11,0
+United_Kingdom,adolescent_booster,Adolescent,12,12,0
+United_States,targeted_pep_high_risk,Targeted PEP,4,4,0
+United_States,maternal_immunization,Infant exposure,6,5,-1
+United_States,cocooning_adjunct,Adult/contact,7,6,-1
+United_States,timeliness_only,Timeliness,5,7,2
+United_States,pregnancy_tdap_scaleup,Pregnancy Tdap,8,9,1
+United_States,adolescent_booster,Adolescent,11,11,0
+United_States,higher_child_coverage,Coverage,12,12,0

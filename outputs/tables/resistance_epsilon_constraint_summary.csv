@@ -1,0 +1,9 @@
+resistance_reduction_constraint,preferred_strategy,preferred_strategy_label,countries_preferred,median_infant_case_regret_per_100k,median_standardized_infant_regret_vs_current,median_resistant_infection_reduction
+0.0,resistance_guided_treatment,Resistance-guided management,7,0.0,0.0,0.6367261632486754
+0.0,timeliness_only,Routine timeliness,2,0.0,0.0,0.03093977232001538
+0.0,targeted_pep_high_risk,Targeted high-risk PEP,1,0.0,0.0,0.0
+0.5,,,5,,,
+0.5,resistance_guided_treatment,Resistance-guided management,5,0.0,0.0,0.6375829428000221
+0.8,,,10,,,
+0.9,,,10,,,
+0.95,,,10,,,

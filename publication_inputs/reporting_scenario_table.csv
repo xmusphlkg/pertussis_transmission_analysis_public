@@ -1,0 +1,11 @@
+scenario,multiplier,uses_age_multipliers,uses_time_variation,description
+medium,1.0,False,False,Reporting-rate sensitivity assumption.
+high,1.5,False,False,Reporting-rate sensitivity assumption.
+low,0.5,False,False,Reporting-rate sensitivity assumption.
+age_biased,,True,False,Reporting-rate sensitivity assumption.
+time_varying,1.0,False,True,Reporting-rate sensitivity assumption.
+infant_high_adult_very_low,,True,False,Reporting-rate sensitivity assumption.
+infant_moderate_adult_minimal,,True,False,Reporting-rate sensitivity assumption.
+enhanced_surveillance,,True,False,Reporting-rate sensitivity assumption.
+adult_focused_improvement,,True,False,Reporting-rate sensitivity assumption.
+china_passive_system,,True,False,Reporting-rate sensitivity assumption.

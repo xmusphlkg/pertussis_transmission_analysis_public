@@ -1,0 +1,11 @@
+country,winning_strategy,winning_strategy_label,runner_up_strategy,runner_up_strategy_label,winning_cases_per_100k,runner_up_cases_per_100k,runner_up_excess_cases_per_100k,winner_margin_reduction,winner_margin_percentage_points
+Australia,timeliness_only,Routine timeliness,maternal_immunization,Infant-exposure reduction composite,962.039059608392,1057.3893459595693,95.35028635117726,0.08876412573666581,8.876412573666581
+Brazil,maternal_immunization,Infant-exposure reduction composite,cocooning_adjunct,Close-contact adult adjunct,296.54997247161845,300.0876677997302,3.537695328111738,0.009928222289012467,0.9928222289012467
+China,maternal_immunization,Infant-exposure reduction composite,cocooning_adjunct,Close-contact adult adjunct,86.61407796372208,88.8049089159145,2.190830952192414,0.014190675395049701,1.41906753950497
+Japan,maternal_immunization,Infant-exposure reduction composite,cocooning_adjunct,Close-contact adult adjunct,275.9268561605266,279.82855467566503,3.9016985151384347,0.011405325297278557,1.1405325297278557
+New_Zealand,timeliness_only,Routine timeliness,targeted_pep_high_risk,Targeted high-risk PEP,802.7354782656888,881.9519071473202,79.21642888163137,0.08683729709893506,8.683729709893505
+South_Africa,timeliness_only,Routine timeliness,maternal_immunization,Infant-exposure reduction composite,291.1706014621226,311.61617881594583,20.44557735382324,0.0589533323237824,5.89533323237824
+Sweden,maternal_immunization,Infant-exposure reduction composite,cocooning_adjunct,Close-contact adult adjunct,428.8780377636333,433.6438978039015,4.765860040268194,0.010155324707233682,1.0155324707233682
+Thailand,maternal_immunization,Infant-exposure reduction composite,cocooning_adjunct,Close-contact adult adjunct,208.55216897971593,212.9368797680799,4.384710788363975,0.014436083229832142,1.4436083229832142
+United_Kingdom,timeliness_only,Routine timeliness,targeted_pep_high_risk,Targeted high-risk PEP,821.2660834398181,864.1835630503932,42.91747961057513,0.044868617493337704,4.48686174933377
+United_States,targeted_pep_high_risk,Targeted high-risk PEP,maternal_immunization,Infant-exposure reduction composite,29.069105012068828,45.9573423118651,16.88823729979627,0.2948150466686542,29.481504666865423

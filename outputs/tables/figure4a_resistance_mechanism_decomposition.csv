@@ -1,0 +1,13 @@
+scenario,mechanism_label,median_resistant_infections_per_100k,end_resistant_fraction,median_infant_cases_per_100k,interpretation
+baseline_full_mechanism,"Baseline
+mechanism",1309.615208991415,0.9989754903230672,633.2591707745669,"Full baseline mechanism: country anchor, resistant importation, strain-specific treatment and PEP, neutral fitness."
+equal_treatment_effect,"Treatment
+differential removed",1285.6638895635883,0.9984661566689162,618.5134191373108,Tests treatment-mediated selection by making resistant treatment effects equal to sensitive-strain effects.
+equal_pep_effect,"PEP differential
+removed",20.928340536551246,0.0491878349973894,213.0454798388424,Tests PEP-mediated selection by making resistant PEP effectiveness equal to sensitive-strain PEP effectiveness.
+no_treatment_or_pep_differential,"Treatment + PEP
+differentials removed",7.5537489640937885,0.01,210.06929203506144,Tests neutral strain competition under importation when treatment and PEP do not favor resistant strains.
+fitness_cost,"Fitness-cost
+stress test",7.585535279011879,0.0155363183833989,206.59245757662532,Fitness-cost stress test retaining baseline importation and management assumptions.
+no_resistant_importation,"No ongoing
+importation",1310.4021496751088,0.9980689640959776,629.7398718770307,Tests dependence on ongoing resistant-strain importation after the analysis-start anchor.

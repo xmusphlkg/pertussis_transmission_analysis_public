@@ -1,0 +1,71 @@
+country,strategy,strategy_label,infant_0_11m_rank,child_adolescent_0_17y_rank,rank_shift_child_adolescent_vs_infant
+Australia,combined_strategy,Combined,1,1,0
+Australia,next_generation_vaccine,High-blocking,2,2,0
+Australia,transmission_blocking_vaccine,Transmission block,3,3,0
+Australia,resistance_guided_treatment,Resistance mgmt,5,4,-1
+Australia,timeliness_only,Timeliness,4,5,1
+Australia,maternal_immunization,Infant exposure,6,6,0
+Australia,adolescent_booster,Adolescent,11,11,0
+Brazil,combined_strategy,Combined,1,1,0
+Brazil,next_generation_vaccine,High-blocking,2,2,0
+Brazil,transmission_blocking_vaccine,Transmission block,3,3,0
+Brazil,resistance_guided_treatment,Resistance mgmt,4,4,0
+Brazil,maternal_immunization,Infant exposure,6,5,-1
+Brazil,timeliness_only,Timeliness,5,7,2
+Brazil,adolescent_booster,Adolescent,10,9,-1
+China,combined_strategy,Combined,1,1,0
+China,next_generation_vaccine,High-blocking,2,2,0
+China,transmission_blocking_vaccine,Transmission block,3,3,0
+China,resistance_guided_treatment,Resistance mgmt,4,4,0
+China,maternal_immunization,Infant exposure,5,5,0
+China,adolescent_booster,Adolescent,8,7,-1
+China,timeliness_only,Timeliness,7,8,1
+Japan,combined_strategy,Combined,1,1,0
+Japan,next_generation_vaccine,High-blocking,2,2,0
+Japan,resistance_guided_treatment,Resistance mgmt,3,3,0
+Japan,transmission_blocking_vaccine,Transmission block,4,4,0
+Japan,maternal_immunization,Infant exposure,5,5,0
+Japan,timeliness_only,Timeliness,6,7,1
+Japan,adolescent_booster,Adolescent,10,8,-2
+New_Zealand,combined_strategy,Combined,1,1,0
+New_Zealand,next_generation_vaccine,High-blocking,2,2,0
+New_Zealand,transmission_blocking_vaccine,Transmission block,3,3,0
+New_Zealand,resistance_guided_treatment,Resistance mgmt,5,4,-1
+New_Zealand,timeliness_only,Timeliness,4,5,1
+New_Zealand,maternal_immunization,Infant exposure,6,7,1
+New_Zealand,adolescent_booster,Adolescent,11,11,0
+South_Africa,combined_strategy,Combined,1,1,0
+South_Africa,next_generation_vaccine,High-blocking,2,2,0
+South_Africa,transmission_blocking_vaccine,Transmission block,3,3,0
+South_Africa,resistance_guided_treatment,Resistance mgmt,4,4,0
+South_Africa,timeliness_only,Timeliness,6,5,-1
+South_Africa,maternal_immunization,Infant exposure,5,6,1
+South_Africa,adolescent_booster,Adolescent,11,10,-1
+Sweden,next_generation_vaccine,High-blocking,1,1,0
+Sweden,combined_strategy,Combined,2,2,0
+Sweden,transmission_blocking_vaccine,Transmission block,3,3,0
+Sweden,resistance_guided_treatment,Resistance mgmt,4,4,0
+Sweden,timeliness_only,Timeliness,5,5,0
+Sweden,maternal_immunization,Infant exposure,6,6,0
+Sweden,adolescent_booster,Adolescent,10,10,0
+Thailand,combined_strategy,Combined,1,1,0
+Thailand,next_generation_vaccine,High-blocking,2,2,0
+Thailand,transmission_blocking_vaccine,Transmission block,3,3,0
+Thailand,resistance_guided_treatment,Resistance mgmt,4,4,0
+Thailand,maternal_immunization,Infant exposure,5,5,0
+Thailand,timeliness_only,Timeliness,7,7,0
+Thailand,adolescent_booster,Adolescent,10,8,-2
+United_Kingdom,combined_strategy,Combined,1,1,0
+United_Kingdom,next_generation_vaccine,High-blocking,2,2,0
+United_Kingdom,transmission_blocking_vaccine,Transmission block,3,3,0
+United_Kingdom,resistance_guided_treatment,Resistance mgmt,6,4,-2
+United_Kingdom,timeliness_only,Timeliness,4,5,1
+United_Kingdom,maternal_immunization,Infant exposure,5,7,2
+United_Kingdom,adolescent_booster,Adolescent,12,12,0
+United_States,next_generation_vaccine,High-blocking,1,1,0
+United_States,combined_strategy,Combined,2,2,0
+United_States,transmission_blocking_vaccine,Transmission block,3,3,0
+United_States,maternal_immunization,Infant exposure,6,5,-1
+United_States,timeliness_only,Timeliness,5,7,2
+United_States,resistance_guided_treatment,Resistance mgmt,9,8,-1
+United_States,adolescent_booster,Adolescent,11,11,0

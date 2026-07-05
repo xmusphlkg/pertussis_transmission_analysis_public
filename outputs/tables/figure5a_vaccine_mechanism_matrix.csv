@@ -1,0 +1,21 @@
+scenario_label,parameter,value
+No vaccine,Susceptibility,0
+No vaccine,Symptoms,0
+No vaccine,Infectiousness,0
+No vaccine,Duration,0
+Current aP,Susceptibility,0.15
+Current aP,Symptoms,0.85
+Current aP,Infectiousness,0.25
+Current aP,Duration,0
+Inf.-blocking,Susceptibility,0.7
+Inf.-blocking,Symptoms,0.85
+Inf.-blocking,Infectiousness,0.4
+Inf.-blocking,Duration,0.1
+Trans.-blocking,Susceptibility,0.3
+Trans.-blocking,Symptoms,0.85
+Trans.-blocking,Infectiousness,0.55
+Trans.-blocking,Duration,0.3
+High-blocking,Susceptibility,0.8
+High-blocking,Symptoms,0.9
+High-blocking,Infectiousness,0.65
+High-blocking,Duration,0.4
