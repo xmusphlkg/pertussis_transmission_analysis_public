@@ -1341,4 +1341,4 @@ metadata:
   calibration_config_hash: 17ae9068008b4c1e2081de14baa9658e40c120bf419be1476856f514e3c6595f
   baseline_vaccine_scenario: symptom_protective
   baseline_resistance_scenario: country_timeline
-  generated_at_utc: '2026-07-05T08:48:11.036593+00:00'
+  generated_at_utc: '2026-07-05T12:05:33.564936+00:00'

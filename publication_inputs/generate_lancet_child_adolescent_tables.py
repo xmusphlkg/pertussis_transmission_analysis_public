@@ -693,7 +693,7 @@ def _logic_blueprint(metric_basis: str) -> pd.DataFrame:
         },
         {
             "manuscript_section": "Primary outcome",
-            "recommended_logic": "Use annualized modeled symptomatic cases in model age groups <18 years; report infant, child 1-9 years, and adolescent 10-17 years as prespecified secondary strata.",
+            "recommended_logic": "Use annualized modeled symptomatic cases in model age groups <18 years; report infant, children, and adolescent endpoints as prespecified secondary strata.",
             "implementation_status": "core_code_updated",
         },
         {

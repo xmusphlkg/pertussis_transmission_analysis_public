@@ -880,8 +880,8 @@ def test_vaccine_uncertainty_config_distinguishes_infection_and_infectiousness_e
 def test_waning_durations_are_reported_as_sensitivity_parameters():
     table = pd.read_csv(project_path("publication_inputs/parameter_table.csv")).set_index("parameter")
     for parameter in [
-        "natural_history.recovered_immunity_duration",
-        "natural_history.vaccine_protection_duration",
+        "Post-infection protection duration",
+        "Vaccine-derived protection duration",
     ]:
         assert bool(table.loc[parameter, "used_in_sensitivity_analysis"])
-        assert "reciprocal of" in str(table.loc[parameter, "range"])
+        assert "reciprocal" in str(table.loc[parameter, "range"])

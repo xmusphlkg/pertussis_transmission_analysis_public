@@ -3,7 +3,7 @@
 ## Layout: (a) Post-pandemic surveillance context
 ##         (b) Temporal calibration diagnostics
 ##         (c) Current-practice paediatric age composition
-##         (d) Baseline modelled paediatric burden by age stratum
+##         (d) Baseline modelled reported cases and infections by age stratum
 
 args <- commandArgs(FALSE)
 file_arg <- sub("^--file=", "", args[grepl("^--file=", args)])
@@ -103,6 +103,7 @@ pediatric_burden <- read_table("lancet_baseline_pediatric_burden.csv") %>%
     c(
       "country", "primary_cases_per_100k", "infant_cases_per_100k",
       "child_1_9_cases_per_100k", "adolescent_cases_per_100k",
+      "child_adolescent_reported_cases_per_100k", "child_adolescent_infections_per_100k",
       "age_case_data_availability", "lancet_endpoint_validation_tier"
     ),
     "Lancet baseline pediatric burden table"
@@ -128,9 +129,14 @@ country_who_region <- c(
 )
 
 age_stratum_colours <- c(
-  "0–11 m" = palette_discrete_primary_9[[7]],
-  "1–9 y" = palette_discrete_primary_9[[4]],
-  "10–17 y" = palette_discrete_primary_9[[8]]
+  "Infant" = palette_discrete_primary_9[[7]],
+  "Children" = palette_discrete_primary_9[[4]],
+  "Adolescent" = palette_discrete_primary_9[[8]]
+)
+
+baseline_burden_group_colours <- c(
+  age_stratum_colours,
+  "All <18" = manuscript_colour("black")
 )
 
 ## Panel B: temporal calibration diagnostics ----------------------------------
@@ -333,7 +339,7 @@ baseline_composition <- readr::read_csv(
     age_stratum = factor(
       age_stratum,
       levels = c("total_infant_cases", "total_child_1_9_cases", "total_adolescent_cases"),
-      labels = c("0–11 m", "1–9 y", "10–17 y")
+      labels = c("Infant", "Children", "Adolescent")
     ),
     burden_share = symptomatic_cases / total_child_adolescent_cases
   )
@@ -342,8 +348,8 @@ composition_wide <- baseline_composition %>%
   select(country, country_label, age_stratum, burden_share) %>%
   pivot_wider(names_from = age_stratum, values_from = burden_share) %>%
   mutate(
-    infant_child_boundary = `0–11 m`,
-    child_adolescent_boundary = `0–11 m` + `1–9 y`
+    infant_child_boundary = Infant,
+    child_adolescent_boundary = Infant + Children
   )
 
 composition_boundaries <- composition_wide %>%
@@ -380,7 +386,7 @@ p1c <- ggplot(baseline_composition, aes(burden_share, country_label, fill = age_
   labs(
     x = "Share of modelled symptomatic cases\namong ages <18 years",
     y = NULL,
-    fill = "Age group",
+    fill = "Age stratum",
     tag = "c"
   ) +
   theme_lancet(base_size = journal_compact_text_size) +
@@ -392,54 +398,147 @@ p1c <- ggplot(baseline_composition, aes(burden_share, country_label, fill = age_
           axis.ticks.y = element_blank()
      )
 
-## Panel D: baseline modelled burden by paediatric age stratum -----------------
+## Panel D: baseline modelled reported cases and infections -------------------
 
-burden_long <- pediatric_burden %>%
+simulation_path <- model_path("outputs", "simulations", "intervention_scenarios.parquet")
+if (!file.exists(simulation_path)) {
+  stop("Missing simulation time series for Figure 1D: ", simulation_path, call. = FALSE)
+}
+if (!requireNamespace("arrow", quietly = TRUE)) {
+  stop("The arrow package is required to read simulation time series for Figure 1D.", call. = FALSE)
+}
+
+current_timeseries <- arrow::read_parquet(
+  simulation_path,
+  col_select = c("country", "scenario", "age_group", "time", "population", "reported_cases", "total_infections")
+) %>%
+  as_tibble() %>%
+  required_columns(
+    c("country", "scenario", "age_group", "time", "population", "reported_cases", "total_infections"),
+    "Intervention scenario time series"
+  ) %>%
+  filter(scenario == "current") %>%
+  mutate(country = stringr::str_replace_all(country, " ", "_"))
+
+burden_age_map <- tibble::tribble(
+  ~burden_group, ~age_group,
+  "Infant", "infant_0_2m",
+  "Infant", "infant_3_11m",
+  "Children", "child_1_4y",
+  "Children", "child_5_9y",
+  "Adolescent", "adolescent_10_17y",
+  "All <18", "infant_0_2m",
+  "All <18", "infant_3_11m",
+  "All <18", "child_1_4y",
+  "All <18", "child_5_9y",
+  "All <18", "adolescent_10_17y"
+) %>%
+  mutate(burden_group = factor(burden_group, levels = c("Infant", "Children", "Adolescent", "All <18")))
+
+analysis_years <- current_timeseries %>%
+  group_by(country) %>%
+  summarise(analysis_years = pmax((max(time, na.rm = TRUE) - min(time, na.rm = TRUE)) / 365, 1 / 365), .groups = "drop")
+
+burden_population <- current_timeseries %>%
+  inner_join(burden_age_map, by = "age_group", relationship = "many-to-many") %>%
+  group_by(country, burden_group, age_group) %>%
+  summarise(age_population = mean(as.numeric(population), na.rm = TRUE), .groups = "drop") %>%
+  group_by(country, burden_group) %>%
+  summarise(population = sum(age_population, na.rm = TRUE), .groups = "drop")
+
+burden_events <- current_timeseries %>%
+  inner_join(burden_age_map, by = "age_group", relationship = "many-to-many") %>%
+  group_by(country, burden_group) %>%
+  summarise(
+    reported_cases = sum(as.numeric(reported_cases), na.rm = TRUE),
+    modelled_infections = sum(as.numeric(total_infections), na.rm = TRUE),
+    .groups = "drop"
+  )
+
+burden_long <- burden_events %>%
+  left_join(burden_population, by = c("country", "burden_group")) %>%
+  left_join(analysis_years, by = "country") %>%
   mutate(
+    reported_cases_per_100k = reported_cases / pmax(population * analysis_years, 1e-9) * 100000,
+    modelled_infections_per_100k = modelled_infections / pmax(population * analysis_years, 1e-9) * 100000
+  ) %>%
+  select(
+    country, burden_group, population, analysis_years,
+    reported_cases, modelled_infections, reported_cases_per_100k, modelled_infections_per_100k
+  ) %>%
+  pivot_longer(
+    cols = c(reported_cases_per_100k, modelled_infections_per_100k),
+    names_to = "outcome",
+    values_to = "rate_per_100k"
+  ) %>%
+  mutate(
+    outcome = factor(
+      outcome,
+      levels = c("reported_cases_per_100k", "modelled_infections_per_100k"),
+      labels = c("Modelled reports", "Modelled infections")
+    ),
+    burden_group = factor(as.character(burden_group), levels = c("Infant", "Children", "Adolescent", "All <18")),
     country_label_text = format_country(country),
-    country_label = factor(country_label_text, levels = rev(country_order))
+    country_y = as.numeric(factor(country_label_text, levels = rev(country_order))) +
+      if_else(outcome == "Modelled reports", -0.12, 0.12)
   ) %>%
-  select(country, country_label, infant_cases_per_100k, child_1_9_cases_per_100k, adolescent_cases_per_100k) %>%
-  pivot_longer(-c(country, country_label), names_to = "age_stratum", values_to = "cases_per_100k") %>%
-  mutate(
-    age_stratum = factor(
-      age_stratum,
-      levels = c("infant_cases_per_100k", "child_1_9_cases_per_100k", "adolescent_cases_per_100k"),
-      labels = c("0–11 m", "1–9 y", "10–17 y")
-    )
-  ) %>%
-  filter(positive_rate(cases_per_100k))
+  filter(positive_rate(rate_per_100k))
 
 readr::write_csv(
   burden_long %>%
     transmute(
       country,
-      age_stratum = as.character(age_stratum),
-      cases_per_100k
+      burden_group = as.character(burden_group),
+      outcome = as.character(outcome),
+      population,
+      analysis_years,
+      reported_cases,
+      modelled_infections,
+      rate_per_100k
     ),
   model_path("outputs", "tables", "figure1d_baseline_age_burden.csv")
 )
 
-p1d <- ggplot(burden_long, aes(cases_per_100k, country_label)) +
-  geom_line(aes(group = country_label), colour = lancet_grid_colour, linewidth = 0.34) +
-  geom_point(aes(colour = age_stratum, shape = age_stratum), size = 1.85, alpha = 0.90) +
+baseline_burden_shapes <- c(
+  "Modelled reports" = 16,
+  "Modelled infections" = 15
+)
+
+p1d <- ggplot() +
+  geom_point(
+    data = burden_long,
+    aes(rate_per_100k, country_y, colour = burden_group, shape = outcome),
+    size = 1.75,
+    alpha = 0.92,
+    stroke = 0.48
+  ) +
   scale_x_log10(
-    breaks = c(50, 100, 300, 1000, 3000),
+    breaks = c(5, 10, 30, 100, 300, 1000, 3000),
     labels = label_lancet_comma(accuracy = 1),
-    expand = expansion(mult = c(0.03, 0.08))
+    expand = expansion(mult = c(0.04, 0.08))
+  ) +
+  scale_y_continuous(
+    breaks = seq_along(rev(country_order)),
+    labels = rev(country_order),
+    expand = expansion(add = c(0.35, 0.35))
   ) +
   scale_colour_manual(
-    values = age_stratum_colours,
-    name = "Age group",
-    guide = guide_legend(nrow = 1, byrow = TRUE, title.position = "left")
+    values = baseline_burden_group_colours,
+    name = "Stratum",
+    guide = guide_legend(
+      nrow = 1,
+      byrow = TRUE,
+      title.position = "left",
+      override.aes = list(shape = 16, size = 1.8, alpha = 1)
+    )
   ) +
   scale_shape_manual(
-    values = c(16, 17, 15),
-    name = "Age group",
+    values = baseline_burden_shapes,
+    name = "Outcome",
     guide = guide_legend(nrow = 1, byrow = TRUE, title.position = "left")
   ) +
   labs(
-    x = "Annualised symptomatic cases\nper 100 000/year, 2025–50 (log)",
+    x = "Annualised rate per 100 000/year,\n2025–50 (log)",
     y = NULL,
     tag = "d"
   ) +
@@ -447,8 +546,9 @@ p1d <- ggplot(burden_long, aes(cases_per_100k, country_label)) +
   theme(
     legend.position = "top",
     legend.direction = "horizontal",
+    legend.box = "vertical",
     legend.background = element_rect(fill = "#FFFFFFE8", colour = NA),
-    legend.key.width = unit(0.38, "cm"),
+    legend.key.width = unit(0.34, "cm"),
     axis.ticks.y = element_blank()
   )
 

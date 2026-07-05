@@ -580,7 +580,7 @@ runtime:
           increased awareness, better diagnostics, or expanded testing).
       # --- Literature-anchored age-specific scenarios ---
       # These scenarios are derived from the quantitative evidence in
-      # manuscript_notes/reporting_evidence_summary.md and the new
+      # publication_inputs/reporting_evidence_summary.md and the new
       # age-specific reporting literature review.
       infant_high_adult_very_low:
         age_multipliers:

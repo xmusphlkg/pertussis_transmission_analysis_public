@@ -1,5 +1,5 @@
 {
-  "config_hash": "706629619ee12ac3aea55eb14e571e3b693e1448b799f3d64aa6934ed14c167b",
+  "config_hash": "66b778bc4c792b141549da24186cd25b8d0e7046eb3bab329f1877ad44778871",
   "dependency_versions": {
     "joblib": "1.5.3",
     "numba": "0.65.1",
@@ -27,10 +27,10 @@
       "target_fitness_R": 1.1
     }
   ],
-  "generated_at_utc": "2026-06-15T00:56:08.908048+00:00",
+  "generated_at_utc": "2026-07-05T13:51:35.520578+00:00",
   "git": {
     "branch": "main",
-    "commit": "05e5fa58112ce9bfadb6ff1b603c4ac05e70da1e",
+    "commit": "d90f99c559f9b855d2628deaf1b125fc80aa077c",
     "dirty": true
   },
   "high_grid_VE_inf": 0.55,

@@ -43,19 +43,28 @@ strategy_plot_labels <- c(
   pregnancy_tdap_scaleup = "Pregnancy Tdap"
 )
 
-endpoint_levels <- c("Infant", "Child 1–9", "Adolescent 10–17", "<18")
-age_stratum_levels <- c("0–11 m", "1–9 y", "10–17 y")
+endpoint_levels <- c(
+  "Infant cases",
+  "Infant hospitalisations",
+  "Infant deaths",
+  "Children cases",
+  "Adolescent cases",
+  "<18 cases"
+)
+age_stratum_levels <- c("Infant", "Children", "Adolescent")
 age_stratum_colours <- c(
-  "0–11 m" = palette_discrete_primary_9[[7]],
-  "1–9 y" = palette_discrete_primary_9[[4]],
-  "10–17 y" = palette_discrete_primary_9[[8]]
+  "Infant" = palette_discrete_primary_9[[7]],
+  "Children" = palette_discrete_primary_9[[4]],
+  "Adolescent" = palette_discrete_primary_9[[8]]
 )
 
 endpoint_axis_labels <- c(
-  Infant = "0–11 m",
-  `Child 1–9` = "1–9 y",
-  `Adolescent 10–17` = "10–17 y",
-  `<18` = "<18"
+  `Infant cases` = "Infant\ncases",
+  `Infant hospitalisations` = "Infant\nhospital-\nisations",
+  `Infant deaths` = "Infant\ndeaths",
+  `Children cases` = "Children\ncases",
+  `Adolescent cases` = "Adolescent\ncases",
+  `<18 cases` = "<18\ncases"
 )
 
 age_contribution_levels <- age_stratum_levels
@@ -76,7 +85,9 @@ burden <- read_table("lancet_child_adolescent_strategy_burden.csv") %>%
     infant_cases_per_100k = as.numeric(infant_cases_per_100k),
     child_1_9_cases_per_100k = as.numeric(child_1_9_cases_per_100k),
     adolescent_cases_per_100k = as.numeric(adolescent_cases_per_100k),
-    primary_case_reduction = as.numeric(primary_case_reduction)
+    primary_case_reduction = as.numeric(primary_case_reduction),
+    relative_reduction_infant_hospitalizations = as.numeric(relative_reduction_infant_hospitalizations),
+    relative_reduction_infant_deaths = as.numeric(relative_reduction_infant_deaths)
   ) %>%
   group_by(country) %>%
   mutate(
@@ -111,10 +122,12 @@ endpoint_country <- programme_burden %>%
     strategy,
     strategy_label,
     strategy_label_plot,
-    Infant = infant_case_reduction,
-    `Child 1–9` = child_1_9_case_reduction,
-    `Adolescent 10–17` = adolescent_case_reduction,
-    `<18` = primary_case_reduction
+    `Infant cases` = infant_case_reduction,
+    `Infant hospitalisations` = relative_reduction_infant_hospitalizations,
+    `Infant deaths` = relative_reduction_infant_deaths,
+    `Children cases` = child_1_9_case_reduction,
+    `Adolescent cases` = adolescent_case_reduction,
+    `<18 cases` = primary_case_reduction
   ) %>%
   pivot_longer(
     cols = all_of(endpoint_levels),
@@ -176,7 +189,7 @@ p3a <- ggplot(endpoint_effect_matrix, aes(endpoint, strategy_label_plot, fill = 
   scale_x_discrete(labels = endpoint_axis_labels) +
   scale_fill_reduction(
     midpoint = 0,
-    limits = c(-0.25, 0.5),
+    limits = c(-0.25, 0.6),
     breaks = c(-0.25, 0, 0.25, 0.50),
     labels = label_lancet_percent(accuracy = 1),
     oob = scales::squish,
@@ -187,7 +200,8 @@ p3a <- ggplot(endpoint_effect_matrix, aes(endpoint, strategy_label_plot, fill = 
   labs(x = NULL, y = NULL, tag = "a") +
   theme_lancet_heatmap(
     base_size = journal_dense_text_size,
-    plot_margin = margin(4, 5, 4, 4)
+    plot_margin = margin(4, 5, 4, 4),
+    x_size = journal_dense_text_size - 0.4
   )
 
 ## Panel B: infant-to-<18 endpoint translation gap ----------------------------
@@ -337,9 +351,9 @@ age_contribution_long <- age_contribution_country %>%
   mutate(
     age_contribution = recode(
       age_contribution,
-      infant_averted_per_100k_under18 = "0–11 m",
-      child_1_9_averted_per_100k_under18 = "1–9 y",
-      adolescent_averted_per_100k_under18 = "10–17 y"
+      infant_averted_per_100k_under18 = "Infant",
+      child_1_9_averted_per_100k_under18 = "Children",
+      adolescent_averted_per_100k_under18 = "Adolescent"
     ),
     age_contribution = factor(age_contribution, levels = age_contribution_levels)
   )
