@@ -32,7 +32,6 @@ ACTIVE_R_FIGURE_SOURCES := scripts_R/_helpers.R \
                            scripts_R/12_figure_2_country_strategy_prioritization.R \
                            scripts_R/13_figure_3_endpoint_dependence.R \
                            scripts_R/14_figure_4_resistance_conditioned_control.R \
-                           scripts_R/15_figure_5_future_vaccine_mechanisms.R \
                            scripts_R/15_extended_data_1_country_inputs.R \
                            scripts_R/16_extended_data_2_diagnostics_sensitivity.R \
                            scripts_R/20_extended_data_6_baseline_dynamics.R \
@@ -45,6 +44,9 @@ ACTIVE_R_FIGURE_SOURCES := scripts_R/_helpers.R \
                            scripts_R/27_extended_data_9_scenario_robustness.R \
                            scripts_R/28_extended_data_10_resistance_management_policy.R \
                            scripts_R/29_extended_data_11_implementation_structural_robustness.R
+# scripts_R/15_figure_5_future_vaccine_mechanisms.R is retained as an
+# exploratory diagnostic script, but Figure 5 is not part of the current
+# Lancet Child & Adolescent Health submission package.
 
 .PHONY: all data calibrate simulate bayesian hindcast publication-data figures \
         validate-public test clean-stamps help FORCE

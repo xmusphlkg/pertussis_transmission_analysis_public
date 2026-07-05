@@ -13,12 +13,6 @@ simulation intermediates are intentionally absent from this public repository.
 | Figure 3 | `outputs/figures/figure_3_endpoint_dependence.*` | `scripts_R/13_figure_3_endpoint_dependence.R` | `outputs/tables/lancet_child_adolescent_strategy_burden.csv`; `outputs/tables/calibration_all_countries.csv`; `outputs/tables/lancet_age_pattern_weighted_strategy_summary.csv`; `outputs/tables/figure3a_endpoint_effect_matrix.csv`; `outputs/tables/figure3b_infant_to_child_adolescent_gap.csv`; `outputs/tables/figure3c_age_contribution_averted_cases.csv`; `outputs/tables/figure3d_age_pattern_robustness.csv`. |
 | Figure 4 | `outputs/figures/figure_4_resistance_conditioned_control.*` | `scripts_R/14_figure_4_resistance_conditioned_control.R` | `outputs/summaries/resistance_mechanism_decomposition_summary.csv`; `outputs/tables/lancet_child_adolescent_decision_frontier.csv`; `outputs/summaries/vaccine_scenarios_summary.csv`; `outputs/summaries/veinf_resistance_grid_summary.csv`; `outputs/tables/lancet_child_adolescent_strategy_burden.csv`; `outputs/tables/figure4a_resistance_mechanism_contrasts.csv`; `outputs/tables/figure4b_resistance_management_tradeoff.csv`; `outputs/tables/figure4c_future_vaccine_residual_burden.csv`; `outputs/tables/figure4d_future_veinf_response_curve.csv`. |
 
-## Additional Retained Diagnostic Figure
-
-| Figure | Rendered files | Script | Principal retained source data |
-| --- | --- | --- | --- |
-| Figure 5 diagnostic | `outputs/figures/figure_5_future_vaccine_mechanisms.*` | `scripts_R/15_figure_5_future_vaccine_mechanisms.R` | `publication_inputs/scenario_table.csv`; `outputs/summaries/vaccine_scenarios_summary.csv`; `outputs/summaries/veinf_resistance_grid_summary.csv`; `outputs/tables/lancet_child_adolescent_strategy_burden.csv`; `outputs/tables/figure5a_vaccine_mechanism_matrix.csv`; `outputs/tables/figure5b_child_adolescent_vaccine_tradeoff.csv`; `outputs/tables/figure5c_residual_child_adolescent_cases.csv`; `outputs/tables/figure5d_veinf_response_curve.csv`. |
-
 ## Extended Figures
 
 Extended figures are retained as
@@ -43,3 +37,7 @@ The main retained inputs are:
 
 The source-data layer keeps CSV tables and rendered figures. Parquet mirrors and
 large local time-series outputs are omitted to keep the repository lightweight.
+
+`scripts_R/15_figure_5_future_vaccine_mechanisms.R` is retained only as an
+exploratory diagnostic script; its rendered Figure 5 files and `figure5*.csv`
+extracts are not part of the current submission package.

@@ -1,4 +1,8 @@
 #!/usr/bin/env Rscript
+## Exploratory diagnostic only.
+## This script is retained for provenance and method-development checks, but
+## its rendered Figure 5 output is not part of the current Lancet Child &
+## Adolescent Health submission package and is not run by `make figures`.
 ## Figure 5: future vaccine mechanism targets ---------------------------------
 ## Layout: (a) Vaccine mechanism matrix
 ##         (b) Infection reduction vs <18 case reduction for vaccine mechanisms
