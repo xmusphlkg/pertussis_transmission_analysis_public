@@ -1559,32 +1559,98 @@ def write_manuscript_tables() -> None:
         "natural_history.vaccine_protection_duration": "rates.waning_vaccine",
     }
     parameter_specs = [
-        ("simulation.end_time", "Simulation analysis horizon", baseline["simulation"]["end_time"], "days"),
-        ("simulation.burn_in_years", "Pre-analysis burn-in horizon", baseline["simulation"]["burn_in_years"], "years"),
-        ("transmission.beta_S", "Transmission rate for macrolide-sensitive pertussis", baseline["transmission"]["beta_S"], "per contact day"),
-        ("transmission.relative_infectiousness_asymptomatic", "Relative infectiousness of asymptomatic infection", baseline["transmission"]["relative_infectiousness_asymptomatic"], "ratio"),
-        ("transmission.multi_year_period_years", "Target/diagnostic inter-epidemic period", baseline["transmission"]["multi_year_period_years"], "years"),
-        ("transmission.multi_year_amplitude", "Weak multi-year phase-locking amplitude", baseline["transmission"]["multi_year_amplitude"], "ratio"),
-        ("natural_history.latent_duration", "Latent period duration", baseline["natural_history"]["latent_duration"], "days"),
-        ("natural_history.infectious_duration_symptomatic", "Symptomatic infectious duration", baseline["natural_history"]["infectious_duration_symptomatic"], "days"),
-        ("natural_history.infectious_duration_asymptomatic", "Asymptomatic infectious duration", baseline["natural_history"]["infectious_duration_asymptomatic"], "days"),
-        ("natural_history.recovered_immunity_duration", "Duration of post-infection protection", baseline["natural_history"]["recovered_immunity_duration"], "days"),
-        ("natural_history.vaccine_protection_duration", "Duration of vaccine-derived protection proxy", baseline["natural_history"]["vaccine_protection_duration"], "days"),
-        ("treatment.treatment_rate_symptomatic", "Daily transition from symptomatic infection to treatment", baseline["treatment"]["treatment_rate_symptomatic"], "per day"),
-        ("treatment.treatment_rate_asymptomatic", "Daily transition from asymptomatic infection to treatment", baseline["treatment"]["treatment_rate_asymptomatic"], "per day"),
-        ("PEP.coverage_household_contacts", "Dynamic PEP coverage ceiling among close contacts", baseline["PEP"]["coverage_household_contacts"], "proportion"),
+        ("simulation.end_time", "Analysis horizon", "Simulation analysis horizon", baseline["simulation"]["end_time"], "days"),
+        ("simulation.burn_in_years", "Pre-analysis burn-in", "Pre-analysis burn-in horizon", baseline["simulation"]["burn_in_years"], "years"),
+        (
+            "transmission.beta_S",
+            "Sensitive-strain transmission coefficient ($\\beta_{\\mathrm{sens}}$)",
+            "Transmission rate for macrolide-sensitive pertussis",
+            baseline["transmission"]["beta_S"],
+            "per contact day",
+        ),
+        (
+            "transmission.relative_infectiousness_asymptomatic",
+            "Relative infectiousness of asymptomatic infection",
+            "Relative infectiousness of asymptomatic infection",
+            baseline["transmission"]["relative_infectiousness_asymptomatic"],
+            "ratio",
+        ),
+        (
+            "transmission.multi_year_period_years",
+            "Inter-epidemic recurrence period",
+            "Target/diagnostic inter-epidemic period",
+            baseline["transmission"]["multi_year_period_years"],
+            "years",
+        ),
+        (
+            "transmission.multi_year_amplitude",
+            "Multi-year recurrence amplitude",
+            "Weak multi-year phase-locking amplitude",
+            baseline["transmission"]["multi_year_amplitude"],
+            "ratio",
+        ),
+        ("natural_history.latent_duration", "Latent period", "Latent period duration", baseline["natural_history"]["latent_duration"], "days"),
+        (
+            "natural_history.infectious_duration_symptomatic",
+            "Symptomatic infectious period",
+            "Symptomatic infectious duration",
+            baseline["natural_history"]["infectious_duration_symptomatic"],
+            "days",
+        ),
+        (
+            "natural_history.infectious_duration_asymptomatic",
+            "Asymptomatic infectious period",
+            "Asymptomatic infectious duration",
+            baseline["natural_history"]["infectious_duration_asymptomatic"],
+            "days",
+        ),
+        (
+            "natural_history.recovered_immunity_duration",
+            "Post-infection protection duration",
+            "Duration of post-infection protection",
+            baseline["natural_history"]["recovered_immunity_duration"],
+            "days",
+        ),
+        (
+            "natural_history.vaccine_protection_duration",
+            "Vaccine-derived protection duration",
+            "Duration of vaccine-derived protection proxy",
+            baseline["natural_history"]["vaccine_protection_duration"],
+            "days",
+        ),
+        (
+            "treatment.treatment_rate_symptomatic",
+            "Treatment initiation rate for symptomatic infection",
+            "Daily transition from symptomatic infection to treatment",
+            baseline["treatment"]["treatment_rate_symptomatic"],
+            "per day",
+        ),
+        (
+            "treatment.treatment_rate_asymptomatic",
+            "Treatment initiation rate for asymptomatic infection",
+            "Daily transition from asymptomatic infection to treatment",
+            baseline["treatment"]["treatment_rate_asymptomatic"],
+            "per day",
+        ),
+        (
+            "PEP.coverage_household_contacts",
+            "PEP reach among close contacts",
+            "Dynamic PEP coverage ceiling among close contacts",
+            baseline["PEP"]["coverage_household_contacts"],
+            "proportion",
+        ),
     ]
     parameter_rows = []
-    for path, description, value, unit in parameter_specs:
+    for path, display_name, description, value, unit in parameter_specs:
         source_note = parameter_sources.get(path, parameter_sources.get(path.split(".")[0], {}))
         sensitivity_path = sensitivity_path_aliases.get(path, path)
         used_in_sensitivity = path in sensitivity_paths or sensitivity_path in sensitivity_paths
-        range_note = "see config/model_settings.yaml sensitivity_parameters"
+        range_note = "Prespecified sensitivity range in model settings"
         if path in sensitivity_path_aliases and sensitivity_path in sensitivity_paths:
-            range_note = f"see config/model_settings.yaml sensitivity_parameters (reciprocal of {sensitivity_path})"
+            range_note = "Prespecified sensitivity range in model settings, implemented through the reciprocal waning rate"
         parameter_rows.append(
             {
-                "parameter": path,
+                "parameter": display_name,
                 "description": description,
                 "baseline_value": value,
                 "range": range_note,
@@ -1807,7 +1873,7 @@ def write_manuscript_tables() -> None:
         ),
         "resistance_prevalence": (
             "Resistance prevalence is fixed at the country-timeline value during the "
-            "primary conditional beta-grid analysis. The country_resistance_timeline.csv "
+            "primary conditional transmission analysis. The country_resistance_timeline.csv "
             "provides well-constrained estimates for most countries; fixed, low-to-very-high "
             "resistance scenarios and the fitness grid evaluate the corresponding "
             "structural uncertainty."
@@ -1819,7 +1885,7 @@ def write_manuscript_tables() -> None:
             [
                 {
                     "parameter": "log_beta_S",
-                    "prior": f"Normal(log calibrated beta_S, {bayesian.get('priors', {}).get('log_beta_S_sd', '')})",
+                    "prior": f"Normal(log calibrated sensitive-strain transmission coefficient, {bayesian.get('priors', {}).get('log_beta_S_sd', '')})",
                     "interpretation": "Transmission-rate uncertainty",
                 },
                 {

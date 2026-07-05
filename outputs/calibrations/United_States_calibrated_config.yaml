@@ -1112,8 +1112,8 @@ config:
         mean: 0.1
         sd: 0.1
         note: 'Mechanistic duration-shortening proxy fixed at the prior mean during
-          the conditional beta-grid analysis; treated as a vaccine-scenario assumption
-          rather than a directly estimated literature parameter.
+          the primary conditional transmission analysis; treated as a vaccine-scenario
+          assumption rather than a directly estimated literature parameter.
 
           '
       relative_infectiousness_asymptomatic:
@@ -1338,8 +1338,8 @@ metadata:
   data_fit_score: 2622.624894892156
   n_starts: 1
   maxiter: 12
-  config_hash: 706629619ee12ac3aea55eb14e571e3b693e1448b799f3d64aa6934ed14c167b
+  config_hash: 66b778bc4c792b141549da24186cd25b8d0e7046eb3bab329f1877ad44778871
   calibration_config_hash: 17ae9068008b4c1e2081de14baa9658e40c120bf419be1476856f514e3c6595f
   baseline_vaccine_scenario: symptom_protective
   baseline_resistance_scenario: country_timeline
-  generated_at_utc: '2026-07-04T03:33:47.487862+00:00'
+  generated_at_utc: '2026-07-05T08:48:54.705823+00:00'

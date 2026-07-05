@@ -57,11 +57,11 @@ file_inventory <- bind_rows(
   collect_files("Simulations", file.path("outputs", "simulations")),
   collect_files("Summaries", file.path("outputs", "summaries")),
   collect_files("Calibration/tables", file.path("outputs", "tables")),
-  collect_files("Publication inputs", "publication_inputs")
+  collect_files("Manuscript notes", "publication_inputs")
 ) %>%
   mutate(group = factor(group, levels = c(
     "Raw inputs", "Processed inputs", "Simulations", "Summaries",
-    "Calibration/tables", "Publication inputs"
+    "Calibration/tables", "Manuscript notes"
   )))
 
 file_footprint <- file_inventory %>%

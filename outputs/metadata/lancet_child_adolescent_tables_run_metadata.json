@@ -22,6 +22,7 @@
     "outputs/tables/lancet_age_pattern_weighted_strategy_summary.csv": 48,
     "outputs/tables/lancet_baseline_pediatric_burden.csv": 10,
     "outputs/tables/lancet_child_adolescent_decision_frontier.csv": 290,
+    "outputs/tables/lancet_child_adolescent_logic_blueprint.csv": 6,
     "outputs/tables/lancet_child_adolescent_metric_availability.csv": 27,
     "outputs/tables/lancet_child_adolescent_preferred_strategies.csv": 30,
     "outputs/tables/lancet_child_adolescent_strategy_burden.csv": 120,

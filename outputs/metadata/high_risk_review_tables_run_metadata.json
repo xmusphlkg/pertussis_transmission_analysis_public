@@ -10,10 +10,10 @@
     "pyyaml": "6.0.3",
     "scipy": "1.17.1"
   },
-  "generated_at_utc": "2026-06-15T04:30:04.285728+00:00",
+  "generated_at_utc": "2026-07-05T08:08:58.637497+00:00",
   "git": {
     "branch": "main",
-    "commit": "05e5fa58112ce9bfadb6ff1b603c4ac05e70da1e",
+    "commit": "f74b1e009bf0bba3028330d24282f68452064ee7",
     "dirty": true
   },
   "row_counts": {
@@ -41,7 +41,7 @@
     "outputs/tables/resistance_management_policy_decomposition.csv": 14,
     "outputs/tables/resistance_parameter_justification.csv": 8,
     "outputs/tables/resistance_preference_country_thresholds.csv": 10,
-    "outputs/tables/resistance_preference_weight_summary.csv": 235,
+    "outputs/tables/resistance_preference_weight_summary.csv": 238,
     "outputs/tables/sensitivity_correlation_screening.csv": 16,
     "outputs/tables/veinf_comparator_thresholds.csv": 9
   },

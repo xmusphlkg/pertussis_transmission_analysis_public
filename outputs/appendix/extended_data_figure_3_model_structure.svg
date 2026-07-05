@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1785" height="930" viewBox="40 70 1785 930">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#232323"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#00468B"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#ED0000"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#42B540"/>
+    </marker>
+    <style>
+      text { font-family: "Times New Roman", Times, serif; }
+      .bg { fill: #FFFFFF; }
+      .panel { fill: #FFFFFF; stroke: #232323; stroke-width: 1; rx: 0; ry: 0; }
+      .tag { font-size: 22px; font-weight: 700; fill: #232323; }
+      .label { font-size: 16px; fill: #232323; }
+      .label-bold { font-size: 16px; font-weight: 700; fill: #232323; }
+      .small-bold { font-size: 13px; font-weight: 700; fill: #232323; }
+      .small { font-size: 13px; fill: #232323; }
+      .tiny { font-size: 11.5px; fill: #52575C; }
+      .math { font-size: 24px; font-style: italic; fill: #232323; }
+      .math-small { font-size: 16px; font-style: italic; fill: #232323; }
+      .math-tiny { font-size: 13px; font-style: italic; fill: #232323; }
+      .math-mini { font-size: 11.5px; font-style: italic; fill: #232323; }
+      .math-sub { baseline-shift: sub; font-size: 0.72em; }
+      .math-sup { baseline-shift: super; font-size: 0.72em; }
+      .node { stroke: #232323; stroke-width: 0.9; rx: 3; ry: 3; }
+      .box { stroke: #232323; stroke-width: 0.85; rx: 3; ry: 3; }
+      .dashbox { stroke: #6E422C; stroke-width: 0.9; stroke-dasharray: 5 4; rx: 3; ry: 3; }
+      .sus { fill: #E9D9A6; fill-opacity: 0.72; }
+      .inf { fill: #EBC8A2; fill-opacity: 0.70; }
+      .treat { fill: #E59EC0; fill-opacity: 0.70; }
+      .imm { fill: #D7E5D8; fill-opacity: 0.82; }
+      .foi { fill: #99CCD9; fill-opacity: 0.28; stroke: #232323; }
+      .ext { fill: #F4F1EA; }
+      .out { fill: #FDAF91; fill-opacity: 0.42; stroke: #232323; }
+      .line { fill: none; stroke: #232323; stroke-width: 1.4; marker-end: url(#arrow); stroke-linejoin: round; stroke-linecap: round; }
+      .thin { fill: none; stroke: #232323; stroke-width: 1.05; marker-end: url(#arrow); stroke-linejoin: round; stroke-linecap: round; }
+      .blue { fill: none; stroke: #00468B; stroke-width: 1.4; marker-end: url(#arrow-blue); stroke-linejoin: round; stroke-linecap: round; }
+      .blue-line { fill: none; stroke: #00468B; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
+      .red { fill: none; stroke: #ED0000; stroke-width: 1.4; marker-end: url(#arrow-red); stroke-linejoin: round; stroke-linecap: round; }
+      .green { fill: none; stroke: #42B540; stroke-width: 1.4; marker-end: url(#arrow-green); stroke-linejoin: round; stroke-linecap: round; }
+      .dash { stroke-dasharray: 5 5; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1850" height="1100"/>
+
+  <rect class="panel" x="58" y="105" width="1164" height="585"/>
+  <text class="tag" x="58" y="98">A</text>
+
+  <rect class="box ext" x="92" y="122" width="170" height="76"/>
+  <text class="label-bold" x="177" y="150" text-anchor="middle">Age i</text>
+  <text class="small" x="177" y="174" text-anchor="middle">(8 groups)</text>
+
+  <rect class="box ext" x="320" y="122" width="210" height="76"/>
+  <text class="label-bold" x="425" y="150" text-anchor="middle">Strain k</text>
+  <text class="small" x="425" y="174" text-anchor="middle">(sensitive, resistant)</text>
+
+  <rect class="box ext" x="588" y="122" width="270" height="76"/>
+  <text class="label-bold" x="723" y="150" text-anchor="middle">Vaccine-origin history o</text>
+  <text class="math-tiny" x="723" y="172" text-anchor="middle">(U, M, D1<tspan class="math-sub">r</tspan>, D1<tspan class="math-sub">w</tspan>, D2<tspan class="math-sub">r</tspan>, D2<tspan class="math-sub">w</tspan>,</text>
+  <text class="math-tiny" x="723" y="192" text-anchor="middle">D3+ recent, D3+ waned)</text>
+
+  <rect class="box ext" x="914" y="122" width="220" height="76"/>
+  <text class="label-bold" x="1024" y="150" text-anchor="middle">State space</text>
+  <text class="small" x="1024" y="174" text-anchor="middle">(74 compartments per age;</text>
+  <text class="small" x="1024" y="193" text-anchor="middle">592 ODE states total)</text>
+
+  <rect class="node sus" x="70" y="240" width="280" height="280"/>
+  <text class="label-bold" x="210" y="268" text-anchor="middle">Susceptible vaccine-origin pools</text>
+  <text class="math" x="200" y="300">S<tspan class="math-sub">i,o</tspan></text>
+  <text class="math-tiny" x="94" y="340">S</text>
+  <text class="small" x="105" y="340">(unvaccinated)</text>
+  <text class="math-tiny" x="94" y="368">M<tspan class="math-sub">protected</tspan></text>
+  <text class="small" x="140" y="368">(maternal)</text>
+  <text class="math-tiny" x="94" y="396">V<tspan class="math-sub">dose1 recent</tspan></text>
+  <text class="math-tiny" x="94" y="422">V<tspan class="math-sub">dose1 waned</tspan></text>
+  <text class="math-tiny" x="94" y="448">V<tspan class="math-sub">dose2 recent</tspan></text>
+  <text class="math-tiny" x="94" y="474">V<tspan class="math-sub">dose2 waned</tspan></text>
+  <text class="math-tiny" x="94" y="500">V<tspan class="math-sub">recent</tspan>, V<tspan class="math-sub">waned</tspan></text>
+
+  <rect class="node inf" x="420" y="350" width="110" height="98"/>
+  <text class="label" x="475" y="380" text-anchor="middle">Exposed</text>
+  <text class="math" x="455" y="416">E<tspan class="math-sub">i,k,o</tspan></text>
+
+  <rect class="node inf" x="620" y="250" width="150" height="84"/>
+  <text class="label-bold" x="695" y="280" text-anchor="middle">Symptomatic</text>
+  <text class="math-small" x="695" y="312" text-anchor="middle">I<tspan class="math-sub">i,k,o</tspan><tspan class="math-sup">sym</tspan></text>
+
+  <rect class="node inf" x="620" y="430" width="150" height="84"/>
+  <text class="label-bold" x="695" y="460" text-anchor="middle">Asymptomatic</text>
+  <text class="math-small" x="695" y="492" text-anchor="middle">I<tspan class="math-sub">i,k,o</tspan><tspan class="math-sup">asym</tspan></text>
+
+  <rect class="node treat" x="850" y="352" width="130" height="92"/>
+  <text class="label-bold" x="915" y="382" text-anchor="middle">Treated</text>
+  <text class="math" x="894" y="420">T<tspan class="math-sub">i,k,o</tspan></text>
+
+  <rect class="node imm" x="1080" y="270" width="96" height="84"/>
+  <text class="label-bold" x="1128" y="300" text-anchor="middle">Recovered</text>
+  <text class="math" x="1113" y="336">R<tspan class="math-sub">i</tspan></text>
+
+  <rect class="node imm" x="1060" y="472" width="132" height="94"/>
+  <text class="label-bold" x="1126" y="502" text-anchor="middle">Naturally immune</text>
+  <text class="label-bold" x="1126" y="522" text-anchor="middle">waned</text>
+  <text class="math" x="1107" y="552">W<tspan class="math-sub">i</tspan></text>
+
+  <rect class="node sus" x="1068" y="604" width="124" height="48"/>
+  <text class="math-small" x="1086" y="632">S<tspan class="math-sub">i,U</tspan></text>
+  <text class="tiny" x="1115" y="632">(unvaccinated)</text>
+
+  <path class="blue" d="M350,370 L417,370"/>
+  <text class="math-tiny" x="362" y="350">λ<tspan class="math-sub">k,i</tspan>(t)s<tspan class="math-sub">o</tspan></text>
+
+  <path class="line" d="M530,382 L568,382 L568,292 L617,292"/>
+  <text class="math-tiny" x="580" y="364">σp<tspan class="math-sub">i,o</tspan><tspan class="math-sup">sym</tspan></text>
+
+  <path class="line" d="M530,414 L568,414 L568,472 L617,472"/>
+  <text class="math-tiny" x="580" y="422">σ(1-p<tspan class="math-sub">i,o</tspan><tspan class="math-sup">sym</tspan>)</text>
+
+  <path class="green" d="M770,292 L1077,292"/>
+  <text class="math-tiny" x="916" y="278">γ<tspan class="math-sub">o</tspan><tspan class="math-sup">sym</tspan></text>
+
+  <path class="red" d="M770,302 L815,302 L815,380 L847,380"/>
+  <text class="math-tiny" x="782" y="323">θ<tspan class="math-sub">i</tspan><tspan class="math-sup">sym</tspan></text>
+
+  <path class="red" d="M770,472 L815,472 L815,416 L847,416"/>
+  <text class="math-tiny" x="782" y="455">θ<tspan class="math-sub">i</tspan><tspan class="math-sup">asym</tspan></text>
+
+  <path class="green" d="M770,486 L1014,486 L1014,338 L1077,338"/>
+  <text class="math-tiny" x="918" y="474">γ<tspan class="math-sub">o</tspan><tspan class="math-sup">asym</tspan></text>
+
+  <path class="green" d="M915,352 L915,322 L1077,322"/>
+  <text class="math-tiny" x="960" y="310">γ<tspan class="math-sub">k,o</tspan><tspan class="math-sup">T</tspan></text>
+
+  <path class="green" d="M1100,354 L1100,469"/>
+  <text class="math-tiny" x="1090" y="414" text-anchor="end">ω<tspan class="math-sub">RW</tspan></text>
+
+  <path class="green" d="M1140,472 L1140,357"/>
+  <text class="math-tiny" x="1178" y="414" text-anchor="middle">φ(λ<tspan class="math-sub">S,i</tspan>+λ<tspan class="math-sub">R,i</tspan>)</text>
+
+  <path class="green" d="M1126,566 L1126,601"/>
+  <text class="math-tiny" x="1136" y="590">ω<tspan class="math-sub">WS</tspan></text>
+
+  <path class="blue dash" d="M1060,526 L475,526 L475,451"/>
+  <text class="math-tiny" x="622" y="552">(1-φ)χ<tspan class="math-sub">W</tspan>λ<tspan class="math-sub">k,i</tspan>(t)</text>
+
+  <rect class="dashbox sus" x="70" y="540" width="280" height="135"/>
+  <text class="label-bold" x="96" y="568">Waning of protection</text>
+  <text class="math-tiny" x="96" y="590">M<tspan class="math-sub">protected</tspan> → S</text>
+  <text class="math-tiny" x="96" y="616">V<tspan class="math-sub">dose1 recent</tspan> → V<tspan class="math-sub">dose1 waned</tspan></text>
+  <text class="math-tiny" x="96" y="642">V<tspan class="math-sub">dose2 recent</tspan> → V<tspan class="math-sub">dose2 waned</tspan></text>
+  <text class="math-tiny" x="96" y="664">V<tspan class="math-sub">recent</tspan> → V<tspan class="math-sub">waned</tspan> → S</text>
+
+  <rect class="panel" x="1284" y="105" width="526" height="585"/>
+  <text class="tag" x="1284" y="98">B</text>
+
+  <rect class="node foi" x="1295" y="124" width="500" height="84"/>
+  <text class="small-bold" x="1545" y="148" text-anchor="middle">Infectious pressure (source age j)</text>
+  <text class="math-mini" x="1545" y="176" text-anchor="middle">P<tspan class="math-sub">k,j</tspan>=N<tspan class="math-sub">j</tspan><tspan class="math-sup">-1</tspan>Σ<tspan class="math-sub">o</tspan>η<tspan class="math-sub">o</tspan>[I<tspan class="math-sub">j,k,o</tspan><tspan class="math-sup">sym</tspan>+ρI<tspan class="math-sub">j,k,o</tspan><tspan class="math-sup">asym</tspan>+ξ<tspan class="math-sub">k</tspan>T<tspan class="math-sub">j,k,o</tspan>]</text>
+  <text class="tiny" x="1545" y="198" text-anchor="middle">η<tspan class="math-sub">o</tspan> includes origin-specific VE<tspan class="math-sub">inf</tspan>, including maternal-origin overrides</text>
+
+  <rect class="node foi" x="1305" y="250" width="190" height="98"/>
+  <text class="small-bold" x="1400" y="276" text-anchor="middle">Contact mixing</text>
+  <text class="math-small" x="1400" y="313" text-anchor="middle">C<tspan class="math-sub">ij</tspan></text>
+
+  <rect class="node foi" x="1510" y="250" width="275" height="98"/>
+  <text class="small-bold" x="1648" y="276" text-anchor="middle">Transmission modifiers</text>
+  <text class="math-mini" x="1648" y="303" text-anchor="middle">β<tspan class="math-sub">R</tspan>(t)=f<tspan class="math-sub">R</tspan>β<tspan class="math-sub">S</tspan>(t)</text>
+  <text class="math-mini" x="1648" y="328" text-anchor="middle">β<tspan class="math-sub">S</tspan>(t)=β<tspan class="math-sub">S</tspan>m<tspan class="math-sub">season</tspan>(t)m<tspan class="math-sub">multi</tspan>(t)m<tspan class="math-sub">NPI</tspan>(t)</text>
+
+  <rect class="node foi" x="1395" y="390" width="330" height="78"/>
+  <text class="small-bold" x="1560" y="416" text-anchor="middle">Base force of infection (recipient age i)</text>
+  <text class="math-tiny" x="1560" y="450" text-anchor="middle">λ<tspan class="math-sub">k,i</tspan><tspan class="math-sup">0</tspan>(t)=β<tspan class="math-sub">k</tspan>(t)Σ<tspan class="math-sub">j</tspan>C<tspan class="math-sub">ij</tspan>P<tspan class="math-sub">k,j</tspan></text>
+
+  <rect class="node foi" x="1395" y="502" width="330" height="84"/>
+  <text class="small-bold" x="1560" y="528" text-anchor="middle">PEP modifier (multiplicative reduction)</text>
+  <text class="math-tiny" x="1560" y="558" text-anchor="middle">λ<tspan class="math-sub">k,i</tspan>(t)=λ<tspan class="math-sub">k,i</tspan><tspan class="math-sup">0</tspan>(t)[1-c<tspan class="math-sub">i</tspan><tspan class="math-sup">PEP</tspan>e<tspan class="math-sub">k</tspan>]</text>
+  <text class="tiny" x="1560" y="578" text-anchor="middle">c<tspan class="math-sub">i</tspan><tspan class="math-sup">PEP</tspan>(t) is activated by detected symptomatic prevalence</text>
+
+  <rect class="node foi" x="1328" y="618" width="185" height="60"/>
+  <text class="small-bold" x="1420" y="641" text-anchor="middle">Final sensitive FOI</text>
+  <text class="math-tiny" x="1420" y="661" text-anchor="middle">λ<tspan class="math-sub">S,i</tspan>(t)</text>
+
+  <rect class="node foi" x="1580" y="618" width="185" height="60"/>
+  <text class="small-bold" x="1672" y="641" text-anchor="middle">Final resistant FOI</text>
+  <text class="math-tiny" x="1672" y="661" text-anchor="middle">λ<tspan class="math-sub">R,i</tspan>(t)</text>
+
+  <path class="blue" d="M1500,210 L1500,246"/>
+  <path class="blue-line dash" d="M1400,350 L1400,362 L1550,362"/>
+  <path class="blue-line dash" d="M1648,350 L1648,362 L1550,362"/>
+  <path class="blue" d="M1550,362 L1550,387"/>
+  <path class="blue" d="M1560,468 L1560,499"/>
+  <path class="blue" d="M1560,585 L1420,615"/>
+  <path class="blue" d="M1560,585 L1672,615"/>
+
+  <rect class="panel" x="55" y="730" width="870" height="170"/>
+  <text class="tag" x="55" y="723">C</text>
+
+  <rect class="node ext" x="70" y="745" width="150" height="126"/>
+  <text class="label-bold" x="145" y="771" text-anchor="middle">Routine vaccination</text>
+  <text class="label-bold" x="145" y="791" text-anchor="middle">&amp; delivery shocks</text>
+  <text class="math-small" x="105" y="839">S<tspan class="math-sub">i</tspan> → V<tspan class="math-sub">i,o</tspan><tspan class="math-sup">target</tspan></text>
+
+  <rect class="node ext" x="245" y="745" width="150" height="126"/>
+  <text class="label-bold" x="320" y="771" text-anchor="middle">Importation</text>
+  <text class="small" x="264" y="839">•</text>
+  <text class="math-small" x="282" y="839">S<tspan class="math-sub">i,o</tspan> → E<tspan class="math-sub">i,k,o</tspan></text>
+
+  <rect class="node ext" x="420" y="745" width="150" height="126"/>
+  <text class="label-bold" x="495" y="771" text-anchor="middle">Demography / WPP</text>
+  <text class="small" x="438" y="812">• Ageing</text>
+  <text class="small" x="438" y="834">• births</text>
+  <text class="small" x="438" y="856">• population nudging</text>
+
+  <rect class="node ext" x="595" y="745" width="150" height="126"/>
+  <text class="label-bold" x="670" y="771" text-anchor="middle">Resistance init. /</text>
+  <text class="label-bold" x="670" y="791" text-anchor="middle">importation</text>
+  <text class="small" x="610" y="817">•</text>
+  <text class="math-tiny" x="627" y="817">p<tspan class="math-sub">R</tspan>(0)</text>
+  <text class="small" x="610" y="837">• imported fraction</text>
+  <text class="small" x="610" y="857">•</text>
+  <text class="math-tiny" x="627" y="857">f<tspan class="math-sub">R</tspan>; rebalance</text>
+
+  <rect class="node ext" x="770" y="745" width="140" height="126"/>
+  <text class="label-bold" x="840" y="771" text-anchor="middle">Calibration targets</text>
+  <text class="small" x="785" y="813">•</text>
+  <text class="math-tiny" x="802" y="813">β<tspan class="math-sub">S</tspan></text>
+  <text class="small" x="785" y="833">• reporting multiplier</text>
+  <text class="small" x="785" y="853">• calendar forcing</text>
+
+  <rect class="panel" x="990" y="730" width="810" height="170"/>
+  <text class="tag" x="990" y="723">D</text>
+
+  <rect class="node out" x="1006" y="750" width="178" height="126"/>
+  <text class="label-bold" x="1095" y="779" text-anchor="middle">Symptomatic incidence</text>
+  <text class="math-mini" x="1095" y="813" text-anchor="middle">Y<tspan class="math-sub">i,k</tspan><tspan class="math-sup">sym</tspan>(t)=Σ<tspan class="math-sub">o</tspan>p<tspan class="math-sub">i,o</tspan><tspan class="math-sup">sym</tspan></text>
+  <text class="math-mini" x="1095" y="839" text-anchor="middle">λ<tspan class="math-sub">k,i</tspan>(t)s<tspan class="math-sub">o</tspan>S<tspan class="math-sub">i,o</tspan>(t)</text>
+
+  <rect class="node out" x="1224" y="750" width="200" height="126"/>
+  <text class="label-bold" x="1324" y="779" text-anchor="middle">Reported cases</text>
+  <text class="math-mini" x="1324" y="821" text-anchor="middle">Y<tspan class="math-sub">i,k</tspan><tspan class="math-sup">rep</tspan>(t)=r<tspan class="math-sub">i</tspan>(t)Y<tspan class="math-sub">i,k</tspan><tspan class="math-sup">sym</tspan>(t)</text>
+  <text class="tiny" x="1324" y="851" text-anchor="middle">(observation layer only)</text>
+
+  <rect class="node out" x="1460" y="750" width="170" height="126"/>
+  <text class="label-bold" x="1545" y="779" text-anchor="middle">Severity cascade</text>
+  <text class="math-mini" x="1545" y="811" text-anchor="middle">H<tspan class="math-sub">i,k</tspan>=Σ<tspan class="math-sub">o</tspan>h<tspan class="math-sub">i,o</tspan>Y<tspan class="math-sub">i,k,o</tspan><tspan class="math-sup">sym</tspan></text>
+  <text class="math-mini" x="1545" y="837" text-anchor="middle">D<tspan class="math-sub">i,k</tspan>=Σ<tspan class="math-sub">o</tspan>d<tspan class="math-sub">i,o</tspan>h<tspan class="math-sub">i,o</tspan>Y<tspan class="math-sub">i,k,o</tspan><tspan class="math-sup">sym</tspan></text>
+
+  <rect class="node out" x="1660" y="750" width="130" height="126"/>
+  <text class="label-bold" x="1725" y="779" text-anchor="middle">Endpoints</text>
+  <text class="small" x="1680" y="809">• infant</text>
+  <text class="small" x="1680" y="831">• child 1-9 y</text>
+  <text class="small" x="1680" y="853">• &lt;18 years</text>
+
+  <path class="line" d="M1184,808 L1221,808"/>
+  <path class="line" d="M1424,808 L1457,808"/>
+  <path class="line" d="M1630,808 L1657,808"/>
+
+  <path class="line" d="M90,958 L150,958"/>
+  <text class="label" x="170" y="964">Infection / progression</text>
+  <path class="red" d="M420,958 L480,958"/>
+  <text class="label" x="500" y="964">Treatment</text>
+  <path class="green" d="M650,958 L710,958"/>
+  <text class="label" x="730" y="964">Recovery / waning / boosting</text>
+  <path class="blue" d="M1030,958 L1090,958"/>
+  <text class="label" x="1110" y="964">Transmission / PEP modifiers</text>
+  <path class="blue dash" d="M1435,958 L1495,958"/>
+  <text class="label" x="1515" y="964">Breakthrough / optional pathway</text>
+</svg>

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import re
-
 import numpy as np
 import pandas as pd
 
@@ -107,10 +105,6 @@ PUBLICATION_REQUIRED_TABLES = {
     "high_risk_review_tables": ("outputs/tables/limitation_diagnostic_map.csv",),
     "lancet_child_adolescent_tables": ("outputs/tables/lancet_child_adolescent_strategy_summary.csv",),
 }
-
-URL_PATTERN = re.compile(r"https?://[^\s)<>]+")
-TRAILING_URL_PUNCTUATION = (".", ",", ";")
-
 
 def validate_timeseries(df: pd.DataFrame) -> None:
     missing = EXPECTED_TIMESERIES_COLUMNS.difference(df.columns)
@@ -250,11 +244,6 @@ def validate_publication_outputs() -> None:
             table = read_table(path)
             if table.empty:
                 raise AssertionError(f"Required publication table is empty for {stem}: {path}")
-
-
-def find_urls_with_trailing_punctuation(text: str) -> list[str]:
-    urls = set(URL_PATTERN.findall(text))
-    return sorted(url for url in urls if url.endswith(TRAILING_URL_PUNCTUATION))
 
 
 def main() -> None:

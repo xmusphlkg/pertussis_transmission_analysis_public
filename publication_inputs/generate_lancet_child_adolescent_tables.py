@@ -674,6 +674,47 @@ def _strategy_summary(frontier: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def _logic_blueprint(metric_basis: str) -> pd.DataFrame:
+    metric_text = (
+        "children and adolescents younger than 18 years"
+        if metric_basis == "child_adolescent_0_17y"
+        else "infants under a legacy compatibility fallback"
+    )
+    rows = [
+        {
+            "manuscript_section": "Title",
+            "recommended_logic": "Name the population, not only the intervention: pertussis control for children and adolescents after resurgence.",
+            "implementation_status": "ready_for_draft_revision",
+        },
+        {
+            "manuscript_section": "Objective",
+            "recommended_logic": f"Compare profile-dependent strategies for reducing modeled pertussis cases in {metric_text}.",
+            "implementation_status": "requires_simulation_rerun" if metric_basis != "child_adolescent_0_17y" else "ready_for_results",
+        },
+        {
+            "manuscript_section": "Primary outcome",
+            "recommended_logic": "Use annualized modeled symptomatic cases in model age groups <18 years; report infant, child 1-9 years, and adolescent 10-17 years as prespecified secondary strata.",
+            "implementation_status": "core_code_updated",
+        },
+        {
+            "manuscript_section": "Calibration statement",
+            "recommended_logic": "Move infant-only calibration caveat out of the headline limitation; state that age-stratified outputs are conditional and age-specific public targets are used for validation/triangulation where available.",
+            "implementation_status": "draft_revision_needed",
+        },
+        {
+            "manuscript_section": "Results hierarchy",
+            "recommended_logic": "Lead with pediatric strategy ranking and age-stratum tradeoffs; treat resistance management and future vaccines as secondary/exploratory decision domains.",
+            "implementation_status": "draft_revision_needed",
+        },
+        {
+            "manuscript_section": "Related manuscript disclosure",
+            "recommended_logic": "Retain transparent npj Vaccines disclosure as related surveillance-methods work; emphasize this submission's distinct age-structured decision model and child/adolescent endpoint.",
+            "implementation_status": "ready_for_cover_letter",
+        },
+    ]
+    return pd.DataFrame(rows)
+
+
 def _age_case_inventory() -> pd.DataFrame:
     path = project_path("data", "processed", "pertussis_age_case_inventory.csv")
     if not path.exists():
@@ -894,12 +935,14 @@ def main() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     burden = _strategy_burden_frame(_load_intervention_rows(intervention, timeliness, vaccine))
     frontier, preferred = _frontier_and_preferred(burden)
     summary = _strategy_summary(frontier)
+    metric_basis = str(burden["primary_case_metric"].iloc[0]) if not burden.empty else "unknown"
     inventory = _age_case_inventory()
 
     _write(burden, "outputs/tables/lancet_child_adolescent_strategy_burden.csv")
     _write(frontier, "outputs/tables/lancet_child_adolescent_decision_frontier.csv")
     _write(preferred, "outputs/tables/lancet_child_adolescent_preferred_strategies.csv")
     _write(summary, "outputs/tables/lancet_child_adolescent_strategy_summary.csv")
+    _write(_logic_blueprint(metric_basis), "outputs/tables/lancet_child_adolescent_logic_blueprint.csv")
     _write(inventory, "outputs/tables/lancet_age_case_data_inventory.csv")
     _write(_baseline_pediatric_burden(burden, inventory), "outputs/tables/lancet_baseline_pediatric_burden.csv")
     _write(_endpoint_shift_summary(burden), "outputs/tables/lancet_endpoint_shift_summary.csv")

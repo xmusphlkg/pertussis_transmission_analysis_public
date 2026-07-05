@@ -1120,7 +1120,7 @@ runtime:
         sd: 0.10
         note: >
           Mechanistic duration-shortening proxy fixed at the prior mean during
-          the conditional beta-grid analysis; treated as a vaccine-scenario
+          the primary conditional transmission analysis; treated as a vaccine-scenario
           assumption rather than a directly estimated literature parameter.
       relative_infectiousness_asymptomatic:
         mean: 0.45
@@ -1242,7 +1242,7 @@ parameter_sources:
     note: "Country profiles override this from circular seasonal concentration of reported cases."
   transmission.beta_S:
     source: Calibrated to reported pertussis incidence
-    note: "Baseline placeholder in the shared config; country-specific beta_S is calibrated to reported surveillance and reported separately in eTable 8."
+    note: "Baseline placeholder in the shared configuration; country-specific sensitive-strain transmission coefficients are calibrated to reported surveillance and reported separately in the calibration diagnostics."
   transmission.relative_infectiousness_asymptomatic:
     source: Literature-informed assumption
     note: "WHO/aP evidence supports residual infection and transmission under aP-like protection, but not this exact ratio; retained as a sensitivity parameter."

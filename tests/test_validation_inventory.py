@@ -101,3 +101,4 @@ def test_validate_publication_outputs_rejects_missing_metadata(monkeypatch, tmp_
 
     with pytest.raises(FileNotFoundError):
         validation.validate_publication_outputs()
+
