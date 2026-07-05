@@ -1,0 +1,1342 @@
+config:
+  simulation:
+    start_time: 0
+    time_step: 1
+    output_time_step: 30.0
+    burn_in_years: 15.0
+    solver_method: RK45
+    rtol: 0.0001
+    atol: 1.0e-06
+    n_jobs: -1
+    end_time: 1944.0
+  calendar:
+    enabled: true
+    analysis_start_date: '2021-01-04'
+    analysis_end_date: '2050-12-31'
+    note: 'Simulation time is stored as days since analysis_start_date; end_time is
+      derived from (analysis_end_date - analysis_start_date). Output rows include
+      calendar_date/calendar_year. Calibration overrides these dates to the observed
+      surveillance window so modelled and observed annual cases align by real calendar
+      year, with reporting intervals split across calendar-year boundaries. Start
+      date set to 2025-01-01 to allow short-term out-of-sample validation against
+      2025 surveillance data before the forward projection period.
+
+      '
+  age_groups:
+  - label: infant_0_2m
+    population: 125408.0
+    vaccine_coverage: 0.02
+    symptom_probability: 0.75
+    reporting_rate: 0.6
+    pep_detection_rate: 0.6
+  - label: infant_3_11m
+    population: 627040.0
+    vaccine_coverage: 0.8519939999999999
+    symptom_probability: 0.65
+    reporting_rate: 0.5
+    pep_detection_rate: 0.5
+  - label: child_1_4y
+    population: 3260887.0
+    vaccine_coverage: 0.9073040000000001
+    symptom_probability: 0.45
+    reporting_rate: 0.25
+    pep_detection_rate: 0.25
+  - label: child_5_9y
+    population: 4806617.0
+    vaccine_coverage: 0.8481320000000001
+    symptom_probability: 0.4
+    reporting_rate: 0.18
+    pep_detection_rate: 0.18
+  - label: adolescent_10_17y
+    population: 8703348.0
+    vaccine_coverage: 0.6607540000000001
+    symptom_probability: 0.28
+    reporting_rate: 0.08
+    pep_detection_rate: 0.08
+  - label: young_adult_18_39y
+    population: 27262617.0
+    vaccine_coverage: 0.2
+    symptom_probability: 0.2
+    reporting_rate: 0.05
+    pep_detection_rate: 0.05
+  - label: middle_adult_40_64y
+    population: 42112517.0
+    vaccine_coverage: 0.12
+    symptom_probability: 0.18
+    reporting_rate: 0.03
+    pep_detection_rate: 0.03
+  - label: elderly_65plus
+    population: 36854608.0
+    vaccine_coverage: 0.08
+    symptom_probability: 0.25
+    reporting_rate: 0.04
+    pep_detection_rate: 0.04
+  contact_matrix:
+    reciprocity_correction:
+      enabled: true
+      method: population_weighted_average
+      tolerance: 0.05
+    rows:
+    - - 0.079436
+      - 0.397182
+      - 2.065525
+      - 0.809059
+      - 0.371528
+      - 2.719115
+      - 2.325157
+      - 1.262743
+    - - 0.079436
+      - 0.397182
+      - 2.065525
+      - 0.809059
+      - 0.371528
+      - 2.719115
+      - 2.325157
+      - 1.262743
+    - - 0.079436
+      - 0.397182
+      - 2.065525
+      - 0.809059
+      - 0.371528
+      - 2.719115
+      - 2.325157
+      - 1.262743
+    - - 0.021109
+      - 0.105545
+      - 0.548879
+      - 3.995982
+      - 1.23374
+      - 2.638991
+      - 2.944939
+      - 1.513905
+    - - 0.005353
+      - 0.026767
+      - 0.139201
+      - 0.68136
+      - 6.507736
+      - 3.949473
+      - 3.989875
+      - 1.553744
+    - - 0.012508
+      - 0.06254
+      - 0.325234
+      - 0.465275
+      - 1.260834
+      - 7.430658
+      - 5.576195
+      - 1.284567
+    - - 0.006924
+      - 0.034621
+      - 0.180043
+      - 0.336128
+      - 0.824583
+      - 3.609893
+      - 5.853522
+      - 1.610403
+    - - 0.004297
+      - 0.021484
+      - 0.111727
+      - 0.197445
+      - 0.366922
+      - 0.950238
+      - 1.840154
+      - 2.6327
+  transmission:
+    beta_S: 0.01284242928918337
+    fitness_R: 1.0
+    relative_infectiousness_asymptomatic: 0.35
+    seasonal_amplitude: 0.27940722987956446
+    seasonal_phase: 191.35391167843954
+    multi_year_amplitude: 0.0
+    multi_year_period_years: 4.0
+    multi_year_phase: 0
+    npi_contact_reduction:
+      enabled: true
+      reduction_column: baseline_contact_reduction
+      note: 'Loads country-specific COVID-19/NPI effective contact-reduction periods
+        from data/raw/covid_npi_contact_reduction_timeline.csv. The baseline uses
+        the calibration-screened baseline_contact_reduction column; mean/lower/upper
+        proxy values are reserved for temporal sensitivity analyses because nonzero
+        shocks can distort country-specific post-pandemic peak timing. Contact shocks
+        must not be encoded in diagnostic/reporting multipliers.
+
+        '
+      periods_loaded: 1
+    npi_contact_reduction_periods:
+    - start_date: '2020-04-07'
+      end_date: '2021-09-30'
+      reduction: 0.3
+      baseline_reduction: 0.3
+      reduction_mean: 0.3
+      reduction_lower: 0.1
+      reduction_upper: 0.5
+      ramp_days: 180.0
+      evidence_strength: moderate
+      notes: Proxy all-setting effective contact reduction for emergency declarations
+        school disruption masking and voluntary distancing.
+    npi_ramp_days: 180.0
+  importation:
+    enabled: true
+    rate_per_100k_per_year: 0.2
+    resistant_fraction: 0.827
+    age_distribution:
+      infant_0_2m: 0.02
+      infant_3_11m: 0.05
+      child_1_4y: 0.12
+      child_5_9y: 0.13
+      adolescent_10_17y: 0.2
+      young_adult_18_39y: 0.23
+      middle_adult_40_64y: 0.16
+      elderly_65plus: 0.09
+  natural_history:
+    latent_duration: 8.0
+    infectious_duration_symptomatic: 21.0
+    infectious_duration_asymptomatic: 14.0
+    maternal_protection_duration: 90.0
+    recovered_immunity_duration: 3285.0
+    vaccine_protection_duration: 1825.0
+    R_to_W_duration: 1825.0
+    W_to_S_duration: 3650.0
+  immunity_model:
+    mode: maternal_dose_history
+    boosting_enabled: true
+    boosting_efficiency: 0.7
+    waned_natural_infection_susceptibility: 0.35
+    boosting_note: 'Immune boosting (Wearing & Rohani 2009; Lavine et al. 2011): individuals
+      in the W (waned) state who are re-exposed to circulating pertussis have their
+      immunity restored to R without developing symptomatic infection. boosting_efficiency
+      (0-1) controls what fraction of force-of-infection exposure events successfully
+      boost a W individual back to R. At 0.70, approximately 70% of exposures result
+      in successful boosting. This mechanism naturally produces immunity debt during
+      periods of reduced circulation (COVID-19 NPIs) and subsequent post-pandemic
+      surges.
+
+      '
+    waned_relative_effect: 0.35
+    maternal_relative_effect: 0.75
+    dose1_relative_effect: 0.45
+    dose2_relative_effect: 0.75
+    waned_vaccine_duration: 3650.0
+    initial_recent_fraction: 0.35
+    initial_recent_fraction_by_age:
+      infant_0_2m: 1.0
+      infant_3_11m: 0.85
+      child_1_4y: 0.6
+      child_5_9y: 0.45
+      adolescent_10_17y: 0.25
+      young_adult_18_39y: 0.12
+      middle_adult_40_64y: 0.08
+      elderly_65plus: 0.06
+  observation_model:
+    enabled: true
+    structure: symptomatic_to_care_to_test_to_report
+    diagnostic_standards:
+      enabled: true
+      multiplier_column: relative_detection_prior_mean
+      note: 'Applies a literature-coded, country-specific diagnostic/reporting-regime
+        multiplier from data/raw/pertussis_diagnostic_standards_timeline.csv to reported-case
+        outputs. This is an observation-layer adjustment only; it does not alter infection
+        dynamics.
+
+        '
+      periods_loaded: 3
+    note: 'Runtime reported cases use the age-specific final reporting probabilities
+      in age_groups/reporting_rate, with calibration allowed to multiply those probabilities.
+      The explicit care/test/report split is retained as the intended observation
+      contract for country calibration. IMPORTANT: reporting_rate and reporting_multiplier
+      affect ONLY the observation layer (how many true cases appear in surveillance).
+      Treatment rates in the ODE are scaled by diagnosis_probability, which defaults
+      to the baseline reporting_rate but is NOT modified by reporting_multiplier or
+      reporting-rate sensitivity scenarios. This decoupling ensures that reporting-rate
+      sensitivity analyses do not inadvertently alter resistance selection pressure
+      through the treatment pathway.
+
+      '
+  severity_model:
+    residual_maternal_protection_for_unvaccinated_origin: false
+    note: 'Maternal protection against hospitalization/death is applied to the explicit
+      maternal-origin compartment. Population-average maternal coverage is not applied
+      to all unvaccinated-origin infants in the baseline, because that would assign
+      protection to infants whose mothers were not vaccinated.
+
+      '
+  resistance:
+    target_prevalence_at_analysis_start: 0.827
+    importation_fraction: 0.827
+    rebalance_after_burn_in: true
+    prevalence_anchor_rate_per_year: 2.0
+    anchor_during_dynamics: false
+    initial_resistance_prevalence_deprecated: true
+    use_country_resistance_timeline: true
+    country_timeline:
+      country: Japan
+      iso3: JPN
+      resistance_anchor_year: 2025
+      resistant_fraction: 0.827
+      lower: 0.697
+      upper: 0.918
+      method: exact_year
+      evidence_years: '2025'
+      evidence_type: measured_multicenter_isolate_fraction
+      source: https://www.mdpi.com/2227-9059/14/1/167
+      notes: Japanese children at six clinics, March-August 2025; 43/52 sequenced
+        B. pertussis isolates carried the A2047G mutation associated with macrolide
+        resistance.
+  stochastic_resistance:
+    enabled: false
+    effective_population_size: 2000
+    min_strain_fraction: 0.001
+    random_seed: 20260515
+    note: 'Experimental tau-leaping stochastic layer for resistance strain dynamics.
+      It is disabled for the submitted deterministic analyses. The effective_population_size
+      controls the magnitude of genetic drift: smaller values produce more stochastic
+      fluctuation and slower fixation. A value of 2000 represents the effective number
+      of independent transmission events determining strain composition per output
+      time step, accounting for household clustering (SAR~0.8) that reduces the effective
+      number of independent events well below the total infectious population. This
+      addresses the known limitation that deterministic ODE models produce unrealistically
+      fast resistance fixation (model: 2-3 years vs observed: 6-8 years in China)
+      by introducing the genetic drift that naturally slows selection in finite populations.
+
+      '
+  calibration:
+    enabled: false
+    allow_stale_parameter_overlay: false
+    default_country_profile: Australia
+    method: staged_fast
+    objective: negative_binomial_reporting_interval_cases
+    dispersion: 50.0
+    maxiter: 12
+    n_starts: 1
+    recent_years: 6
+    mean_fit_penalty_weight: 50000.0
+    acceptance:
+      min_overlap_intervals: 5
+      max_interval_smape: 1.3
+      min_log1p_correlation: -0.3
+      peak_ratio_min: 0.25
+      peak_ratio_max: 4.0
+    simulation_overrides:
+      burn_in_years: 15
+      output_time_step: 30
+      solver_method: RK45
+      rtol: 0.0001
+      atol: 1.0e-06
+    relative_incidence_tolerance: 0.25
+    fit_parameters:
+    - transmission.beta_S
+    - reporting_multiplier
+    - transmission.seasonal_amplitude
+    - importation.rate_per_100k_per_year
+    - resistance.importation_fraction
+  demography:
+    enabled: true
+    fixed_population_profile: true
+    fixed_population_reference_age_group: infant_0_2m
+    maternal_protection_proxy:
+      enabled: true
+      exit_age_groups:
+      - infant_0_2m
+      exit_to_compartment: S
+      note: 'Birth-entry M_protected is a proxy for short-lived maternally derived
+        infant protection. It is converted back to susceptible when infants age out
+        of 0-2 months so maternal antibodies are not treated as multi-year vaccine-derived
+        immunity.
+
+        '
+    age_bin_durations_years:
+      infant_0_2m: 0.1667
+      infant_3_11m: 0.75
+      child_1_4y: 4.0
+      child_5_9y: 5.0
+      adolescent_10_17y: 8.0
+      young_adult_18_39y: 22.0
+      middle_adult_40_64y: 25.0
+      elderly_65plus: 15.0
+    birth_entry:
+      S: 0.98
+      V: 0.02
+    wpp_trajectory:
+      source: UN WPP 2024 one-year age-sex population, 1990-2050, aggregated to model
+        age groups
+      horizon_start_year: 2008
+      horizon_end_year: 2050
+      analysis_start_year: 2025
+      analysis_end_year: 2050
+      years:
+      - 2008
+      - 2009
+      - 2010
+      - 2011
+      - 2012
+      - 2013
+      - 2014
+      - 2015
+      - 2016
+      - 2017
+      - 2018
+      - 2019
+      - 2020
+      - 2021
+      - 2022
+      - 2023
+      - 2024
+      - 2025
+      - 2026
+      - 2027
+      - 2028
+      - 2029
+      - 2030
+      - 2031
+      - 2032
+      - 2033
+      - 2034
+      - 2035
+      - 2036
+      - 2037
+      - 2038
+      - 2039
+      - 2040
+      - 2041
+      - 2042
+      - 2043
+      - 2044
+      - 2045
+      - 2046
+      - 2047
+      - 2048
+      - 2049
+      - 2050
+      population_by_year:
+        infant_0_2m:
+          2008: 182002.0
+          2009: 180417.5
+          2010: 178477.3333333333
+          2011: 176465.8333333333
+          2012: 173677.66666666666
+          2013: 171427.66666666666
+          2014: 168215.8333333333
+          2015: 165872.5
+          2016: 163415.3333333333
+          2017: 158701.3333333333
+          2018: 153967.16666666666
+          2019: 147919.3333333333
+          2020: 142045.0
+          2021: 137410.3333333333
+          2022: 133090.0
+          2023: 128321.16666666666
+          2024: 125408.0
+          2025: 125321.0
+          2026: 124890.0
+          2027: 124683.66666666666
+          2028: 124713.66666666666
+          2029: 124945.5
+          2030: 125393.83333333333
+          2031: 125908.16666666666
+          2032: 126555.33333333333
+          2033: 127264.5
+          2034: 128045.83333333333
+          2035: 128927.83333333333
+          2036: 129720.0
+          2037: 130407.83333333333
+          2038: 131080.5
+          2039: 131624.3333333333
+          2040: 131858.3333333333
+          2041: 131778.16666666666
+          2042: 131481.5
+          2043: 131105.3333333333
+          2044: 130523.0
+          2045: 129792.33333333333
+          2046: 128855.5
+          2047: 127527.0
+          2048: 126036.66666666666
+          2049: 124409.16666666666
+          2050: 122628.5
+        infant_3_11m:
+          2008: 910010.0
+          2009: 902087.5
+          2010: 892386.6666666667
+          2011: 882329.1666666667
+          2012: 868388.3333333334
+          2013: 857138.3333333334
+          2014: 841079.1666666667
+          2015: 829362.5
+          2016: 817076.6666666667
+          2017: 793506.6666666667
+          2018: 769835.8333333334
+          2019: 739596.6666666667
+          2020: 710225.0
+          2021: 687051.6666666667
+          2022: 665450.0
+          2023: 641605.8333333334
+          2024: 627040.0
+          2025: 626605.0
+          2026: 624450.0
+          2027: 623418.3333333334
+          2028: 623568.3333333334
+          2029: 624727.5
+          2030: 626969.1666666667
+          2031: 629540.8333333334
+          2032: 632776.6666666667
+          2033: 636322.5
+          2034: 640229.1666666667
+          2035: 644639.1666666667
+          2036: 648600.0
+          2037: 652039.1666666667
+          2038: 655402.5
+          2039: 658121.6666666667
+          2040: 659291.6666666667
+          2041: 658890.8333333334
+          2042: 657407.5
+          2043: 655526.6666666667
+          2044: 652615.0
+          2045: 648961.6666666667
+          2046: 644277.5
+          2047: 637635.0
+          2048: 630183.3333333334
+          2049: 622045.8333333334
+          2050: 613142.5
+        child_1_4y:
+          2008: 4401245.0
+          2009: 4368377.0
+          2010: 4354733.0
+          2011: 4337261.0
+          2012: 4297336.0
+          2013: 4242878.0
+          2014: 4186172.0
+          2015: 4122785.0
+          2016: 4069695.0
+          2017: 4028055.0
+          2018: 3965950.0
+          2019: 3890505.0
+          2020: 3777202.0
+          2021: 3631203.0
+          2022: 3495529.0
+          2023: 3372193.0
+          2024: 3260887.0
+          2025: 3168034.0
+          2026: 3098341.0
+          2027: 3049239.0
+          2028: 3026771.0
+          2029: 3022012.0
+          2030: 3019561.0
+          2031: 3022414.0
+          2032: 3029629.0
+          2033: 3040621.0
+          2034: 3054436.0
+          2035: 3070004.0
+          2036: 3087800.0
+          2037: 3106639.0
+          2038: 3125554.0
+          2039: 3143954.0
+          2040: 3160148.0
+          2041: 3172647.0
+          2042: 3180695.0
+          2043: 3183277.0
+          2044: 3180360.0
+          2045: 3172306.0
+          2046: 3160153.0
+          2047: 3144240.0
+          2048: 3122793.0
+          2049: 3096019.0
+          2050: 3063895.0
+        child_5_9y:
+          2008: 5896294.0
+          2009: 5836503.0
+          2010: 5745970.0
+          2011: 5646364.0
+          2012: 5571088.0
+          2013: 5514595.0
+          2014: 5468453.0
+          2015: 5440340.0
+          2016: 5423972.0
+          2017: 5395477.0
+          2018: 5356624.0
+          2019: 5308061.0
+          2020: 5244538.0
+          2021: 5161023.0
+          2022: 5059642.0
+          2023: 4940486.0
+          2024: 4806617.0
+          2025: 4654826.0
+          2026: 4493347.0
+          2027: 4341009.0
+          2028: 4192704.0
+          2029: 4064533.0
+          2030: 3969352.0
+          2031: 3896224.0
+          2032: 3845595.0
+          2033: 3823179.0
+          2034: 3819546.0
+          2035: 3819283.0
+          2036: 3824816.0
+          2037: 3835569.0
+          2038: 3850478.0
+          2039: 3868788.0
+          2040: 3889718.0
+          2041: 3912158.0
+          2042: 3934996.0
+          2043: 3957918.0
+          2044: 3979437.0
+          2045: 3996855.0
+          2046: 4008958.0
+          2047: 4015243.0
+          2048: 4015295.0
+          2049: 4008648.0
+          2050: 3996291.0
+        adolescent_10_17y:
+          2008: 9531309.0
+          2009: 9536489.0
+          2010: 9546835.0
+          2011: 9575170.0
+          2012: 9575310.0
+          2013: 9542384.0
+          2014: 9491159.0
+          2015: 9419148.0
+          2016: 9343310.0
+          2017: 9271410.0
+          2018: 9199230.0
+          2019: 9120788.0
+          2020: 9031132.0
+          2021: 8930222.0
+          2022: 8840793.0
+          2023: 8775116.0
+          2024: 8703348.0
+          2025: 8610718.0
+          2026: 8498320.0
+          2027: 8361910.0
+          2028: 8207045.0
+          2029: 8027195.0
+          2030: 7828137.0
+          2031: 7616254.0
+          2032: 7400724.0
+          2033: 7170837.0
+          2034: 6939350.0
+          2035: 6739931.0
+          2036: 6569825.0
+          2037: 6436056.0
+          2038: 6336478.0
+          2039: 6263233.0
+          2040: 6216287.0
+          2041: 6200133.0
+          2042: 6205430.0
+          2043: 6216173.0
+          2044: 6234337.0
+          2045: 6258937.0
+          2046: 6288092.0
+          2047: 6320166.0
+          2048: 6353741.0
+          2049: 6387551.0
+          2050: 6418966.0
+        young_adult_18_39y:
+          2008: 35584204.0
+          2009: 34965718.0
+          2010: 34285848.0
+          2011: 33518532.0
+          2012: 32706927.0
+          2013: 31859860.0
+          2014: 31013846.0
+          2015: 30279836.0
+          2016: 29720698.0
+          2017: 29299322.0
+          2018: 28943937.0
+          2019: 28640803.0
+          2020: 28332312.0
+          2021: 27989620.0
+          2022: 27711817.0
+          2023: 27487483.0
+          2024: 27262617.0
+          2025: 27081308.0
+          2026: 26947104.0
+          2027: 26837370.0
+          2028: 26743746.0
+          2029: 26680409.0
+          2030: 26644390.0
+          2031: 26611732.0
+          2032: 26568232.0
+          2033: 26531286.0
+          2034: 26473510.0
+          2035: 26382889.0
+          2036: 26273547.0
+          2037: 26126547.0
+          2038: 25943598.0
+          2039: 25731340.0
+          2040: 25482088.0
+          2041: 25186346.0
+          2042: 24866454.0
+          2043: 24539987.0
+          2044: 24203420.0
+          2045: 23868177.0
+          2046: 23525315.0
+          2047: 23166467.0
+          2048: 22808374.0
+          2049: 22463697.0
+          2050: 22137099.0
+        middle_adult_40_64y:
+          2008: 43131886.0
+          2009: 43223106.0
+          2010: 43572756.0
+          2011: 43661995.0
+          2012: 43376907.0
+          2013: 43078147.0
+          2014: 42882798.0
+          2015: 42752040.0
+          2016: 42637502.0
+          2017: 42568284.0
+          2018: 42550001.0
+          2019: 42579262.0
+          2020: 42542117.0
+          2021: 42423080.0
+          2022: 42338664.0
+          2023: 42259437.0
+          2024: 42112517.0
+          2025: 41912892.0
+          2026: 41672257.0
+          2027: 41395126.0
+          2028: 41068979.0
+          2029: 40656714.0
+          2030: 40136389.0
+          2031: 39730382.0
+          2032: 39270345.0
+          2033: 38593794.0
+          2034: 37916277.0
+          2035: 37182330.0
+          2036: 36370806.0
+          2037: 35514175.0
+          2038: 34621773.0
+          2039: 33742714.0
+          2040: 32971374.0
+          2041: 32325157.0
+          2042: 31770399.0
+          2043: 31287897.0
+          2044: 30869035.0
+          2045: 30508186.0
+          2046: 30215030.0
+          2047: 29982678.0
+          2048: 29768239.0
+          2049: 29557448.0
+          2050: 29369610.0
+        elderly_65plus:
+          2008: 28519042.0
+          2009: 29179774.0
+          2010: 29608267.0
+          2011: 30298314.0
+          2012: 31358650.0
+          2013: 32457212.0
+          2014: 33434878.0
+          2015: 34266485.0
+          2016: 34984281.0
+          2017: 35549930.0
+          2018: 35973889.0
+          2019: 36272489.0
+          2020: 36524966.0
+          2021: 36719732.0
+          2022: 36752601.0
+          2023: 36766305.0
+          2024: 36854608.0
+          2025: 36923776.0
+          2026: 36969021.0
+          2027: 36999584.0
+          2028: 37036823.0
+          2029: 37107555.0
+          2030: 37233928.0
+          2031: 37219631.0
+          2032: 37240278.0
+          2033: 37449168.0
+          2034: 37655354.0
+          2035: 37908147.0
+          2036: 38220452.0
+          2037: 38575972.0
+          2038: 38969248.0
+          2039: 39354756.0
+          2040: 39647539.0
+          2041: 39835336.0
+          2042: 39945496.0
+          2043: 40000500.0
+          2044: 40009806.0
+          2045: 39968778.0
+          2046: 39879906.0
+          2047: 39764015.0
+          2048: 39649668.0
+          2049: 39537021.0
+          2050: 39401531.0
+      births_by_year:
+        2008: 1092012.0
+        2009: 1082505.0
+        2010: 1070864.0
+        2011: 1058795.0
+        2012: 1042066.0
+        2013: 1028566.0
+        2014: 1009295.0
+        2015: 995235.0
+        2016: 980492.0
+        2017: 952208.0
+        2018: 923803.0
+        2019: 887516.0
+        2020: 852270.0
+        2021: 824462.0
+        2022: 798540.0
+        2023: 769927.0
+        2024: 752448.0
+        2025: 751926.0
+        2026: 749340.0
+        2027: 748102.0
+        2028: 748282.0
+        2029: 749673.0
+        2030: 752363.0
+        2031: 755449.0
+        2032: 759332.0
+        2033: 763587.0
+        2034: 768275.0
+        2035: 773567.0
+        2036: 778320.0
+        2037: 782447.0
+        2038: 786483.0
+        2039: 789746.0
+        2040: 791150.0
+        2041: 790669.0
+        2042: 788889.0
+        2043: 786632.0
+        2044: 783138.0
+        2045: 778754.0
+        2046: 773133.0
+        2047: 765162.0
+        2048: 756220.0
+        2049: 746455.0
+        2050: 735771.0
+      total_population_by_year:
+        2008: 128155992.0
+        2009: 128192472.0
+        2010: 128185273.0
+        2011: 128096431.0
+        2012: 127928284.0
+        2013: 127723642.0
+        2014: 127486601.0
+        2015: 127275869.0
+        2016: 127159950.0
+        2017: 127064686.0
+        2018: 126913434.0
+        2019: 126699424.0
+        2020: 126304537.0
+        2021: 125679342.0
+        2022: 124997586.0
+        2023: 124370947.0
+        2024: 123753042.0
+        2025: 123103480.0
+        2026: 122427730.0
+        2027: 121732340.0
+        2028: 121024350.0
+        2029: 120308091.0
+        2030: 119584120.0
+        2031: 118852086.0
+        2032: 118114135.0
+        2033: 117372472.0
+        2034: 116626748.0
+        2035: 115876151.0
+        2036: 115125566.0
+        2037: 114377405.0
+        2038: 113633612.0
+        2039: 112894531.0
+        2040: 112158304.0
+        2041: 111422446.0
+        2042: 110692359.0
+        2043: 109972384.0
+        2044: 109259533.0
+        2045: 108551993.0
+        2046: 107850587.0
+        2047: 107157971.0
+        2048: 106474330.0
+        2049: 105796839.0
+        2050: 105123163.0
+    mode: wpp_trajectory
+  routine_vaccination:
+    enabled: true
+    target_relaxation_rate_per_year: 2.0
+    max_daily_flow_fraction: 0.01
+    note: 'Routine vaccination relaxes toward age-specific target origin distributions,
+      but the daily flow from unvaccinated susceptibility is capped at 1% of the available
+      unvaccinated susceptible pool to match the ODE implementation and avoid numerical
+      overshoot.
+
+      '
+  initial_conditions:
+    initial_exposed_per_100k: 1.5
+    initial_infectious_per_100k: 0.6
+    initial_resistance_prevalence: 0.827
+    seed_age_distribution:
+      infant_0_2m: 0.03
+      infant_3_11m: 0.07
+      child_1_4y: 0.12
+      child_5_9y: 0.13
+      adolescent_10_17y: 0.2
+      young_adult_18_39y: 0.22
+      middle_adult_40_64y: 0.15
+      elderly_65plus: 0.08
+  treatment:
+    treatment_rate_symptomatic: 0.025
+    treatment_rate_asymptomatic: 0.002
+    sensitive:
+      infectious_duration_reduction: 0.2
+      infectiousness_reduction: 0.15
+    resistant:
+      infectious_duration_reduction: 0.1
+      infectiousness_reduction: 0.05
+  PEP:
+    coverage_household_contacts: 0.3
+    effectiveness_sensitive: 0.7
+    effectiveness_resistant: 0.1
+    activation_prevalence: 2.0e-05
+  reporting_rate_sensitivity:
+    medium:
+      multiplier: 1.0
+      description: Baseline reporting rates as configured in country profiles.
+    high:
+      multiplier: 1.5
+      description: Uniformly higher reporting (50% increase across all ages).
+    low:
+      multiplier: 0.5
+      description: Uniformly lower reporting (50% decrease across all ages).
+    age_biased:
+      age_multipliers:
+        infant_0_2m: 1.2
+        infant_3_11m: 1.1
+        child_1_4y: 0.9
+        child_5_9y: 0.8
+        adolescent_10_17y: 0.7
+        young_adult_18_39y: 0.6
+        middle_adult_40_64y: 0.5
+        elderly_65plus: 0.6
+      description: 'Age-biased reporting where infant ascertainment is slightly higher
+        and adult/adolescent ascertainment is lower than baseline.
+
+        '
+    time_varying:
+      multiplier: 1.0
+      time_variation:
+        start_multiplier: 0.5
+        end_multiplier: 1.5
+      description: 'Linearly improving reporting over the analysis period (e.g. due
+        to increased awareness, better diagnostics, or expanded testing).
+
+        '
+    infant_high_adult_very_low:
+      age_multipliers:
+        infant_0_2m: 1.0
+        infant_3_11m: 0.9
+        child_1_4y: 0.6
+        child_5_9y: 0.5
+        adolescent_10_17y: 0.3
+        young_adult_18_39y: 0.2
+        middle_adult_40_64y: 0.15
+        elderly_65plus: 0.2
+      description: 'Strong age gradient: infant reporting near baseline but adolescent
+        and adult reporting reduced to 3-5% absolute (consistent with Ontario capture-recapture:
+        11% of age 1+ cases reported, and England/Wales notification efficiency of
+        5-25% overall). This scenario tests whether the true infection burden in adults
+        is substantially higher than reported cases suggest.
+
+        '
+    infant_moderate_adult_minimal:
+      age_multipliers:
+        infant_0_2m: 0.7
+        infant_3_11m: 0.6
+        child_1_4y: 0.5
+        child_5_9y: 0.4
+        adolescent_10_17y: 0.2
+        young_adult_18_39y: 0.1
+        middle_adult_40_64y: 0.08
+        elderly_65plus: 0.1
+      description: 'Extreme under-reporting scenario anchored to the lower end of
+        literature estimates. Infant reporting at 35-42% (Ontario hospital study:
+        37%), school-age at 2-5%, adults at 0.5-2.5%. Represents passive surveillance
+        systems without active case-finding.
+
+        '
+    enhanced_surveillance:
+      age_multipliers:
+        infant_0_2m: 1.3
+        infant_3_11m: 1.2
+        child_1_4y: 1.4
+        child_5_9y: 1.5
+        adolescent_10_17y: 1.8
+        young_adult_18_39y: 2.5
+        middle_adult_40_64y: 2.5
+        elderly_65plus: 2.0
+      description: 'Enhanced surveillance scenario where improved diagnostics (PCR
+        availability, point-of-care testing) increase ascertainment, particularly
+        in older age groups. Represents the effect of active surveillance programs
+        or outbreak investigations.
+
+        '
+    adult_focused_improvement:
+      age_multipliers:
+        infant_0_2m: 1.0
+        infant_3_11m: 1.0
+        child_1_4y: 1.0
+        child_5_9y: 1.0
+        adolescent_10_17y: 2.0
+        young_adult_18_39y: 3.0
+        middle_adult_40_64y: 3.0
+        elderly_65plus: 2.5
+      description: 'Scenario where adult/adolescent reporting improves substantially
+        (e.g. through Tdap booster awareness campaigns, expanded testing guidelines
+        for prolonged cough). Tests sensitivity of total burden estimates to adult
+        ascertainment improvements.
+
+        '
+    china_passive_system:
+      age_multipliers:
+        infant_0_2m: 0.8
+        infant_3_11m: 0.7
+        child_1_4y: 0.5
+        child_5_9y: 0.4
+        adolescent_10_17y: 0.25
+        young_adult_18_39y: 0.15
+        middle_adult_40_64y: 0.12
+        elderly_65plus: 0.15
+      description: 'Calibrated to Yiwu active-surveillance study (China) which found
+        community incidence of 108.3/100k vs passive surveillance estimates far below
+        this. Represents the gap between active and passive surveillance in a middle-income
+        setting.
+
+        '
+  baseline_vaccine_scenario: symptom_protective
+  baseline_resistance_scenario: country_timeline
+  baseline_country_profile: China
+  fitness_grid:
+    random_seed: 20260510
+    fitness_R_values:
+    - 0.7
+    - 0.8
+    - 0.85
+    - 0.9
+    - 0.95
+    - 0.98
+    - 1.0
+    - 1.02
+    - 1.05
+    - 1.1
+    - 1.15
+    - 1.2
+    - 1.25
+    VE_inf_values:
+    - 0.05
+    - 0.1
+    - 0.15
+    - 0.2
+    - 0.25
+    - 0.3
+    - 0.35
+    - 0.4
+    - 0.45
+    - 0.5
+    - 0.55
+    description: 'Continuous macrolide-resistant strain fitness stress test crossed
+      with plausible-to-upper-bound vaccine infectiousness effects. VE_inf is the
+      reduction in onward infectiousness among infected vaccine-history origins, not
+      protection against infection. The fitness grid now includes finer resolution
+      around fitness_R = 1.0 (neutral) because epidemiological evidence from China
+      (36% to >99% MRBP in 8 years), Japan (83-88% in 2024-2025), and international
+      MT28 spread suggests the true fitness is near or above 1.0. Values below 0.85
+      are retained for completeness but are increasingly inconsistent with observed
+      resistance dynamics. VE_inf axis expanded from 5 to 11 uniform steps (0.05 increments)
+      to improve heatmap resolution in Figure 3E/F panels.
+
+      '
+  bayesian_uncertainty:
+    random_seed: 20260510
+    n_chains: 4
+    warmup: 2000
+    draws: 2000
+    thin: 3
+    proposal_scale: 1.0
+    posterior_predictive_draws_per_country: 100
+    dispersion: 50.0
+    enable_time_varying_reporting: false
+    likelihood_observation_frequency: monthly
+    require_calibrated_start: true
+    note: 'The production uncertainty path is conditional unless an explicit multi-parameter
+      MCMC sampler is requested. The default beta_grid workflow integrates over beta_S
+      after fixing reporting, VE, asymptomatic infectiousness, duration, and resistance-fitness
+      nuisance parameters; outputs must therefore be interpreted as conditional beta
+      uncertainty, not a full structural posterior. Adaptive Metropolis remains available
+      for pilot and sensitivity analyses when those additional dimensions are meant
+      to be sampled.
+
+      '
+    convergence_criteria:
+      rhat_threshold: 1.05
+      min_bulk_ess: 100
+      min_tail_ess: 50
+      note: 'Convergence is assessed per-parameter per-country. Parameters with rank-normalized
+        split-R-hat > 1.05 or bulk ESS < 100 are flagged. Reference: Vehtari et al.
+        (2021) Bayesian Analysis 16(2):667-718.
+
+        '
+    adaptive_metropolis:
+      adaptation_start: 50
+      mixing_fraction: 0.95
+      epsilon: 1.0e-06
+      note: 'Adaptive Metropolis (Haario et al. 2001) learns the empirical covariance
+        from chain history during warmup. After adaptation_start steps, the proposal
+        is 95% adapted covariance + 5% initial diagonal for ergodicity. The adapted
+        covariance captures correlations such as the strong negative correlation between
+        beta_S and reporting_multiplier.
+
+        '
+    priors:
+      log_beta_S_sd: 0.8
+      log_reporting_multiplier_sd: 0.8
+      VE_sus:
+        mean: 0.45
+        sd: 0.05
+        note: 'Literature-informed decomposition parameter for reduced susceptibility
+          after aP vaccination. Aggregate studies support high disease protection
+          and waning protection, but do not directly identify this component from
+          surveillance data; the posterior is constrained to [0.30, 0.60] as a modeling
+          range.
+
+          '
+      VE_inf:
+        mean: 0.25
+        sd: 0.05
+        note: 'Literature-informed decomposition parameter for reduced onward infectiousness
+          among vaccinated infections. It is motivated by aP transmission-blocking
+          evidence and waning studies, but the exact component is not directly measured
+          in country surveillance; range [0.12, 0.38] spans weak-to-moderate residual
+          transmission blocking.
+
+          '
+      VE_dur:
+        mean: 0.1
+        sd: 0.1
+        note: 'Mechanistic duration-shortening proxy fixed at the prior mean during
+          the primary conditional transmission analysis; treated as a vaccine-scenario
+          assumption rather than a directly estimated literature parameter.
+
+          '
+      relative_infectiousness_asymptomatic:
+        mean: 0.45
+        sd: 0.1
+        note: 'Relative infectiousness of asymptomatic/subclinical infections compared
+          to symptomatic cases. The exact ratio is weakly identified and not directly
+          available from routine surveillance; range [0.20, 0.70] spans minimal subclinical
+          transmission to near-equal infectiousness.
+
+          '
+      infectious_duration_symptomatic:
+        log_sd: 0.15
+        note: 'Clinical natural-history nuisance parameter centered on the CDC-aligned
+          21-day symptomatic infectious window; uncertainty range captures plausible
+          variation around the clinical anchor.
+
+          '
+      infectious_duration_asymptomatic:
+        log_sd: 0.2
+        note: 'Modeling assumption centered on a shorter mild/asymptomatic infectious
+          window than symptomatic pertussis; uncertainty range retained because this
+          duration is not directly measured.
+
+          '
+      fitness_R:
+        min: 0.7
+        max: 1.25
+        mean: 1.0
+        sd: 0.12
+        note: 'Epidemiologically motivated prior centered on fitness-neutral (1.0),
+          because MRBP reached near-fixation in China within 8 years and spread internationally
+          without clear transmission disadvantage. This is not a direct measured relative-fitness
+          estimate; SD of 0.12 allows modest fitness costs or advantages.
+
+          '
+      resistance_prevalence:
+        floor_sd: 0.03
+        note: 'Resistance prevalence is FIXED at the country-calibrated value during
+          MCMC (not sampled). The country_resistance_timeline.csv provides well-constrained
+          estimates for most countries. This eliminates a major source of multimodality
+          without losing scientific information.
+
+          '
+      maternal_VE_sus:
+        mean: 0.55
+        sd: 0.12
+        note: 'Prior for maternal antibody protection against infant infection. Centered
+          on 0.55 using maternal Tdap effectiveness evidence for confirmed pertussis
+          in infants younger than 2 months [36], which combines infection prevention
+          and disease prevention. The infection-blocking component is a decomposed
+          model assumption guided by maternal immunization effectiveness studies [10,12].
+          SD of 0.12 allows exploration of [0.30, 0.80].
+
+          '
+      maternal_VE_sym:
+        mean: 0.92
+        sd: 0.05
+        note: 'Prior for maternal antibody protection against symptomatic disease
+          given infection. High confidence based on consistent estimates of VE against
+          hospitalization (>90%) across US, UK, and Argentina studies [10,36,37].
+          Narrow SD reflects strong evidence consensus.
+
+          '
+    stochastic_overlay:
+      enabled: true
+      random_seed: 20260511
+      replicates_per_draw: 200
+      superspreading_k: 10.0
+      superspreading_k_min: 1.0
+      household_mean_size: 3.5
+      household_secondary_attack_rate: 0.8
+      min_expected_count: 1.0
+      credible_interval:
+        low: 2.5
+        high: 97.5
+      k_sensitivity_values:
+      - 5.0
+      - 10.0
+      - 20.0
+      - 30.0
+      - 50.0
+      note: 'Negative-binomial observation overlay injecting two stochastic sources
+        onto each deterministic posterior-predictive draw. Superspreading enters as
+        an aggregate-scale NB2 dispersion k = 10 (empirical surveillance range 5-50;
+        the calibration likelihood already uses dispersion = 50); this captures the
+        tail of transmission heterogeneity (Lloyd-Smith et al. Nature 2005; Endo et
+        al. 2020) that remains after aggregating individual-level offspring variability
+        to country-year counts. Household clustering enters as the Ball, Mollison
+        & Scalia-Tomba (1997) design effect DEFF = 1 + (m_bar - 1) * SAR with m_bar
+        = 3.5 and pertussis household SAR = 0.8. Effective dispersion combines both
+        via 1/k_eff = 1/k_ss + (DEFF - 1)/mu so household clustering dominates at
+        small mu while superspreading dominates at large mu. Combined 95% PI is pooled
+        over parameter draws and stochastic replicates; parameter- only and stochastic
+        components are reported separately. The k_sensitivity_values sweep demonstrates
+        how the combined PI width varies across the plausible range of aggregate dispersion
+        (k=5 to k=50), making the assumption explicit and auditable. Addresses Lavine
+        et al. (2011) sensitivity concern by making both parameter uncertainty and
+        structural heterogeneity explicit and decomposable.
+
+        '
+  reporting_rate_prior:
+    method: literature_range
+    evidence_class: laboratory_surveillance_proxy
+    note: Japanese laboratory-based surveillance improves detection, but school-age
+      and adult under-ascertainment remains likely.
+    age_groups:
+      infant_0_2m:
+        lower: 0.25
+        upper: 0.7
+      infant_3_11m:
+        lower: 0.2
+        upper: 0.65
+      child_1_4y:
+        lower: 0.08
+        upper: 0.45
+      child_5_9y:
+        lower: 0.06
+        upper: 0.35
+      adolescent_10_17y:
+        lower: 0.03
+        upper: 0.15
+      young_adult_18_39y:
+        lower: 0.005
+        upper: 0.08
+      middle_adult_40_64y:
+        lower: 0.005
+        upper: 0.06
+      elderly_65plus:
+        lower: 0.005
+        upper: 0.08
+  metadata:
+    contact_reciprocity:
+      reciprocity_correction_applied: true
+      reciprocity_error_before: 0.9302835615206769
+      reciprocity_error_after: 1.4702791643301317e-16
+    routine_age_pattern: M2;M3;M4;Y1
+    routine_first_shot_months: 3.0
+    routine_last_shot_months: 18.0
+    routine_dose_count: 4
+    routine_scheduler_code: aP
+    calibration_loaded: false
+    npi_contact_reduction_country: Japan
+    npi_contact_reduction_iso3: JPN
+    npi_contact_reduction_periods_loaded: 1
+    npi_contact_reduction_reduction_column: baseline_contact_reduction
+    resistance_timeline_country: Japan
+    resistance_timeline_iso3: JPN
+    resistance_timeline_anchor_year: 2025
+    resistance_timeline_allows_future_evidence: false
+    resistance_timeline_method: exact_year
+    resistance_timeline_evidence_years: '2025'
+    resistance_timeline_evidence_type: measured_multicenter_isolate_fraction
+    resistance_timeline_source: https://www.mdpi.com/2227-9059/14/1/167
+    resistance_timeline_notes: Japanese children at six clinics, March-August 2025;
+      43/52 sequenced B. pertussis isolates carried the A2047G mutation associated
+      with macrolide resistance.
+    diagnostic_standard_country: Japan
+    diagnostic_standard_iso3: JPN
+    diagnostic_standard_periods_loaded: 3
+    diagnostic_standard_multiplier_column: relative_detection_prior_mean
+  country: Japan
+  vaccine:
+    VE_sus: 0.15
+    VE_sym: 0.85
+    VE_inf: 0.25
+    VE_dur: 0.0
+  diagnostic_reporting_time_variation:
+    enabled: true
+    country: Japan
+    iso3: JPN
+    multiplier_column: relative_detection_prior_mean
+    periods:
+    - start_date: '1997-01-01'
+      end_date: '2016-10-31'
+      multiplier: 0.65
+      prior_mean: 0.65
+      prior_lower: 0.4
+      prior_upper: 0.95
+      geographic_scope: national
+      surveillance_regime: pediatric_sentinel_clinical
+      primary_diagnostic_methods: clinical_sentinel;culture;limited_serology
+      effect_direction: lower_detection
+      evidence_strength: high
+      source_ids: JAPAN_IASR_2019;JAPAN_LAB_2016
+      notes: Combines age-coverage and laboratory-method discontinuity.
+    - start_date: '2016-11-01'
+      end_date: '2017-12-31'
+      multiplier: 0.9
+      prior_mean: 0.9
+      prior_lower: 0.6
+      prior_upper: 1.25
+      geographic_scope: national
+      surveillance_regime: lamp_transition
+      primary_diagnostic_methods: LAMP;PCR;culture;serology
+      effect_direction: increased_detection
+      evidence_strength: moderate
+      source_ids: JAPAN_IASR_2019
+      notes: Short transition interval.
+    - start_date: '2018-01-01'
+      end_date: '2026-12-31'
+      multiplier: 1.3
+      prior_mean: 1.3
+      prior_lower: 0.9
+      prior_upper: 1.75
+      geographic_scope: national
+      surveillance_regime: all_facility_lab_supported_notification
+      primary_diagnostic_methods: clinical_plus_lab_confirmation;LAMP;PCR;culture;serology
+      effect_direction: increased_detection_and_specificity
+      evidence_strength: high
+      source_ids: JAPAN_IASR_2019
+      notes: Do not compare pre-2018 sentinel counts to post-2018 all-facility counts
+        without an observation-regime term.
+metadata:
+  country: Japan
+  accepted: true
+  optimizer_success: true
+  calibration_status: accepted
+  fit_score: 6348.896819510473
+  data_fit_score: 6325.524391872724
+  n_starts: 1
+  maxiter: 12
+  config_hash: 66b778bc4c792b141549da24186cd25b8d0e7046eb3bab329f1877ad44778871
+  calibration_config_hash: 17ae9068008b4c1e2081de14baa9658e40c120bf419be1476856f514e3c6595f
+  baseline_vaccine_scenario: symptom_protective
+  baseline_resistance_scenario: country_timeline
+  generated_at_utc: '2026-07-05T08:49:31.448008+00:00'

@@ -1,0 +1,1275 @@
+# Central model settings.
+#
+# This file is the single source of truth for all scientific assumptions,
+# scenario definitions, and data source paths used at runtime.
+# All runtime configuration is under the `runtime:` block below.
+
+source_registry:
+  cdc_clinical:
+    label: CDC pertussis clinical features
+    url: https://www.cdc.gov/pertussis/hcp/clinical-signs/index.html
+    note: Clinical incubation, infectious period, symptom severity by age, and temporal pattern.
+  cdc_treatment_pep:
+    label: CDC pertussis treatment and postexposure prophylaxis guidance
+    url: https://www.cdc.gov/pertussis/hcp/clinical-care/index.html
+    note: Macrolide treatment, timing of treatment, PEP targets, and resistance-guided antibiotic choice.
+  cdc_vaccine_recommendations:
+    label: CDC pertussis vaccine recommendations
+    url: https://www.cdc.gov/pertussis/hcp/vaccine-recommendations/index.html
+    note: DTaP/Tdap schedule, adolescent Tdap, adult Tdap, and Tdap during every pregnancy.
+  cdc_pregnancy_tdap:
+    label: CDC vaccinating pregnant patients for pertussis
+    url: https://www.cdc.gov/pertussis/hcp/vaccine-recommendations/vaccinating-pregnant-patients.html
+    note: Pregnancy Tdap rationale, timing, infant effectiveness, and close-contact adult implementation caveats.
+  cdc_pep_guidance:
+    label: CDC postexposure antimicrobial prophylaxis guidance
+    url: https://www.cdc.gov/pertussis/php/postexposure-prophylaxis/index.html
+    note: PEP prioritization for household contacts, infants, and high-risk settings.
+  cdc_mrbp_surveillance:
+    label: CDC antibiotic-resistant Bordetella pertussis surveillance notes
+    url: https://www.cdc.gov/pertussis/hcp/antibiotic-resistance/index.html
+    note: MRBP has been reported globally; reported infections remain rare in the United States.
+  paho_mrbp_americas:
+    label: PAHO antibiotic-resistant pertussis alert, 2025
+    url: https://www.paho.org/en/news/26-8-2025-paho-calls-strengthened-vaccination-and-surveillance-amid-spread-antibiotic
+    note: Resistant pertussis cases reported since 2024 in Brazil, Mexico, Peru, and the United States.
+  ecdc_mrbp_europe:
+    label: ECDC Bordetella pertussis antimicrobial susceptibility testing EQA, 2022
+    url: https://www.ecdc.europa.eu/en/publications-data/external-quality-assurance-scheme-bordetella-pertussis-antimicrobial
+    note: Macrolide-resistant B. pertussis isolates mainly found in China, with sporadic reports in Europe and other regions.
+  china_mrbp_2024_multicenter:
+    label: China 2024 multicenter pertussis outbreak isolate study
+    url: https://www.sciencedirect.com/science/article/pii/S2666606525001658
+    note: 393/394 isolates in the 2024 multicenter study displayed high-level azithromycin resistance.
+  australia_mrbp_2024_genomic:
+    label: Australia targeted sequencing genomic epidemiology study, 2024 specimens
+    url: https://doi.org/10.1016/j.lanmic.2025.101286
+    note: Nationwide Australian study estimated macrolide resistance among B. pertussis positive cases at 8/188 (4%).
+  nz_mrbp_2025_guidance:
+    label: Health New Zealand pertussis communicable disease control guidance, 2025
+    url: https://www.tewhatuora.govt.nz/for-health-professionals/clinical-guidance/communicable-disease-control-manual/pertussis
+    note: MRBP detected by PHF Science; no change to antibiotic management while national assessment continues.
+  japan_mrbp_2025_kobe:
+    label: Kobe, Japan MT27 macrolide-resistant Bordetella pertussis report, 2025
+    url: https://wwwnc.cdc.gov/eid/article/32/1/25-0890_article
+    note: MT27-MRBP detected in Kobe in 2025 and phylogenetically related to China MRBP.
+  who_pertussis_position:
+    label: WHO pertussis vaccine position paper summary, 2015
+    url: https://www.who.int/docs/default-source/immunization/position_paper_documents/pertussis/pertussis-pp-2015-summary.pdf
+    note: Primary-series timing, aP/wP interpretation, boosters, and maternal immunization rationale.
+  ap_waning_meta_analysis:
+    label: Acellular pertussis vaccine effectiveness meta-analysis
+    url: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0197970
+    note: aP protection wanes over years; used to bound vaccine waning and mechanism scenarios.
+  pertussis_cycle_model:
+    label: Estimating duration of pertussis immunity using epidemiological signatures
+    url: https://journals.plos.org/plospathogens/article?id=10.1371/journal.ppat.1000647
+    note: Inter-epidemic periods and immunity duration constrain recurrent pertussis dynamics.
+  recurrent_london_waves:
+    label: Recurrent pertussis waves across London
+    url: https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1009898
+    note: Four-year recurrent waves and age/seasonality structure inform diagnostics and plotting.
+  wpp_2024:
+    label: UN World Population Prospects 2024
+    url: https://population.un.org/wpp/
+    note: Country age-structured population denominators.
+  who_immunization_data:
+    label: WHO Immunization Data Portal / WUENIC / JRF
+    url: https://immunizationdata.who.int/
+    note: DTP coverage, booster coverage, maternal pertussis vaccination, and national schedules.
+  prem_contact_matrices:
+    label: Prem et al. contact matrices and contactdata package
+    url: https://socialcontactdata.r-universe.dev/contactdata
+    note: Country age-specific contact matrices; Australia/Japan use 2017 Prem matrices where 2020 matrices are unavailable.
+  pertussis_incidence:
+    label: Local harmonized pertussis incidence report
+    url: https://github.com/xmusphlkg/PertussisIncidence
+    note: Reported pertussis surveillance time series copied into data/raw/external and harmonized by reporting interval for this project.
+
+runtime:
+  data_sources:
+    wpp_population_csv: data/raw/external/wpp2024_population_by_age_sex_1990_2050.csv
+    wpp_births_csv: data/raw/external/WPP data.csv
+    pertussis_incidence_path: data/raw/external/Pertussis Incidence Report.xlsx
+    dtp_coverage_xlsx: data/raw/external/Diphtheria Tetanus Toxoid and Pertussis (DTP) vaccination coverage 2026-30-04 12-11 UTC.xlsx
+    contact_matrix_csv: data/raw/external/contactdata_prem_contact_matrices_16.csv
+    contact_matrix_by_location_csv: data/raw/external/contactdata_prem_contact_matrices_by_location_16.csv
+    who_reported_cases_xlsx: data/raw/external/Pertussis reported cases and incidence.xlsx
+    who_region_incidence_xlsx: data/raw/external/Pertussis reported cases and incidence region.xlsx
+    who_ap_introduction_xlsx: data/raw/external/Introduction of aP (acellular Pertussis) vaccine 2026-30-04 12-12 UTC.xlsx
+    who_schedule_xlsx: data/raw/external/Vaccination schedule for Pertussis 2026-30-04 10-54 UTC.xlsx
+    maternal_immunization_coverage_xlsx: data/raw/external/maternal immunization coverage.xlsx
+    vaccine_schedule_summary_xlsx: data/raw/external/VaccineSchedule.xlsx
+    country_resistance_timeline_csv: data/raw/country_resistance_timeline.csv
+    diagnostic_standard_timeline_csv: data/raw/pertussis_diagnostic_standards_timeline.csv
+    diagnostic_standard_sources_csv: data/raw/pertussis_diagnostic_standards_sources.csv
+    npi_contact_reduction_timeline_csv: data/raw/covid_npi_contact_reduction_timeline.csv
+    population_year: 2024
+    incidence_cutoff_policy: all_records
+    # Retained for legacy CSV/WHO fallbacks; ignored when incidence_cutoff_policy is all_records.
+    surveillance_year: 2023
+    # Resistance anchoring intentionally uses the latest 2025 evidence.
+    resistance_anchor_year: 2025
+    allow_future_resistance_evidence: false
+    # DEPRECATED: Legacy fallback used only if resistance_anchor_year is omitted.
+    # Scheduled for removal. All new code should use resistance_anchor_year.
+    analysis_year: 2023
+    source_note: >
+      Raw external project/data exports are copied into this repository before
+      processing. The model does not read directly from PertussisIncidence or
+      pertussis_epidemic_model working directories.
+    countries:
+      AU:
+        config_key: Australia
+        iso3: AUS
+        contactdata_country: Australia
+        contactdata_source: "2017"
+        vaccine_product: aP
+        primary_doses: 3
+        child_booster_doses: 2
+        adolescent_booster: true
+        maternal_program: true
+        maternal_coverage: 0.72
+        schedule_note: "2, 4, 6 months plus child/adolescent boosters; maternal pertussis vaccination considered."
+      CN:
+        config_key: China
+        iso3: CHN
+        contactdata_country: China
+        contactdata_source: "2020"
+        vaccine_product: aP
+        primary_doses: 3
+        child_booster_doses: 1
+        adolescent_booster: false
+        maternal_program: false
+        maternal_coverage: 0.05
+        schedule_note: "Primary infant series plus toddler booster; no routine national maternal programme assumed here."
+      GB:
+        config_key: United_Kingdom
+        iso3: GBR
+        contactdata_country: United Kingdom
+        contactdata_source: "2020"
+        vaccine_product: aP
+        primary_doses: 3
+        child_booster_doses: 1
+        adolescent_booster: false
+        maternal_program: true
+        maternal_coverage: 0.65
+        schedule_note: "Infant primary series, preschool booster, and pregnancy programme."
+      JP:
+        config_key: Japan
+        iso3: JPN
+        contactdata_country: Japan
+        contactdata_source: "2017"
+        vaccine_product: aP
+        primary_doses: 3
+        child_booster_doses: 1
+        adolescent_booster: false
+        maternal_program: false
+        maternal_coverage: 0.05
+        schedule_note: "Infant primary series plus toddler booster; maternal programme not assumed."
+      NZ:
+        config_key: New_Zealand
+        iso3: NZL
+        contactdata_country: New Zealand
+        contactdata_source: "2020"
+        vaccine_product: aP
+        primary_doses: 3
+        child_booster_doses: 2
+        adolescent_booster: true
+        maternal_program: true
+        maternal_coverage: 0.70
+        schedule_note: "Infant series with childhood/adolescent boosters and pregnancy programme."
+      SE:
+        config_key: Sweden
+        iso3: SWE
+        contactdata_country: Sweden
+        contactdata_source: "2020"
+        vaccine_product: aP
+        primary_doses: 3
+        child_booster_doses: 2
+        adolescent_booster: true
+        maternal_program: true
+        maternal_coverage: 0.55
+        schedule_note: "Infant series plus school-age booster strategy; pregnancy programme approximated."
+      US:
+        config_key: United_States
+        iso3: USA
+        contactdata_country: United States
+        contactdata_source: "2020"
+        vaccine_product: aP
+        primary_doses: 3
+        child_booster_doses: 2
+        adolescent_booster: true
+        maternal_program: true
+        maternal_coverage: 0.62
+        schedule_note: "DTaP infant/childhood series, Tdap adolescent booster, and pregnancy programme."
+      BR:
+        config_key: Brazil
+        iso3: BRA
+        contactdata_country: Brazil
+        contactdata_source: "2020"
+        vaccine_product: wP
+        primary_doses: 3
+        child_booster_doses: 2
+        adolescent_booster: false
+        maternal_program: true
+        maternal_coverage: 0.74
+        schedule_note: "Whole-cell infant series plus childhood boosters; pregnancy Tdap programme."
+      TH:
+        config_key: Thailand
+        iso3: THA
+        contactdata_country: Thailand
+        contactdata_source: "2020"
+        vaccine_product: wP
+        primary_doses: 3
+        child_booster_doses: 2
+        adolescent_booster: false
+        maternal_program: true
+        maternal_coverage: 0.08
+        schedule_note: "Whole-cell infant series plus childhood boosters; maternal pertussis programme recorded."
+      ZA:
+        config_key: South_Africa
+        iso3: ZAF
+        contactdata_country: South Africa
+        contactdata_source: "2020"
+        vaccine_product: aP
+        primary_doses: 3
+        child_booster_doses: 2
+        adolescent_booster: true
+        maternal_program: true
+        maternal_coverage: 0.45
+        schedule_note: "DTaP-containing hexavalent infant series at 6, 10, 14 weeks plus 18-month booster; Tdap boosters at 6 and 12 years; maternal Tdap programme."
+
+  baseline_parameters:
+    simulation:
+      start_time: 0
+      # end_time is derived at load time from calendar.analysis_start_date and
+      # calendar.analysis_end_date. Override explicitly only for tests or
+      # calibration windows.
+      time_step: 1
+      output_time_step: 7
+      burn_in_years: 15
+      solver_method: RK45
+      rtol: 1.0e-5
+      atol: 1.0e-7
+      n_jobs: -1
+    calendar:
+      enabled: true
+      analysis_start_date: "2025-01-01"
+      analysis_end_date: "2050-12-31"
+      note: >
+        Simulation time is stored as days since analysis_start_date; end_time is
+        derived from (analysis_end_date - analysis_start_date). Output rows
+        include calendar_date/calendar_year. Calibration overrides these dates
+        to the observed surveillance window so modelled and observed annual
+        cases align by real calendar year, with reporting intervals split across
+        calendar-year boundaries. Start date set to 2025-01-01 to allow
+        short-term out-of-sample validation against 2025 surveillance data
+        before the forward projection period.
+    age_groups:
+      - label: infant_0_2m
+        population: 206666.667
+        vaccine_coverage: 0.10
+        symptom_probability: 0.75
+        reporting_rate: 0.60
+      - label: infant_3_11m
+        population: 1033333.333
+        vaccine_coverage: 0.65
+        symptom_probability: 0.65
+        reporting_rate: 0.50
+      - label: child_1_4y
+        population: 4800000
+        vaccine_coverage: 0.92
+        symptom_probability: 0.45
+        reporting_rate: 0.25
+      - label: child_5_9y
+        population: 6000000
+        vaccine_coverage: 0.90
+        symptom_probability: 0.40
+        reporting_rate: 0.18
+      - label: adolescent_10_17y
+        population: 9600000
+        vaccine_coverage: 0.72
+        symptom_probability: 0.28
+        reporting_rate: 0.08
+      - label: young_adult_18_39y
+        population: 28000000
+        vaccine_coverage: 0.40
+        symptom_probability: 0.20
+        reporting_rate: 0.05
+      - label: middle_adult_40_64y
+        population: 32000000
+        vaccine_coverage: 0.30
+        symptom_probability: 0.18
+        reporting_rate: 0.03
+      - label: elderly_65plus
+        population: 18000000
+        vaccine_coverage: 0.15
+        symptom_probability: 0.25
+        reporting_rate: 0.04
+    contact_matrix:
+      reciprocity_correction:
+        enabled: true
+        method: population_weighted_average
+        tolerance: 0.05
+      rows:
+        - [5.5, 2.2, 1.5, 0.8, 0.4, 1.0, 0.5, 0.3]
+        - [1.8, 6.2, 3.0, 1.5, 0.7, 1.2, 0.6, 0.3]
+        - [0.9, 2.5, 9.5, 4.0, 1.8, 1.5, 0.8, 0.4]
+        - [0.5, 1.2, 4.0, 11.0, 3.5, 1.2, 0.9, 0.4]
+        - [0.3, 0.6, 1.8, 3.5, 10.5, 2.8, 1.5, 0.6]
+        - [0.5, 0.8, 1.5, 1.2, 2.8, 7.0, 3.0, 1.0]
+        - [0.3, 0.5, 0.8, 0.9, 1.5, 3.0, 6.5, 2.0]
+        - [0.2, 0.3, 0.4, 0.4, 0.6, 1.0, 2.0, 4.5]
+    transmission:
+      beta_S: 0.010
+      fitness_R: 1.00
+      relative_infectiousness_asymptomatic: 0.35
+      seasonal_amplitude: 0.18
+      seasonal_phase: 30
+      multi_year_amplitude: 0.00
+      multi_year_period_years: 4.0
+      multi_year_phase: 0
+      npi_contact_reduction:
+        enabled: true
+        reduction_column: baseline_contact_reduction
+        note: >
+          Loads country-specific COVID-19/NPI effective contact-reduction
+          periods from data/raw/covid_npi_contact_reduction_timeline.csv. The
+          baseline uses the calibration-screened baseline_contact_reduction
+          column; mean/lower/upper proxy values are reserved for temporal
+          sensitivity analyses because nonzero shocks can distort
+          country-specific post-pandemic peak timing. Contact shocks must not be
+          encoded in diagnostic/reporting multipliers.
+    importation:
+      enabled: true
+      rate_per_100k_per_year: 0.20
+      resistant_fraction: 0.30
+      age_distribution:
+        infant_0_2m: 0.02
+        infant_3_11m: 0.05
+        child_1_4y: 0.12
+        child_5_9y: 0.13
+        adolescent_10_17y: 0.20
+        young_adult_18_39y: 0.23
+        middle_adult_40_64y: 0.16
+        elderly_65plus: 0.09
+    natural_history:
+      latent_duration: 8.0
+      infectious_duration_symptomatic: 21.0
+      infectious_duration_asymptomatic: 14.0
+      maternal_protection_duration: 90.0
+      recovered_immunity_duration: 3285.0
+      vaccine_protection_duration: 1825.0
+      # SIRWS boosting model parameters (Lavine et al. 2011 PNAS)
+      # R_to_W_duration: time for fully immune (R) to transition to waned-but-boostable (W)
+      # W_to_S_duration: time for waned (W) to lose all immunity and become susceptible (S)
+      # If boosting is active, the effective immunity duration depends on pathogen circulation:
+      #   - High circulation: W is continuously boosted back to R → long effective immunity
+      #   - Zero circulation (e.g., COVID NPIs): W → S at rate 1/W_to_S_duration → immunity debt
+      R_to_W_duration: 1825.0  # 5 years: R → W (initial waning of sterilizing immunity)
+      W_to_S_duration: 3650.0  # 10 years: W → S (complete loss if not boosted)
+    immunity_model:
+      mode: maternal_dose_history
+      # SIRWS boosting control
+      boosting_enabled: true
+      boosting_efficiency: 0.70
+      waned_natural_infection_susceptibility: 0.35
+      boosting_note: >
+        Immune boosting (Wearing & Rohani 2009; Lavine et al. 2011): individuals
+        in the W (waned) state who are re-exposed to circulating pertussis have
+        their immunity restored to R without developing symptomatic infection.
+        boosting_efficiency (0-1) controls what fraction of force-of-infection
+        exposure events successfully boost a W individual back to R. At 0.70,
+        approximately 70% of exposures result in successful boosting. This
+        mechanism naturally produces immunity debt during periods of reduced
+        circulation (COVID-19 NPIs) and subsequent post-pandemic surges.
+      waned_relative_effect: 0.35
+      maternal_relative_effect: 0.75
+      dose1_relative_effect: 0.45
+      dose2_relative_effect: 0.75
+      waned_vaccine_duration: 3650.0
+      initial_recent_fraction: 0.35
+      initial_recent_fraction_by_age:
+        infant_0_2m: 1.00
+        infant_3_11m: 0.85
+        child_1_4y: 0.60
+        child_5_9y: 0.45
+        adolescent_10_17y: 0.25
+        young_adult_18_39y: 0.12
+        middle_adult_40_64y: 0.08
+        elderly_65plus: 0.06
+    observation_model:
+      enabled: true
+      structure: symptomatic_to_care_to_test_to_report
+      diagnostic_standards:
+        enabled: true
+        multiplier_column: relative_detection_prior_mean
+        note: >
+          Applies a literature-coded, country-specific diagnostic/reporting-regime
+          multiplier from data/raw/pertussis_diagnostic_standards_timeline.csv
+          to reported-case outputs. This is an observation-layer adjustment only;
+          it does not alter infection dynamics.
+      note: >
+        Runtime reported cases use the age-specific final reporting probabilities
+        in age_groups/reporting_rate, with calibration allowed to multiply those
+        probabilities. The explicit care/test/report split is retained as the
+        intended observation contract for country calibration.
+        IMPORTANT: reporting_rate and reporting_multiplier affect ONLY the
+        observation layer (how many true cases appear in surveillance). Treatment
+        rates in the ODE are scaled by diagnosis_probability, which defaults to
+        the baseline reporting_rate but is NOT modified by reporting_multiplier
+        or reporting-rate sensitivity scenarios. This decoupling ensures that
+        reporting-rate sensitivity analyses do not inadvertently alter resistance
+        selection pressure through the treatment pathway.
+    severity_model:
+      residual_maternal_protection_for_unvaccinated_origin: false
+      note: >
+        Maternal protection against hospitalization/death is applied to the
+        explicit maternal-origin compartment. Population-average maternal
+        coverage is not applied to all unvaccinated-origin infants in the
+        baseline, because that would assign protection to infants whose mothers
+        were not vaccinated.
+    resistance:
+      target_prevalence_at_analysis_start: 0.30
+      importation_fraction: 0.30
+      rebalance_after_burn_in: true
+      prevalence_anchor_rate_per_year: 2.0
+      anchor_during_dynamics: false
+      initial_resistance_prevalence_deprecated: true
+    stochastic_resistance:
+      enabled: false
+      effective_population_size: 2000
+      min_strain_fraction: 0.001
+      random_seed: 20260515
+      note: >
+        Experimental tau-leaping stochastic layer for resistance strain dynamics.
+        It is disabled for the submitted deterministic analyses. The
+        effective_population_size controls the magnitude of genetic drift:
+        smaller values produce more stochastic fluctuation and slower fixation.
+        A value of 2000 represents the effective number of independent
+        transmission events determining strain composition per output time step,
+        accounting for household clustering (SAR~0.8) that reduces the effective
+        number of independent events well below the total infectious population.
+        This addresses the known limitation that deterministic ODE models
+        produce unrealistically fast resistance fixation (model: 2-3 years vs
+        observed: 6-8 years in China) by introducing the genetic drift that
+        naturally slows selection in finite populations.
+    calibration:
+      enabled: false
+      allow_stale_parameter_overlay: false
+      default_country_profile: Australia
+      method: staged_fast
+      objective: negative_binomial_reporting_interval_cases
+      dispersion: 50.0
+      maxiter: 12
+      n_starts: 1
+      recent_years: 6
+      mean_fit_penalty_weight: 50000.0
+      acceptance:
+        min_overlap_intervals: 5
+        max_interval_smape: 1.30
+        min_log1p_correlation: -0.30
+        peak_ratio_min: 0.25
+        peak_ratio_max: 4.00
+      simulation_overrides:
+        burn_in_years: 15
+        output_time_step: 30
+        solver_method: RK45
+        rtol: 1.0e-4
+        atol: 1.0e-6
+      relative_incidence_tolerance: 0.25
+      fit_parameters:
+        - transmission.beta_S
+        - reporting_multiplier
+        - transmission.seasonal_amplitude
+        - importation.rate_per_100k_per_year
+        - resistance.importation_fraction
+    demography:
+      enabled: true
+      fixed_population_profile: true
+      fixed_population_reference_age_group: infant_0_2m
+      maternal_protection_proxy:
+        enabled: true
+        exit_age_groups:
+          - infant_0_2m
+        exit_to_compartment: S
+        note: >
+          Birth-entry M_protected is a proxy for short-lived maternally derived
+          infant protection. It is converted back to susceptible when infants age
+          out of 0-2 months so maternal antibodies are not treated as multi-year
+          vaccine-derived immunity.
+      age_bin_durations_years:
+        infant_0_2m: 0.1667
+        infant_3_11m: 0.75
+        child_1_4y: 4.0
+        child_5_9y: 5.0
+        adolescent_10_17y: 8.0
+        young_adult_18_39y: 22.0
+        middle_adult_40_64y: 25.0
+        elderly_65plus: 15.0
+      birth_entry:
+        S: 0.92
+        V: 0.08
+    routine_vaccination:
+      enabled: true
+      target_relaxation_rate_per_year: 2.0
+      max_daily_flow_fraction: 0.01
+      note: >
+        Routine vaccination relaxes toward age-specific target origin
+        distributions, but the daily flow from unvaccinated susceptibility is
+        capped at 1% of the available unvaccinated susceptible pool to match the
+        ODE implementation and avoid numerical overshoot.
+    initial_conditions:
+      initial_exposed_per_100k: 1.5
+      initial_infectious_per_100k: 0.6
+      initial_resistance_prevalence: 0.30
+      seed_age_distribution:
+        infant_0_2m: 0.03
+        infant_3_11m: 0.07
+        child_1_4y: 0.12
+        child_5_9y: 0.13
+        adolescent_10_17y: 0.20
+        young_adult_18_39y: 0.22
+        middle_adult_40_64y: 0.15
+        elderly_65plus: 0.08
+    treatment:
+      treatment_rate_symptomatic: 0.025
+      treatment_rate_asymptomatic: 0.002
+      sensitive:
+        infectious_duration_reduction: 0.20
+        infectiousness_reduction: 0.15
+      resistant:
+        infectious_duration_reduction: 0.10
+        infectiousness_reduction: 0.05
+    PEP:
+      coverage_household_contacts: 0.30
+      effectiveness_sensitive: 0.70
+      effectiveness_resistant: 0.10
+      activation_prevalence: 0.00002
+    reporting_rate_sensitivity:
+      medium:
+        multiplier: 1.0
+        description: Baseline reporting rates as configured in country profiles.
+      high:
+        multiplier: 1.5
+        description: Uniformly higher reporting (50% increase across all ages).
+      low:
+        multiplier: 0.5
+        description: Uniformly lower reporting (50% decrease across all ages).
+      age_biased:
+        age_multipliers:
+          infant_0_2m: 1.2
+          infant_3_11m: 1.1
+          child_1_4y: 0.9
+          child_5_9y: 0.8
+          adolescent_10_17y: 0.7
+          young_adult_18_39y: 0.6
+          middle_adult_40_64y: 0.5
+          elderly_65plus: 0.6
+        description: >
+          Age-biased reporting where infant ascertainment is slightly higher
+          and adult/adolescent ascertainment is lower than baseline.
+      time_varying:
+        multiplier: 1.0
+        time_variation:
+          start_multiplier: 0.5
+          end_multiplier: 1.5
+        description: >
+          Linearly improving reporting over the analysis period (e.g. due to
+          increased awareness, better diagnostics, or expanded testing).
+      # --- Literature-anchored age-specific scenarios ---
+      # These scenarios are derived from the quantitative evidence in
+      # manuscript_notes/reporting_evidence_summary.md and the new
+      # age-specific reporting literature review.
+      infant_high_adult_very_low:
+        age_multipliers:
+          infant_0_2m: 1.0
+          infant_3_11m: 0.9
+          child_1_4y: 0.6
+          child_5_9y: 0.5
+          adolescent_10_17y: 0.3
+          young_adult_18_39y: 0.2
+          middle_adult_40_64y: 0.15
+          elderly_65plus: 0.2
+        description: >
+          Strong age gradient: infant reporting near baseline but adolescent
+          and adult reporting reduced to 3-5% absolute (consistent with
+          Ontario capture-recapture: 11% of age 1+ cases reported, and
+          England/Wales notification efficiency of 5-25% overall). This
+          scenario tests whether the true infection burden in adults is
+          substantially higher than reported cases suggest.
+      infant_moderate_adult_minimal:
+        age_multipliers:
+          infant_0_2m: 0.7
+          infant_3_11m: 0.6
+          child_1_4y: 0.5
+          child_5_9y: 0.4
+          adolescent_10_17y: 0.2
+          young_adult_18_39y: 0.1
+          middle_adult_40_64y: 0.08
+          elderly_65plus: 0.1
+        description: >
+          Extreme under-reporting scenario anchored to the lower end of
+          literature estimates. Infant reporting at 35-42% (Ontario hospital
+          study: 37%), school-age at 2-5%, adults at 0.5-2.5%. Represents
+          passive surveillance systems without active case-finding.
+      enhanced_surveillance:
+        age_multipliers:
+          infant_0_2m: 1.3
+          infant_3_11m: 1.2
+          child_1_4y: 1.4
+          child_5_9y: 1.5
+          adolescent_10_17y: 1.8
+          young_adult_18_39y: 2.5
+          middle_adult_40_64y: 2.5
+          elderly_65plus: 2.0
+        description: >
+          Enhanced surveillance scenario where improved diagnostics (PCR
+          availability, point-of-care testing) increase ascertainment,
+          particularly in older age groups. Represents the effect of
+          active surveillance programs or outbreak investigations.
+      adult_focused_improvement:
+        age_multipliers:
+          infant_0_2m: 1.0
+          infant_3_11m: 1.0
+          child_1_4y: 1.0
+          child_5_9y: 1.0
+          adolescent_10_17y: 2.0
+          young_adult_18_39y: 3.0
+          middle_adult_40_64y: 3.0
+          elderly_65plus: 2.5
+        description: >
+          Scenario where adult/adolescent reporting improves substantially
+          (e.g. through Tdap booster awareness campaigns, expanded testing
+          guidelines for prolonged cough). Tests sensitivity of total burden
+          estimates to adult ascertainment improvements.
+      china_passive_system:
+        age_multipliers:
+          infant_0_2m: 0.8
+          infant_3_11m: 0.7
+          child_1_4y: 0.5
+          child_5_9y: 0.4
+          adolescent_10_17y: 0.25
+          young_adult_18_39y: 0.15
+          middle_adult_40_64y: 0.12
+          elderly_65plus: 0.15
+        description: >
+          Calibrated to Yiwu active-surveillance study (China) which found
+          community incidence of 108.3/100k vs passive surveillance estimates
+          far below this. Represents the gap between active and passive
+          surveillance in a middle-income setting.
+    baseline_vaccine_scenario: symptom_protective
+    baseline_resistance_scenario: country_timeline
+    baseline_country_profile: China
+
+  vaccine_scenarios:
+    no_vaccine:
+      VE_sus: 0.00
+      VE_sym: 0.00
+      VE_inf: 0.00
+      VE_dur: 0.00
+      description: No vaccine protection.
+    symptom_protective:
+      VE_sus: 0.15
+      VE_sym: 0.85
+      VE_inf: 0.25
+      VE_dur: 0.00
+      description: >
+        aP-like disease protection with moderate infection/transmission
+        blocking. The high VE_sym value is literature-supported for disease
+        protection, while VE_sus, VE_inf, and VE_dur are a mechanistic
+        decomposition of that evidence rather than directly observed
+        surveillance parameters. VE_inf = 0.25 represents a population-average
+        residual transmission-blocking assumption across recently and distantly
+        vaccinated individuals.
+    infection_blocking:
+      VE_sus: 0.70
+      VE_sym: 0.85
+      VE_inf: 0.40
+      VE_dur: 0.10
+      description: >
+        Stronger reduction in susceptibility to infection. VE_inf = 0.40
+        represents a plausible upper mechanism bound for recently boosted or
+        more infection-blocking protection, not a direct empirical estimate for
+        current aP products.
+    transmission_blocking:
+      VE_sus: 0.30
+      VE_sym: 0.85
+      VE_inf: 0.55
+      VE_dur: 0.30
+      description: >
+        Strong reduction in onward infectiousness and duration. Represents
+        an improved aP formulation or wP-like transmission blocking.
+    next_generation:
+      VE_sus: 0.80
+      VE_sym: 0.90
+      VE_inf: 0.65
+      VE_dur: 0.40
+      description: >
+        Strong infection, symptom, and transmission protection. Represents
+        an upper-bound high-transmission-blocking pertussis vaccine profile
+        with mucosal immunity induction (e.g. live-attenuated nasal or outer
+        membrane vesicle platforms).
+
+  resistance_scenarios:
+    country_timeline:
+      target_prevalence_at_analysis_start: 0.30
+      initial_resistance_prevalence: 0.30
+      importation_fraction: 0.30
+      rebalance_after_burn_in: true
+      prevalence_anchor_rate_per_year: 2.0
+      anchor_during_dynamics: false
+      fitness_R: 1.00
+      use_country_resistance_timeline: true
+      description: >
+        Country-specific macrolide resistance prevalence from
+        data/raw/country_resistance_timeline.csv. The prevalence anchors are
+        data-derived. Fitness_R = 1.0 is an epidemiologically motivated neutral
+        baseline, not a directly measured strain-fitness estimate: China MRBP
+        rose from 36% (2016) to near-fixation (>99%, 2024), and related MRBP
+        lineages were reported internationally without clear transmission
+        disadvantage. The fitness_grid and fitness_sensitivity scenarios
+        explore the full range [0.70-1.25].
+    low:
+      target_prevalence_at_analysis_start: 0.05
+      initial_resistance_prevalence: 0.05
+      importation_fraction: 0.05
+      rebalance_after_burn_in: true
+      prevalence_anchor_rate_per_year: 2.0
+      anchor_during_dynamics: false
+      fitness_R: 1.00
+      description: Low macrolide resistance prevalence with fitness-neutral strain.
+    moderate:
+      target_prevalence_at_analysis_start: 0.30
+      initial_resistance_prevalence: 0.30
+      importation_fraction: 0.30
+      rebalance_after_burn_in: true
+      prevalence_anchor_rate_per_year: 2.0
+      anchor_during_dynamics: false
+      fitness_R: 1.00
+      description: Moderate macrolide resistance prevalence with fitness-neutral strain.
+    high:
+      target_prevalence_at_analysis_start: 0.70
+      initial_resistance_prevalence: 0.70
+      importation_fraction: 0.70
+      rebalance_after_burn_in: true
+      prevalence_anchor_rate_per_year: 2.0
+      anchor_during_dynamics: false
+      fitness_R: 1.00
+      description: High macrolide resistance prevalence with fitness-neutral strain.
+    very_high:
+      target_prevalence_at_analysis_start: 0.95
+      initial_resistance_prevalence: 0.95
+      importation_fraction: 0.95
+      rebalance_after_burn_in: true
+      prevalence_anchor_rate_per_year: 2.0
+      anchor_during_dynamics: false
+      fitness_R: 1.00
+      description: Very high macrolide resistance prevalence with fitness-neutral strain.
+    # --- Fitness sensitivity scenarios ---
+    # These explicitly test whether resistance carries a fitness cost; recent
+    # MRBP expansion makes a large persistent cost difficult to reconcile with
+    # surveillance, but direct relative-fitness estimates are not available.
+    country_timeline_fitness_cost:
+      target_prevalence_at_analysis_start: 0.30
+      initial_resistance_prevalence: 0.30
+      importation_fraction: 0.30
+      rebalance_after_burn_in: true
+      prevalence_anchor_rate_per_year: 2.0
+      anchor_during_dynamics: false
+      fitness_R: 0.85
+      use_country_resistance_timeline: true
+      description: >
+        Country-timeline resistance with moderate fitness cost (15%). Retained
+        as a sensitivity scenario representing the traditional assumption that
+        ribosomal mutations impose a growth penalty. Recent rapid expansion
+        makes a large persistent cost less plausible, but this scenario is
+        included to bound the optimistic end of resistance projections.
+    country_timeline_fitness_advantage:
+      target_prevalence_at_analysis_start: 0.30
+      initial_resistance_prevalence: 0.30
+      importation_fraction: 0.30
+      rebalance_after_burn_in: true
+      prevalence_anchor_rate_per_year: 2.0
+      anchor_during_dynamics: false
+      fitness_R: 1.10
+      use_country_resistance_timeline: true
+      description: >
+        Country-timeline resistance with fitness advantage (10%). The MT28-ptxP3
+        MRBP clone has been reported with resistance and vaccine-antigen
+        lineages in rapidly expanding outbreaks. This scenario tests whether a
+        modest fitness advantage materially changes long-term resistance burden
+        projections; the 10% value is a stress-test assumption, not a measured
+        relative-fitness estimate.
+    high_fitness_advantage:
+      target_prevalence_at_analysis_start: 0.70
+      initial_resistance_prevalence: 0.70
+      importation_fraction: 0.70
+      rebalance_after_burn_in: true
+      prevalence_anchor_rate_per_year: 2.0
+      anchor_during_dynamics: false
+      fitness_R: 1.15
+      description: >
+        High resistance prevalence with fitness advantage (15%). Worst-case
+        scenario combining high initial resistance with a fitness-advantaged
+        strain, representing the upper bound of resistant infection burden.
+        Motivated by genomic reports of co-selection between resistance and
+        vaccine-antigen lineages; retained as a stress-test assumption rather
+        than a directly estimated fitness value.
+
+  intervention_scenarios:
+    current:
+      description: Current vaccination and standard macrolide treatment.
+    higher_child_coverage:
+      description: >
+        Raise routine infant and childhood coverage to policy-plausible floors
+        without lowering countries that already exceed those floors.
+      coverage_min_updates:
+        infant_3_11m: 0.82
+        child_1_4y: 0.96
+        child_5_9y: 0.94
+    adolescent_booster:
+      description: School-age or adolescent Tdap booster scale-up using the current aP-like mechanism.
+      coverage_min_updates:
+        adolescent_10_17y: 0.90
+      vaccine_overrides:
+        VE_inf: 0.25
+    pregnancy_tdap_scaleup:
+      description: >
+        Pregnancy Tdap scale-up for direct early-infant protection, aligned with
+        guidance that prioritizes vaccination during each pregnancy. This
+        scenario modifies newborn passive protection only and does not change
+        routine infant DTaP coverage.
+      coverage_min_updates:
+        infant_0_2m: 0.75
+      vaccine_overrides:
+        maternal_VE_sus: 0.55
+        maternal_VE_sym: 0.92
+      natural_history_overrides:
+        maternal_protection_duration: 180.0
+    cocooning_adjunct:
+      description: >
+        Close-contact adult Tdap/contact-reduction adjunct for households and
+        caregivers of infants. The contact reduction is intentionally smaller
+        than prior composite assumptions because close-contact adult programs
+        are difficult to implement and should be interpreted as an adjunct to
+        pregnancy Tdap, not a replacement.
+      coverage_min_updates:
+        young_adult_18_39y: 0.55
+      contact_matrix_reduction:
+        source_age: young_adult_18_39y
+        target_ages: [infant_0_2m, infant_3_11m]
+        reduction_fraction: 0.15
+    maternal_immunization:
+      description: >
+        Infant-exposure reduction composite strategy. This combines pregnancy
+        Tdap scale-up for direct infant antibody protection with a close-contact
+        adult Tdap/contact-reduction adjunct for reproductive-age adult sources.
+        It is a consensus-aligned infant-protection package, not a maternal
+        immunization-only effect estimate.
+      coverage_min_updates:
+        infant_0_2m: 0.75
+        young_adult_18_39y: 0.55
+      vaccine_overrides:
+        maternal_VE_sus: 0.55
+        maternal_VE_sym: 0.92
+      natural_history_overrides:
+        maternal_protection_duration: 180.0
+      contact_matrix_reduction:
+        # Conservative adjunct effect for close-contact adult protection.
+        source_age: young_adult_18_39y
+        target_ages: [infant_0_2m, infant_3_11m]
+        reduction_fraction: 0.15
+    targeted_pep_high_risk:
+      description: >
+        Targeted postexposure prophylaxis for household contacts, infants, and
+        high-risk infant settings. This represents improved reach among
+        guideline-prioritized contacts, not broad community PEP.
+      pep_updates:
+        coverage_household_contacts: 0.45
+    # --- Decomposed infant-exposure strategy components ---
+    # These allow attribution of the composite proxy effect to its constituent
+    # mechanisms (direct antibody, adult boosting, contact reduction).
+    maternal_direct_antibody_only:
+      description: >
+        Direct infant protection through transplacental antibody transfer only.
+        No adult boosting or close-contact exposure-reduction effect.
+      coverage_min_updates:
+        infant_0_2m: 0.75
+      vaccine_overrides:
+        maternal_VE_sus: 0.55
+        maternal_VE_sym: 0.92
+      natural_history_overrides:
+        maternal_protection_duration: 180.0
+    maternal_adult_boosting_only:
+      description: >
+        Adult or maternal boosting only. No direct infant antibody protection or
+        close-contact exposure reduction. Isolates the contribution of boosted
+        maternal immunity reducing the probability that mothers become infected
+        and transmit to their infants through normal contact.
+      coverage_min_updates:
+        young_adult_18_39y: 0.55
+    maternal_cocooning_only:
+      description: >
+        Close-contact reduction only. No direct infant antibody protection or
+        adult boosting. Isolates the contribution of reduced infant exposure
+        from household and caregiver contact assumptions.
+      contact_matrix_reduction:
+        source_age: young_adult_18_39y
+        target_ages: [infant_0_2m, infant_3_11m]
+        reduction_fraction: 0.15
+    resistance_guided_treatment:
+      description: Resistance testing plus alternative treatment for resistant infections.
+      treatment_updates:
+        resistant:
+          infectious_duration_reduction: 0.45
+          infectiousness_reduction: 0.35
+        treatment_rate_symptomatic: 0.065
+      pep_updates:
+        effectiveness_resistant: 0.45
+    transmission_blocking_vaccine:
+      description: Hypothetical transmission-blocking vaccine target.
+      vaccine_scenario: transmission_blocking
+    next_generation_vaccine:
+      description: Hypothetical high-transmission-blocking vaccine target.
+      vaccine_scenario: next_generation
+    combined_strategy:
+      description: >
+        Combined stress-test profile including transmission-blocking vaccine
+        assumptions, pregnancy Tdap-based infant protection, close-contact
+        adjuncts, adolescent boosting, targeted PEP, and resistance-guided
+        management. This is not a single implementable policy package.
+      vaccine_scenario: transmission_blocking
+      coverage_min_updates:
+        infant_0_2m: 0.75
+        adolescent_10_17y: 0.90
+        young_adult_18_39y: 0.55
+      vaccine_overrides:
+        maternal_VE_sus: 0.55
+        maternal_VE_sym: 0.92
+      natural_history_overrides:
+        maternal_protection_duration: 180.0
+      treatment_updates:
+        resistant:
+          infectious_duration_reduction: 0.45
+          infectiousness_reduction: 0.35
+        treatment_rate_symptomatic: 0.065
+      pep_updates:
+        coverage_household_contacts: 0.45
+        effectiveness_resistant: 0.45
+      contact_matrix_reduction:
+        source_age: young_adult_18_39y
+        target_ages: [infant_0_2m, infant_3_11m]
+        reduction_fraction: 0.15
+
+  sensitivity_parameters:
+    sample_size: 48
+    random_seed: 20260430
+    parameters:
+      VE_sus:
+        min: 0.10
+        max: 0.70
+        path: vaccine.VE_sus
+      VE_sym:
+        min: 0.40
+        max: 0.95
+        path: vaccine.VE_sym
+      VE_inf:
+        min: 0.05
+        max: 0.60
+        path: vaccine.VE_inf
+        note: >
+          Literature range for aP vaccine effect on onward infectiousness.
+          Lower bound (0.05) represents fully waned protection; upper bound
+          (0.60) represents recently vaccinated individuals. Meta-analyses
+          suggest initial VE against infection of 40-60% waning to <10%
+          within 3-5 years (McGirr & Fisman 2015; Warfel et al. 2014).
+      VE_dur:
+        min: 0.00
+        max: 0.50
+        path: vaccine.VE_dur
+      infectious_duration_symptomatic:
+        min: 14.0
+        max: 28.0
+        path: natural_history.infectious_duration_symptomatic
+      infectious_duration_asymptomatic:
+        min: 7.0
+        max: 21.0
+        path: natural_history.infectious_duration_asymptomatic
+      waning_rate_vaccine:
+        min: 0.00020
+        max: 0.00110
+        path: rates.waning_vaccine
+      waning_rate_natural:
+        min: 0.00010
+        max: 0.00050
+        path: rates.waning_natural
+      relative_infectiousness_asymptomatic:
+        min: 0.25
+        max: 0.85
+        path: transmission.relative_infectiousness_asymptomatic
+      seasonal_amplitude:
+        min: 0.05
+        max: 0.35
+        path: transmission.seasonal_amplitude
+      multi_year_amplitude:
+        min: 0.00
+        max: 0.18
+        path: transmission.multi_year_amplitude
+      treatment_rate_symptomatic:
+        min: 0.020
+        max: 0.090
+        path: treatment.treatment_rate_symptomatic
+      PEP_coverage:
+        min: 0.05
+        max: 0.60
+        path: PEP.coverage_household_contacts
+      PEP_effectiveness_resistant:
+        min: 0.00
+        max: 0.50
+        path: PEP.effectiveness_resistant
+      fitness_R:
+        min: 0.70
+        max: 1.25
+        path: transmission.fitness_R
+      reporting_rate_multiplier:
+        min: 0.50
+        max: 1.50
+        path: reporting_multiplier
+
+  fitness_grid:
+    random_seed: 20260510
+    fitness_R_values: [0.70, 0.80, 0.85, 0.90, 0.95, 0.98, 1.00, 1.02, 1.05, 1.10, 1.15, 1.20, 1.25]
+    VE_inf_values: [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55]
+    description: >
+      Continuous macrolide-resistant strain fitness stress test crossed with
+      plausible-to-upper-bound vaccine infectiousness effects. VE_inf is the
+      reduction in onward infectiousness among infected vaccine-history origins,
+      not protection against infection. The fitness grid now includes finer
+      resolution around fitness_R = 1.0 (neutral) because epidemiological
+      evidence from China (36% to >99% MRBP in 8 years), Japan (83-88% in
+      2024-2025), and international MT28 spread suggests the true fitness is
+      near or above 1.0. Values below 0.85 are retained for completeness but
+      are increasingly inconsistent with observed resistance dynamics. VE_inf
+      axis expanded from 5 to 11 uniform steps (0.05 increments) to improve
+      heatmap resolution in Figure 3E/F panels.
+
+  bayesian_uncertainty:
+    random_seed: 20260510
+    n_chains: 4
+    warmup: 2000
+    draws: 2000
+    thin: 3
+    proposal_scale: 1.0
+    posterior_predictive_draws_per_country: 100
+    dispersion: 50.0
+    enable_time_varying_reporting: false
+    likelihood_observation_frequency: monthly
+    require_calibrated_start: true
+    note: >
+      The production uncertainty path is conditional unless an explicit
+      multi-parameter MCMC sampler is requested. The default beta_grid workflow
+      integrates over beta_S after fixing reporting, VE, asymptomatic
+      infectiousness, duration, and resistance-fitness nuisance parameters;
+      outputs must therefore be interpreted as conditional beta uncertainty, not
+      a full structural posterior. Adaptive Metropolis remains available for
+      pilot and sensitivity analyses when those additional dimensions are meant
+      to be sampled.
+    convergence_criteria:
+      rhat_threshold: 1.05
+      min_bulk_ess: 100
+      min_tail_ess: 50
+      note: >
+        Convergence is assessed per-parameter per-country. Parameters with
+        rank-normalized split-R-hat > 1.05 or bulk ESS < 100 are flagged.
+        Reference: Vehtari et al. (2021) Bayesian Analysis 16(2):667-718.
+    adaptive_metropolis:
+      adaptation_start: 50
+      mixing_fraction: 0.95
+      epsilon: 1.0e-6
+      note: >
+        Adaptive Metropolis (Haario et al. 2001) learns the empirical
+        covariance from chain history during warmup. After adaptation_start
+        steps, the proposal is 95% adapted covariance + 5% initial diagonal
+        for ergodicity. The adapted covariance captures correlations such as
+        the strong negative correlation between beta_S and reporting_multiplier.
+    priors:
+      log_beta_S_sd: 0.80
+      log_reporting_multiplier_sd: 0.80
+      VE_sus:
+        mean: 0.45
+        sd: 0.05
+        note: >
+          Literature-informed decomposition parameter for reduced susceptibility
+          after aP vaccination. Aggregate studies support high disease
+          protection and waning protection, but do not directly identify this
+          component from surveillance data; the posterior is constrained to
+          [0.30, 0.60] as a modeling range.
+      VE_inf:
+        mean: 0.25
+        sd: 0.05
+        note: >
+          Literature-informed decomposition parameter for reduced onward
+          infectiousness among vaccinated infections. It is motivated by aP
+          transmission-blocking evidence and waning studies, but the exact
+          component is not directly measured in country surveillance; range
+          [0.12, 0.38] spans weak-to-moderate residual transmission blocking.
+      VE_dur:
+        mean: 0.10
+        sd: 0.10
+        note: >
+          Mechanistic duration-shortening proxy fixed at the prior mean during
+          the primary conditional transmission analysis; treated as a vaccine-scenario
+          assumption rather than a directly estimated literature parameter.
+      relative_infectiousness_asymptomatic:
+        mean: 0.45
+        sd: 0.10
+        note: >
+          Relative infectiousness of asymptomatic/subclinical infections
+          compared to symptomatic cases. The exact ratio is weakly identified
+          and not directly available from routine surveillance; range [0.20,
+          0.70] spans minimal subclinical transmission to near-equal
+          infectiousness.
+      infectious_duration_symptomatic:
+        log_sd: 0.15
+        note: >
+          Clinical natural-history nuisance parameter centered on the
+          CDC-aligned 21-day symptomatic infectious window; uncertainty range
+          captures plausible variation around the clinical anchor.
+      infectious_duration_asymptomatic:
+        log_sd: 0.20
+        note: >
+          Modeling assumption centered on a shorter mild/asymptomatic
+          infectious window than symptomatic pertussis; uncertainty range
+          retained because this duration is not directly measured.
+      fitness_R:
+        min: 0.70
+        max: 1.25
+        mean: 1.00
+        sd: 0.12
+        note: >
+          Epidemiologically motivated prior centered on fitness-neutral (1.0),
+          because MRBP reached near-fixation in China within 8 years and spread
+          internationally without clear transmission disadvantage. This is not
+          a direct measured relative-fitness estimate; SD of 0.12 allows modest
+          fitness costs or advantages.
+      resistance_prevalence:
+        floor_sd: 0.03
+        note: >
+          Resistance prevalence is FIXED at the country-calibrated value during
+          MCMC (not sampled). The country_resistance_timeline.csv provides
+          well-constrained estimates for most countries. This eliminates a
+          major source of multimodality without losing scientific information.
+      maternal_VE_sus:
+        mean: 0.55
+        sd: 0.12
+        note: >
+          Prior for maternal antibody protection against infant infection.
+          Centered on 0.55 using maternal Tdap effectiveness evidence for
+          confirmed pertussis in infants younger than 2 months [36], which
+          combines infection prevention and disease prevention. The
+          infection-blocking component is a decomposed model assumption guided
+          by maternal immunization effectiveness studies [10,12]. SD of 0.12
+          allows exploration of [0.30, 0.80].
+      maternal_VE_sym:
+        mean: 0.92
+        sd: 0.05
+        note: >
+          Prior for maternal antibody protection against symptomatic disease
+          given infection. High confidence based on consistent estimates of
+          VE against hospitalization (>90%) across US, UK, and Argentina
+          studies [10,36,37]. Narrow SD reflects strong evidence consensus.
+    stochastic_overlay:
+      enabled: true
+      random_seed: 20260511
+      replicates_per_draw: 200
+      superspreading_k: 10.0
+      superspreading_k_min: 1.0
+      household_mean_size: 3.5
+      household_secondary_attack_rate: 0.80
+      min_expected_count: 1.0
+      credible_interval:
+        low: 2.5
+        high: 97.5
+      k_sensitivity_values: [5.0, 10.0, 20.0, 30.0, 50.0]
+      note: >
+        Negative-binomial observation overlay injecting two stochastic sources
+        onto each deterministic posterior-predictive draw. Superspreading
+        enters as an aggregate-scale NB2 dispersion k = 10 (empirical
+        surveillance range 5-50; the calibration likelihood already uses
+        dispersion = 50); this captures the tail of transmission
+        heterogeneity (Lloyd-Smith et al. Nature 2005; Endo et al. 2020) that
+        remains after aggregating individual-level offspring variability to
+        country-year counts. Household clustering enters as the Ball,
+        Mollison & Scalia-Tomba (1997) design effect
+        DEFF = 1 + (m_bar - 1) * SAR with m_bar = 3.5 and pertussis
+        household SAR = 0.8. Effective dispersion combines both via
+        1/k_eff = 1/k_ss + (DEFF - 1)/mu so household clustering dominates at
+        small mu while superspreading dominates at large mu. Combined 95% PI
+        is pooled over parameter draws and stochastic replicates; parameter-
+        only and stochastic components are reported separately. The
+        k_sensitivity_values sweep demonstrates how the combined PI width
+        varies across the plausible range of aggregate dispersion (k=5 to
+        k=50), making the assumption explicit and auditable. Addresses
+        Lavine et al. (2011) sensitivity concern by making both parameter
+        uncertainty and structural heterogeneity explicit and decomposable.
+
+parameter_sources:
+  simulation.end_time:
+    source: Analysis design
+    note: "Calendar-defined 2025-01-01 to 2050-12-31 horizon (26 years); this is an analysis-design choice, not a literature-estimated parameter."
+  simulation.burn_in_years:
+    source: Analysis design
+    note: "Initialization choice used to reduce dependence on arbitrary starting infections and immunity; not a directly cited biological parameter."
+  natural_history.latent_duration:
+    source: CDC clinical guidance
+    note: "Uses 8 days within CDC's common 7-10 day incubation range."
+  natural_history.infectious_duration_symptomatic:
+    source: CDC clinical guidance
+    note: "Uses 21 days, aligned with infectiousness through roughly the third week after paroxysm onset."
+  natural_history.infectious_duration_asymptomatic:
+    source: Literature-informed assumption
+    note: "Shorter duration for mild/asymptomatic infections is a modeling assumption anchored to the symptomatic infectious window; sensitivity range retained."
+  natural_history.recovered_immunity_duration:
+    source: CDC clinical guidance and cycle-model evidence
+    note: "Uses 9 years within CDC's 4-20 year observational range; longer natural-immunity values remain sensitivity cases within the current SIRWS waning-and-boosting structure."
+  natural_history.vaccine_protection_duration:
+    source: aP waning literature
+    note: "Uses 5 years to approximate rapid aP waning; meta-analysis shows marked decline by 3-7 years."
+  transmission.seasonal_amplitude:
+    source: Calibrated/processed pertussis incidence
+    note: "Country profiles override this from circular seasonal concentration of reported cases."
+  transmission.beta_S:
+    source: Calibrated to reported pertussis incidence
+    note: "Baseline placeholder in the shared configuration; country-specific sensitive-strain transmission coefficients are calibrated to reported surveillance and reported separately in the calibration diagnostics."
+  transmission.relative_infectiousness_asymptomatic:
+    source: Literature-informed assumption
+    note: "WHO/aP evidence supports residual infection and transmission under aP-like protection, but not this exact ratio; retained as a sensitivity parameter."
+  transmission.multi_year_period_years:
+    source: Pertussis cycle-model evidence
+    note: "Country profiles infer 3-5-year periodicity from annual surveillance peaks when visible; otherwise use 4 years."
+  transmission.multi_year_amplitude:
+    source: Model-structure assumption
+    note: "Weak phase-locking term disabled by default; main interpretation remains susceptible depletion/replenishment plus seasonal forcing."
+  age_groups.population:
+    source: UN WPP 2024
+    note: "Country profiles override placeholder populations with WPP one-year age groups."
+  age_groups.vaccine_coverage:
+    source: WHO immunization data
+    note: "Country profiles override placeholder coverage using DTP coverage and schedule metadata."
+  contact_matrix.rows:
+    source: Prem/contactdata matrices
+    note: "Country profiles override placeholder matrix with Prem/contactdata matrices aggregated to model age groups."
+  treatment:
+    source: CDC guidance plus implementation assumption
+    note: "CDC supports early macrolide treatment but does not define the daily treatment transition rate; numeric treatment effects are implementation assumptions evaluated in sensitivity/scenario analyses."
+  treatment.treatment_rate_asymptomatic:
+    source: Clinical-pathway implementation assumption
+    note: "Asymptomatic treatment is assumed rare and is scaled by diagnosis probability in the ODE treatment block; included to keep the treatment-rate implementation traceable to code."
+  PEP.coverage_household_contacts:
+    source: CDC guidance plus implementation assumption
+    note: "CDC supports PEP for household/high-risk contacts but does not define this coverage ceiling; the numeric value approximates reach in a model without explicit households."
+  vaccine_scenarios:
+    source: Literature-informed mechanism scenarios
+    note: "Scenario values encode mechanisms rather than product-specific effectiveness; exact VE_sus/VE_inf/VE_dur decompositions are model assumptions guided by WHO position-paper and vaccine-waning evidence."
