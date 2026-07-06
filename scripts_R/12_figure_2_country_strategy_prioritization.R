@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
-## Figure 2: implementable programme levers -----------------------------------
+## Figure 2: implementable programme strategies --------------------------------
 ## Layout: (a) Programme-only effect distributions
 ##         (b) Country-by-strategy quantitative programme effects
-##         (c) Absolute burden after selected programme
+##         (c) Absolute burden after the lowest-burden programme
 ##         (d) Runner-up excess burden
 
 args <- commandArgs(FALSE)
@@ -137,8 +137,8 @@ readr::write_csv(
       primary_case_reduction,
       primary_cases_per_100k,
       implementation_intensity,
-      non_dominated_lancet_outcome,
-      preferred_in_program_only = primary_case_rank_within_constraint == 1
+      not_clearly_surpassed = non_dominated_lancet_outcome,
+      lowest_burden_in_programme_only = primary_case_rank_within_constraint == 1
     ),
   model_path("outputs", "tables", "figure2a_programme_effects.csv")
 )
@@ -179,7 +179,7 @@ p2a <- ggplot() +
                      breaks = c(-0.25, 0, 0.25, 0.5)) +
   scale_colour_manual(values = strategy_colours, guide = "none") +
   labs(
-    x = "<18 case reduction vs current practice",
+    x = "Case reduction in people aged <18 years",
     y = NULL,
     tag = "a"
   ) +
@@ -210,8 +210,8 @@ readr::write_csv(
       current_primary_cases_per_100k,
       implementation_intensity,
       primary_case_rank_within_constraint,
-      preferred_in_program_only,
-      non_dominated_lancet_outcome
+      lowest_burden_in_programme_only = preferred_in_program_only,
+      not_clearly_surpassed = non_dominated_lancet_outcome
     ),
   model_path("outputs", "tables", "figure2b_programme_country_strategy_matrix.csv")
 )
@@ -238,7 +238,7 @@ p2b <- ggplot(program_heatmap, aes(x = strategy_axis, y = country_label, fill = 
     breaks = seq(-0.25, 0.5, 0.25),
     labels = label_lancet_percent(accuracy = 1),
     oob = scales::squish,
-    name = "<18 case reduction",
+    name = "Case reduction",
     guide = guide_lancet_colourbar(barwidth = unit(4.2, "cm"),
                                    barheight = unit(0.18, "cm"),
                                    title.position = "left")
@@ -250,7 +250,7 @@ p2b <- ggplot(program_heatmap, aes(x = strategy_axis, y = country_label, fill = 
     legend.title = element_text(vjust = 1)
   )
 
-## Panel C: selected programme absolute burden --------------------------------
+## Panel C: lowest-burden programme absolute burden ---------------------------
 
 ranked_program <- program_frontier %>%
   arrange(country, primary_cases_per_100k, implementation_intensity, strategy) %>%
@@ -293,18 +293,18 @@ readr::write_csv(
     transmute(
       country,
       current_cases_per_100k,
-      winning_strategy,
-      winning_strategy_label,
-      winning_reduction,
-      winning_cases_per_100k,
-      selected_cases_averted_per_100k,
+      lowest_burden_strategy = winning_strategy,
+      lowest_burden_strategy_label = winning_strategy_label,
+      lowest_burden_reduction = winning_reduction,
+      lowest_burden_cases_per_100k = winning_cases_per_100k,
+      cases_averted_per_100k_with_lowest_burden_option = selected_cases_averted_per_100k,
       runner_up_strategy,
       runner_up_strategy_label,
       runner_up_reduction,
       runner_up_cases_per_100k,
-      winner_margin_reduction,
-      winner_margin_percentage_points = 100 * winner_margin_reduction,
-      winner_margin_cases_per_100k
+      runner_up_excess_reduction = winner_margin_reduction,
+      runner_up_excess_percentage_points = 100 * winner_margin_reduction,
+      runner_up_excess_cases_per_100k = winner_margin_cases_per_100k
     ),
   model_path("outputs", "tables", "figure2c_programme_selected_burden.csv")
 )
@@ -323,7 +323,7 @@ p2c <- ggplot(selected_program, aes(y = country_label)) +
     stroke = 0.32
   ) +
   geom_point(
-    aes(x = winning_cases_per_100k, fill = winning_strategy, shape = "Selected programme"),
+	    aes(x = winning_cases_per_100k, fill = winning_strategy, shape = "Lowest-burden option"),
     colour = manuscript_colour("black"),
     size = 1.85,
     stroke = 0.28
@@ -332,7 +332,7 @@ p2c <- ggplot(selected_program, aes(y = country_label)) +
   scale_colour_manual(values = strategy_colours, guide = "none") +
   scale_fill_manual(values = strategy_colours, guide = "none") +
   scale_shape_manual(
-    values = c("Current practice" = 21, "Selected programme" = 21),
+    values = c("Current practice" = 21, "Lowest-burden option" = 21),
     name = NULL,
     guide = guide_legend(
       order = 2,
@@ -345,7 +345,7 @@ p2c <- ggplot(selected_program, aes(y = country_label)) +
   ) +
   coord_cartesian(xlim = c(0, max(selected_program$current_cases_per_100k, na.rm = TRUE) * 1.05), clip = "off") +
   labs(
-    x = "<18 cases per 100 000 per year",
+    x = "Annual cases per 100 000 people aged <18 years",
     y = NULL,
     tag = "c"
   ) +
@@ -360,15 +360,15 @@ readr::write_csv(
   selected_program %>%
     transmute(
       country,
-      winning_strategy,
-      winning_strategy_label,
+      lowest_burden_strategy = winning_strategy,
+      lowest_burden_strategy_label = winning_strategy_label,
       runner_up_strategy,
       runner_up_strategy_label,
-      winning_cases_per_100k,
+      lowest_burden_cases_per_100k = winning_cases_per_100k,
       runner_up_cases_per_100k,
       runner_up_excess_cases_per_100k = winner_margin_cases_per_100k,
-      winner_margin_reduction,
-      winner_margin_percentage_points = 100 * winner_margin_reduction
+      runner_up_excess_reduction = winner_margin_reduction,
+      runner_up_excess_percentage_points = 100 * winner_margin_reduction
     ),
   model_path("outputs", "tables", "figure2d_programme_runner_up_excess.csv")
 )
@@ -397,7 +397,7 @@ p2d <- ggplot(
     values = strategy_colours,
     breaks = selected_strategy_order,
     labels = selected_strategy_legend_labels,
-    name = "Selected\nprogramme",
+	    name = "Lowest-burden\noption",
     guide = guide_legend(
       nrow = 1,
       title.position = "left",
@@ -408,7 +408,7 @@ p2d <- ggplot(
   ) +
   coord_cartesian(xlim = c(0, max(selected_program$winner_margin_cases_per_100k, na.rm = TRUE) * 1.18), clip = "off") +
   labs(
-    x = "Extra <18 cases per 100 000 if runner-up used",
+	    x = "Extra cases per 100 000 people aged <18 years\nif runner-up used",
     y = NULL,
     tag = "d"
   ) +

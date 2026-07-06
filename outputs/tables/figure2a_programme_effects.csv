@@ -1,4 +1,4 @@
-country,strategy,strategy_label,primary_case_reduction,primary_cases_per_100k,implementation_intensity,non_dominated_lancet_outcome,preferred_in_program_only
+country,strategy,strategy_label,primary_case_reduction,primary_cases_per_100k,implementation_intensity,not_clearly_surpassed,lowest_burden_in_programme_only
 Australia,adolescent_booster,Adolescent booster,-1.7365923172563e-4,1072.3284896019056,1,FALSE,FALSE
 Australia,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,0.01259061769993286,1058.6433682342988,1,FALSE,FALSE
 Australia,targeted_pep_high_risk,Targeted high-risk PEP,0.00657655856717054,1065.091295567517,1,FALSE,FALSE

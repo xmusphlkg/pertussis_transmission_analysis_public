@@ -683,7 +683,7 @@ intervention_labels <- c(
   cocooning_adjunct = "Close-contact adjunct",
   maternal_immunization = "Infant-exposure\nreduction composite",
   targeted_pep_high_risk = "Targeted high-risk PEP",
-  resistance_guided_treatment = "Resistance-guided treatment",
+  resistance_guided_treatment = "Resistance-guided management",
   next_generation_vaccine = "High transmission-blocking\nvaccine target",
   combined_strategy = "Combined strategy"
 )

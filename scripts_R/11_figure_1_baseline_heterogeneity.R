@@ -3,7 +3,7 @@
 ## Layout: (a) Post-pandemic surveillance context
 ##         (b) Temporal calibration diagnostics
 ##         (c) Current-practice paediatric age composition
-##         (d) Baseline modelled reported cases and infections by age stratum
+##         (d) Baseline estimated reported cases and infections by age group
 
 args <- commandArgs(FALSE)
 file_arg <- sub("^--file=", "", args[grepl("^--file=", args)])
@@ -128,15 +128,15 @@ country_who_region <- c(
   South_Africa = "African Region"
 )
 
-age_stratum_colours <- c(
+age_group_colours <- c(
   "Infant" = palette_discrete_primary_9[[7]],
   "Children" = palette_discrete_primary_9[[4]],
   "Adolescent" = palette_discrete_primary_9[[8]]
 )
 
 baseline_burden_group_colours <- c(
-  age_stratum_colours,
-  "All <18" = manuscript_colour("black")
+  age_group_colours,
+  "Aged <18" = manuscript_colour("black")
 )
 
 ## Panel B: temporal calibration diagnostics ----------------------------------
@@ -202,8 +202,8 @@ readr::write_csv(
       who_region,
       population_millions,
       observed_reported_incidence_per_100k,
-      modelled_reported_incidence_per_100k,
-      model_observed_ratio,
+      estimated_reported_incidence_per_100k = modelled_reported_incidence_per_100k,
+      estimated_observed_ratio = model_observed_ratio,
       calibration_interval_smape,
       calibration_peak_ratio,
       calibration_log1p_correlation,
@@ -261,7 +261,7 @@ p1b <- ggplot(
   scale_size_continuous(
     name = "Population",
     breaks = c(1e7, 1e8, 1e9),
-    labels = c("10M", "100M", "1B"),
+    labels = c("10 million", "100 million", "1 billion"),
     range = c(3, 10),
     guide = guide_legend(
       nrow = 1,
@@ -283,7 +283,7 @@ p1b <- ggplot(
   coord_cartesian(xlim = c(0.5, 1.36), ylim = c(0.25, 4), clip = "on") +
   labs(
     x = "Interval SMAPE",
-    y = "Model/observed peak reported cases (log)",
+    y = "Modelled/observed peak reported cases (log)",
     tag = "b"
   ) +
   theme_lancet(base_size = journal_compact_text_size) +
@@ -332,12 +332,12 @@ baseline_composition <- readr::read_csv(
   ) %>%
   pivot_longer(
     c(total_infant_cases, total_child_1_9_cases, total_adolescent_cases),
-    names_to = "age_stratum",
+    names_to = "age_group",
     values_to = "symptomatic_cases"
   ) %>%
   mutate(
-    age_stratum = factor(
-      age_stratum,
+    age_group = factor(
+      age_group,
       levels = c("total_infant_cases", "total_child_1_9_cases", "total_adolescent_cases"),
       labels = c("Infant", "Children", "Adolescent")
     ),
@@ -345,8 +345,8 @@ baseline_composition <- readr::read_csv(
   )
 
 composition_wide <- baseline_composition %>%
-  select(country, country_label, age_stratum, burden_share) %>%
-  pivot_wider(names_from = age_stratum, values_from = burden_share) %>%
+  select(country, country_label, age_group, burden_share) %>%
+  pivot_wider(names_from = age_group, values_from = burden_share) %>%
   mutate(
     infant_child_boundary = Infant,
     child_adolescent_boundary = Infant + Children
@@ -366,7 +366,7 @@ readr::write_csv(
     transmute(
       country,
       country_code,
-      age_stratum = as.character(age_stratum),
+      age_group = as.character(age_group),
       symptomatic_cases,
       total_child_adolescent_cases,
       burden_share
@@ -374,19 +374,19 @@ readr::write_csv(
   model_path("outputs", "tables", "figure1c_baseline_age_composition.csv")
 )
 
-p1c <- ggplot(baseline_composition, aes(burden_share, country_label, fill = age_stratum)) +
+p1c <- ggplot(baseline_composition, aes(burden_share, country_label, fill = age_group)) +
   geom_col(width = 0.64, colour = "white", linewidth = 0.18, position = position_stack(reverse = TRUE)) +
   scale_x_continuous(
     labels = label_lancet_percent(accuracy = 1),
     breaks = seq(0, 1, by = 0.25),
     expand = expansion(mult = c(0, 0.01))
   ) +
-  scale_fill_manual(values = age_stratum_colours) +
+  scale_fill_manual(values = age_group_colours) +
   coord_cartesian(xlim = c(0, 1), clip = "off") +
   labs(
-    x = "Share of modelled symptomatic cases\namong ages <18 years",
+    x = "Share of symptomatic cases\namong people aged <18 years",
     y = NULL,
-    fill = "Age stratum",
+    fill = "Age group",
     tag = "c"
   ) +
   theme_lancet(base_size = journal_compact_text_size) +
@@ -398,7 +398,7 @@ p1c <- ggplot(baseline_composition, aes(burden_share, country_label, fill = age_
           axis.ticks.y = element_blank()
      )
 
-## Panel D: baseline modelled reported cases and infections -------------------
+## Panel D: baseline estimated reported cases and infections ------------------
 
 simulation_path <- model_path("outputs", "simulations", "intervention_scenarios.parquet")
 if (!file.exists(simulation_path)) {
@@ -427,13 +427,13 @@ burden_age_map <- tibble::tribble(
   "Children", "child_1_4y",
   "Children", "child_5_9y",
   "Adolescent", "adolescent_10_17y",
-  "All <18", "infant_0_2m",
-  "All <18", "infant_3_11m",
-  "All <18", "child_1_4y",
-  "All <18", "child_5_9y",
-  "All <18", "adolescent_10_17y"
+  "Aged <18", "infant_0_2m",
+  "Aged <18", "infant_3_11m",
+  "Aged <18", "child_1_4y",
+  "Aged <18", "child_5_9y",
+  "Aged <18", "adolescent_10_17y"
 ) %>%
-  mutate(burden_group = factor(burden_group, levels = c("Infant", "Children", "Adolescent", "All <18")))
+  mutate(burden_group = factor(burden_group, levels = c("Infant", "Children", "Adolescent", "Aged <18")))
 
 analysis_years <- current_timeseries %>%
   group_by(country) %>%
@@ -451,7 +451,7 @@ burden_events <- current_timeseries %>%
   group_by(country, burden_group) %>%
   summarise(
     reported_cases = sum(as.numeric(reported_cases), na.rm = TRUE),
-    modelled_infections = sum(as.numeric(total_infections), na.rm = TRUE),
+    estimated_infections = sum(as.numeric(total_infections), na.rm = TRUE),
     .groups = "drop"
   )
 
@@ -460,27 +460,27 @@ burden_long <- burden_events %>%
   left_join(analysis_years, by = "country") %>%
   mutate(
     reported_cases_per_100k = reported_cases / pmax(population * analysis_years, 1e-9) * 100000,
-    modelled_infections_per_100k = modelled_infections / pmax(population * analysis_years, 1e-9) * 100000
+    estimated_infections_per_100k = estimated_infections / pmax(population * analysis_years, 1e-9) * 100000
   ) %>%
   select(
     country, burden_group, population, analysis_years,
-    reported_cases, modelled_infections, reported_cases_per_100k, modelled_infections_per_100k
+    reported_cases, estimated_infections, reported_cases_per_100k, estimated_infections_per_100k
   ) %>%
   pivot_longer(
-    cols = c(reported_cases_per_100k, modelled_infections_per_100k),
+    cols = c(reported_cases_per_100k, estimated_infections_per_100k),
     names_to = "outcome",
     values_to = "rate_per_100k"
   ) %>%
   mutate(
     outcome = factor(
       outcome,
-      levels = c("reported_cases_per_100k", "modelled_infections_per_100k"),
-      labels = c("Modelled reports", "Modelled infections")
+      levels = c("reported_cases_per_100k", "estimated_infections_per_100k"),
+      labels = c("Estimated reports", "Estimated infections")
     ),
-    burden_group = factor(as.character(burden_group), levels = c("Infant", "Children", "Adolescent", "All <18")),
+    burden_group = factor(as.character(burden_group), levels = c("Infant", "Children", "Adolescent", "Aged <18")),
     country_label_text = format_country(country),
     country_y = as.numeric(factor(country_label_text, levels = rev(country_order))) +
-      if_else(outcome == "Modelled reports", -0.12, 0.12)
+      if_else(outcome == "Estimated reports", -0.12, 0.12)
   ) %>%
   filter(positive_rate(rate_per_100k))
 
@@ -493,15 +493,15 @@ readr::write_csv(
       population,
       analysis_years,
       reported_cases,
-      modelled_infections,
+      estimated_infections,
       rate_per_100k
     ),
   model_path("outputs", "tables", "figure1d_baseline_age_burden.csv")
 )
 
 baseline_burden_shapes <- c(
-  "Modelled reports" = 16,
-  "Modelled infections" = 15
+  "Estimated reports" = 16,
+  "Estimated infections" = 15
 )
 
 p1d <- ggplot() +
@@ -524,7 +524,7 @@ p1d <- ggplot() +
   ) +
   scale_colour_manual(
     values = baseline_burden_group_colours,
-    name = "Stratum",
+    name = "Age group",
     guide = guide_legend(
       nrow = 1,
       byrow = TRUE,

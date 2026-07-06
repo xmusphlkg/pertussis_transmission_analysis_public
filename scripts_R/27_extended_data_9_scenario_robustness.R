@@ -40,7 +40,7 @@ class_labels <- c(
   infant_protection_and_exposure_reduction = "Infant protection/exposure",
   management_modifiers = "Management modifiers",
   current_practice = "Current practice",
-  routine_program_marginal_levers = "Routine marginal levers"
+  routine_program_marginal_levers = "Routine marginal strategies"
 )
 
 strategy_order <- c(
@@ -133,7 +133,7 @@ p_c <- ggplot(age_summary, aes(age_group, scenario_label, fill = median_reductio
     name = "Reduction",
     guide = guide_lancet_colourbar(barwidth = unit(2.6, "cm"))
   ) +
-  labs(x = "Infant age stratum", y = NULL) +
+  labs(x = "Infant age group", y = NULL) +
   theme_lancet_heatmap(
     base_size = journal_compact_text_size,
     plot_margin = margin(3, 3, 3, 3)
@@ -216,4 +216,4 @@ save_appendix_figure(
   height = 7.8
 )
 
-cat("eFigure 9 (scenario-ordering and endpoint robustness diagnostics) saved.\n")
+cat("eFigure 9 (scenario-ordering and outcome robustness diagnostics) saved.\n")

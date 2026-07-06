@@ -45,7 +45,7 @@ SCENARIO_LABEL = {
     "cocooning_adjunct": "Close-contact adult adjunct",
     "maternal_immunization": "Infant-exposure reduction strategy",
     "targeted_pep_high_risk": "Targeted high-risk PEP",
-    "resistance_guided_treatment": "Resistance-guided treatment",
+    "resistance_guided_treatment": "Resistance-guided management",
     "next_generation_vaccine": "High-transmission-blocking vaccine target",
     "combined_strategy": "Combined strategy",
 }

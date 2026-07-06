@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
-## Figure 3: quantitative endpoint translation -------------------------------
-## Layout: (a) Age-stratum effect matrix
-##         (b) Infant-to-<18 endpoint translation gap
-##         (c) Age contribution to <18 cases averted
+## Figure 3: age-group outcome translation ------------------------------------
+## Layout: (a) Age-group effect matrix
+##         (b) Infant-to-pooled outcome gap
+##         (c) Age contribution to cases averted among people aged <18 years
 ##         (d) Age-pattern weighted robustness
 
 args <- commandArgs(FALSE)
@@ -49,7 +49,7 @@ endpoint_levels <- c(
   "Infant deaths",
   "Children cases",
   "Adolescent cases",
-  "<18 cases"
+  "Pooled cases"
 )
 age_stratum_levels <- c("Infant", "Children", "Adolescent")
 age_stratum_colours <- c(
@@ -64,7 +64,7 @@ endpoint_axis_labels <- c(
   `Infant deaths` = "Infant\ndeaths",
   `Children cases` = "Children\ncases",
   `Adolescent cases` = "Adolescent\ncases",
-  `<18 cases` = "<18\ncases"
+  `Pooled cases` = "Pooled\ncases"
 )
 
 age_contribution_levels <- age_stratum_levels
@@ -112,7 +112,7 @@ country_order <- burden %>%
 programme_burden <- programme_burden %>%
   mutate(country_label = factor(country_label_text, levels = rev(country_order)))
 
-## Panel A: age-stratum effect matrix -----------------------------------------
+## Panel A: age-group effect matrix -------------------------------------------
 
 endpoint_country <- programme_burden %>%
   transmute(
@@ -127,7 +127,7 @@ endpoint_country <- programme_burden %>%
     `Infant deaths` = relative_reduction_infant_deaths,
     `Children cases` = child_1_9_case_reduction,
     `Adolescent cases` = adolescent_case_reduction,
-    `<18 cases` = primary_case_reduction
+    `Pooled cases` = primary_case_reduction
   ) %>%
   pivot_longer(
     cols = all_of(endpoint_levels),
@@ -172,7 +172,7 @@ readr::write_csv(
       country,
       strategy,
       strategy_label,
-      endpoint = as.character(endpoint),
+      outcome = as.character(endpoint),
       relative_case_reduction,
       median_relative_case_reduction,
       q25_relative_case_reduction,
@@ -204,7 +204,7 @@ p3a <- ggplot(endpoint_effect_matrix, aes(endpoint, strategy_label_plot, fill = 
     x_size = journal_dense_text_size - 0.4
   )
 
-## Panel B: infant-to-<18 endpoint translation gap ----------------------------
+## Panel B: infant-to-pooled outcome gap --------------------------------------
 
 endpoint_gap <- programme_burden %>%
   mutate(
@@ -235,8 +235,8 @@ readr::write_csv(
       strategy,
       strategy_label,
       infant_case_reduction,
-      child_adolescent_case_reduction = primary_case_reduction,
-      infant_minus_child_adolescent_gap_pp,
+      overall_case_reduction = primary_case_reduction,
+      infant_minus_overall_gap_pp = infant_minus_child_adolescent_gap_pp,
       median_gap_pp,
       q25_gap_pp,
       q75_gap_pp,
@@ -284,7 +284,7 @@ p3b <- ggplot() +
   scale_colour_manual(values = strategy_colours, guide = "none") +
   coord_cartesian(xlim = c(-12, 30), clip = "off") +
   labs(
-    x = "Infant minus <18 reduction",
+    x = "Infant reduction minus pooled reduction",
     y = NULL,
     tag = "b"
   ) +
@@ -293,7 +293,7 @@ p3b <- ggplot() +
     panel.grid.major.x = element_line(linewidth = 0.16, colour = lancet_grid_light_colour)
   )
 
-## Panel C: age contribution to <18 cases averted -----------------------------
+## Panel C: age contribution to cases averted among people aged <18 years ------
 
 population <- read_table("calibration_all_countries.csv") %>%
   mutate(country = stringr::str_replace_all(country, " ", "_")) %>%
@@ -386,14 +386,14 @@ readr::write_csv(
       country,
       strategy,
       strategy_label,
-      age_contribution = as.character(age_contribution),
-      cases_averted_per_100k_under18,
-      primary_averted_per_100k_under18,
-      component_sum_averted_per_100k_under18,
+      age_group = as.character(age_contribution),
+      cases_averted_per_100k_aged_under_18 = cases_averted_per_100k_under18,
+      overall_cases_averted_per_100k_aged_under_18 = primary_averted_per_100k_under18,
+      age_group_sum_averted_per_100k_aged_under_18 = component_sum_averted_per_100k_under18,
       component_sum_difference_per_100k,
-      median_cases_averted_per_100k_under18,
-      q25_cases_averted_per_100k_under18,
-      q75_cases_averted_per_100k_under18
+      median_cases_averted_per_100k_aged_under_18 = median_cases_averted_per_100k_under18,
+      q25_cases_averted_per_100k_aged_under_18 = q25_cases_averted_per_100k_under18,
+      q75_cases_averted_per_100k_aged_under_18 = q75_cases_averted_per_100k_under18
     ),
   model_path("outputs", "tables", "figure3c_age_contribution_averted_cases.csv")
 )
@@ -412,7 +412,7 @@ p3c <- ggplot(age_contribution_summary, aes(median_cases_averted_per_100k_under1
   ) +
   coord_cartesian(xlim = c(-8, 72), clip = "off") +
   labs(
-    x = "Cases averted per 100 000 <18",
+    x = "Cases averted per 100 000 people aged <18 years",
     y = NULL,
     tag = "c"
   ) +
@@ -447,13 +447,13 @@ age_pattern <- read_table("lancet_age_pattern_weighted_strategy_summary.csv") %>
     effective_country_weight_sum = as.numeric(effective_country_weight_sum),
     ordering_basis_label = case_when(
       ordering_basis == "all_profiles_unweighted" ~ "All profiles",
-      ordering_basis == "age_data_profiles_unweighted" ~ "Age-data profiles",
+      ordering_basis == "age_data_profiles_unweighted" ~ "Profiles with age data",
       ordering_basis == "age_pattern_weighted" ~ "Age-pattern weighted",
       TRUE ~ ordering_basis
     ),
     ordering_basis_label = factor(
       ordering_basis_label,
-      levels = c("All profiles", "Age-data profiles", "Age-pattern weighted")
+      levels = c("All profiles", "Profiles with age data", "Age-pattern weighted")
     )
   ) %>%
   filter(strategy %in% programme_strategies, ordering_basis_label %in% levels(ordering_basis_label))
@@ -479,7 +479,7 @@ readr::write_csv(
 
 age_pattern_basis_colours <- c(
   "All profiles" = manuscript_colour("mid_grey"),
-  "Age-data profiles" = manuscript_colour("sky"),
+  "Profiles with age data" = manuscript_colour("sky"),
   "Age-pattern weighted" = manuscript_colour("blue")
 )
 
@@ -521,13 +521,13 @@ p3d <- ggplot(age_pattern, aes(weighted_median_primary_case_reduction, strategy_
   scale_x_continuous(labels = label_lancet_percent(accuracy = 1), breaks = age_pattern_x_breaks) +
   scale_fill_manual(
     values = age_pattern_basis_colours,
-    labels = c("All", "Age-data", "Weighted"),
+    labels = c("All", "Age data", "Weighted"),
     name = NULL,
     guide = guide_legend(nrow = 1, byrow = TRUE)
   ) +
   coord_cartesian(xlim = age_pattern_x_limits, clip = "off") +
   labs(
-    x = "Median <18 reduction",
+	    x = "Median reduction in people aged <18 years",
     y = NULL,
     tag = "d"
   ) +

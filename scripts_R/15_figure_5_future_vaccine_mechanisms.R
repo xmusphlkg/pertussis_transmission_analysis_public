@@ -5,9 +5,9 @@
 ## Adolescent Health submission package and is not run by `make figures`.
 ## Figure 5: future vaccine mechanism targets ---------------------------------
 ## Layout: (a) Vaccine mechanism matrix
-##         (b) Infection reduction vs <18 case reduction for vaccine mechanisms
+##         (b) Infection reduction versus <18 case reduction for vaccine mechanisms
 ##         (c) Residual <18 cases under mechanism targets and stress-test upper bound
-##         (d) VEinf response curves across resistant-fraction anchors
+##         (d) infectiousness-effect response curves across resistant-fraction anchors
 
 args <- commandArgs(FALSE)
 file_arg <- sub("^--file=", "", args[grepl("^--file=", args)])
@@ -416,8 +416,8 @@ p5d <- ggplot(
   scale_fill_manual(values = veinf_response_colours, guide = "none") +
   coord_cartesian(clip = "off") +
   labs(
-    x = expression(bold("Vaccine infectiousness effect (") * bolditalic(VE)[bold(inf)] * bold(")")),
-    y = "Relative reduction in <18 cases\nvs no VEinf effect",
+    x = "Vaccine infectiousness effect",
+    y = "Relative reduction in cases aged <18 years\nvs no infectiousness effect",
     tag = "d"
   ) +
   theme_lancet(base_size = journal_compact_text_size) +

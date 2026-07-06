@@ -537,7 +537,7 @@ def resistance_parameter_justification() -> None:
             "explored_range_or_scenarios": "0.70-1.25 grid and selected-parameter sensitivity range; selected narrative contrasts at 0.85, 1.00, and 1.15",
             "source_or_anchor": "Rapid MRBP expansion and international spread without a demonstrated transmission penalty; rationale summarized in the resistance-parameter justification table.",
             "rationale": "Avoids assuming a persistent fitness cost when epidemiologic trajectories in China, Japan, and Australia do not rule out neutral or above-neutral fitness.",
-            "expected_direction_of_bias": "Lower fitness reduces projected resistant fraction and resistant-guided treatment benefit; higher fitness accelerates replacement and increases resistant burden.",
+            "expected_direction_of_bias": "Lower fitness reduces projected resistant fraction and resistance-guided management benefit; higher fitness accelerates replacement and increases resistant burden.",
             "residual_caveat": "Fitness is represented as one transmission scalar and may vary with vaccine history, treatment pressure, strain background, and host immunity.",
         },
         {
@@ -552,8 +552,8 @@ def resistance_parameter_justification() -> None:
         {
             "parameter_group": "Resistant-strain treatment effect under standard macrolide practice",
             "baseline_value": "Infectious-duration reduction 0.10; infectiousness reduction 0.05",
-            "explored_range_or_scenarios": "Equalized treatment counterfactual; resistance-guided treatment alternative",
-            "source_or_anchor": "Resistance-guided scenario assumption informed by macrolide resistance biology and treatment guidance",
+            "explored_range_or_scenarios": "Equalized treatment counterfactual; resistance-guided management-pathway alternative",
+            "source_or_anchor": "Resistance-guided management scenario assumption informed by macrolide resistance biology and treatment guidance",
             "rationale": "Allows resistant infections to receive less benefit from standard macrolide management while testing whether that differential drives replacement.",
             "expected_direction_of_bias": "Lower resistant treatment benefit increases resistant burden and infant cases; equalizing treatment effects lowers selection for resistance.",
             "residual_caveat": "The model does not identify strain-specific treatment effect from patient-level outcome data.",
@@ -620,7 +620,7 @@ def limitation_diagnostic_map() -> None:
         },
         {
             "limitation_domain": "No explicit household clustering, contact tracing, or adherence model",
-            "added_or_existing_diagnostic": "Resistance-guided treatment implementation sensitivity, infant contact-matrix sensitivity, maternal package component decomposition, and individual stochastic contact-clustering illustration.",
+            "added_or_existing_diagnostic": "Resistance-guided management implementation sensitivity, infant contact-matrix sensitivity, maternal package component decomposition, and individual stochastic contact-clustering illustration.",
             "supplement_location": "figures S5, S7, and S10",
             "residual_interpretation": "Age-structured proxy diagnostics do not replace household or contact-tracing simulations.",
         },

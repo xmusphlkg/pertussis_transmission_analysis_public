@@ -1,4 +1,4 @@
-country,country_code,age_stratum,symptomatic_cases,total_child_adolescent_cases,burden_share
+country,country_code,age_group,symptomatic_cases,total_child_adolescent_cases,burden_share
 Australia,AUS,Infant,210361.21859508049,1623910.937935674,0.12953987418946325
 Australia,AUS,Children,875107.4704001569,1623910.937935674,0.5388888330985683
 Australia,AUS,Adolescent,538442.2489404365,1623910.937935674,0.3315712927119684

@@ -1,4 +1,4 @@
-country,strategy,strategy_label,infant_case_reduction,child_adolescent_case_reduction,infant_minus_child_adolescent_gap_pp,median_gap_pp,q25_gap_pp,q75_gap_pp,min_gap_pp,max_gap_pp
+country,strategy,strategy_label,infant_case_reduction,overall_case_reduction,infant_minus_overall_gap_pp,median_gap_pp,q25_gap_pp,q75_gap_pp,min_gap_pp,max_gap_pp
 Australia,adolescent_booster,Adolescent,-4.3089469402124436e-5,-1.7365923172563e-4,0.013056976232350557,-1.3025608129506256,-3.041703024958455,-0.07496939875245597,-10.607524818083414,0.17095378345031104
 Australia,pregnancy_tdap_scaleup,Pregnancy Tdap,0.09588690945027645,0.01259061769993286,8.32962917503436,9.013157937794041,8.850609318960206,11.235685363927185,7.89144790862365,11.839355128924446
 Australia,targeted_pep_high_risk,Targeted PEP,0.019251727668606278,0.00657655856717054,1.267516910143574,0.8010447117699496,0.21915245389056148,1.1034497826900247,-0.6134671663109659,1.267516910143574

@@ -1,9 +1,9 @@
 #!/usr/bin/env Rscript
-## Figure 4: resistance and future vaccine mechanism domains ------------------
+## Figure 4: resistance and future vaccine mechanism scenarios ----------------
 ## Layout: (a) Mechanism contrasts
-##         (b) Resistance-guided management trade-off
-##         (c) Residual <18 cases under future vaccine mechanism targets
-##         (d) VEinf response curves across resistant-fraction anchors
+##         (b) Resistance-guided management pathway
+##         (c) Remaining cases under future vaccine mechanism targets
+##         (d) infectiousness-effect response curves across resistant-fraction anchors
 
 args <- commandArgs(FALSE)
 file_arg <- sub("^--file=", "", args[grepl("^--file=", args)])
@@ -53,13 +53,13 @@ vaccine_profile_axis_labels <- c(
   "Inf.-blocking" = "Infection-\nblocking",
   "Trans.-blocking" = "Transmission-\nblocking",
   "High-blocking" = "High-blocking",
-  "Combined stress test" = "Combined future\nstress test"
+  "Combined upper-bound" = "Combined future\nupper-bound"
 )
 
 vaccine_target_levels <- c("infection_blocking", "transmission_blocking", "next_generation")
 vaccine_display_levels <- c("symptom_protective", vaccine_target_levels)
 vaccine_display_labels <- unname(vaccine_profile_labels[vaccine_display_levels])
-residual_display_levels <- c(vaccine_display_labels, "Combined stress test")
+residual_display_levels <- c(vaccine_display_labels, "Combined upper-bound")
 vaccine_legend_levels <- residual_display_levels
 
 vaccine_outcome_colours <- c(
@@ -67,7 +67,7 @@ vaccine_outcome_colours <- c(
   "Inf.-blocking" = manuscript_vaccine_profile_colours[["Inf.-blocking"]],
   "Trans.-blocking" = manuscript_vaccine_profile_colours[["Trans.-blocking"]],
   "High-blocking" = manuscript_vaccine_profile_colours[["Upper-bound"]],
-  "Combined stress test" = manuscript_colour("black")
+  "Combined upper-bound" = manuscript_colour("black")
 )
 
 scale_colour_vaccine_profiles <- function(guide = "none") {
@@ -116,10 +116,10 @@ mechanism_order <- c(
 
 mechanism_labels <- c(
   baseline_full_mechanism = "Baseline",
-  no_resistant_importation = "No import.",
-  equal_treatment_effect = "Tx equal",
+  no_resistant_importation = "No importation",
+  equal_treatment_effect = "Treatment equal",
   equal_pep_effect = "PEP equalized",
-  no_treatment_or_pep_differential = "Tx + PEP equal",
+  no_treatment_or_pep_differential = "Treatment + PEP equal",
   fitness_cost = "Fitness cost"
 )
 
@@ -212,7 +212,7 @@ p4a_resistant <- ggplot(mechanism_data, aes(median_resistant_infections_per_100k
   ) +
   coord_cartesian(xlim = c(1, 3000), clip = "off") +
   labs(
-    x = "Resistant infections\nper 100 000/y (log)",
+    x = "Resistant infections\nper 100 000/year (log)",
     y = NULL,
     tag = "a"
   ) +
@@ -247,7 +247,7 @@ p4a_cases <- ggplot(mechanism_data, aes(median_child_adolescent_cases_per_100k, 
   ) +
   coord_cartesian(xlim = c(70, 850), clip = "off") +
   labs(
-    x = "<18 cases\nper 100 000/y",
+    x = "Cases per 100 000/year\namong people aged <18 years",
     y = NULL
   ) +
   theme_lancet_panel(base_size = journal_compact_text_size, plot_margin = margin(4, 4, 4, 2), show_y_grid = TRUE) +
@@ -262,7 +262,7 @@ p4a <- wrap_elements(
     plot_layout(widths = c(1.08, 0.92))
 )
 
-## Panel B: resistance-management trade-off -------------------------------------
+## Panel B: resistance-management pathway --------------------------------------
 
 resistance_management <- decision_frontier %>%
   filter(optimization_constraint == "program_plus_resistance", strategy == "resistance_guided_treatment") %>%
@@ -273,7 +273,7 @@ resistance_management <- decision_frontier %>%
     primary_case_reduction,
     primary_cases_per_100k,
     relative_reduction_resistant_infections,
-    residual_resistant_infections_per_100k = annualized_resistant_infections_per_100k
+    remaining_resistant_infections_per_100k = annualized_resistant_infections_per_100k
   ) %>%
   left_join(current_resistance, by = "country") %>%
   mutate(
@@ -288,8 +288,8 @@ readr::write_csv(
       country,
       country_code,
       current_resistant_infections_per_100k,
-      residual_resistant_infections_per_100k,
-      residual_child_adolescent_cases_per_100k = primary_cases_per_100k,
+      remaining_resistant_infections_per_100k,
+      remaining_child_adolescent_cases_per_100k = primary_cases_per_100k,
       primary_case_reduction,
       relative_reduction_resistant_infections,
       resistance_reduction_estimable
@@ -341,7 +341,7 @@ p4b <- ggplot(resistance_management, aes(primary_case_reduction, resistant_reduc
     breaks = pal_breaks,
     limits = pal_limits,
     labels = label_lancet_comma(accuracy = 1),
-    name = "Current resistant infections per 100 000/y",
+    name = "Current resistant infections per 100 000/year",
     guide = guide_colourbar(
       title.position = "top",
       barwidth = unit(4.2, "cm"),
@@ -352,7 +352,7 @@ p4b <- ggplot(resistance_management, aes(primary_case_reduction, resistant_reduc
   ) +
   coord_cartesian(xlim = c(-0.02, 0.80), ylim = c(-0.05, 0.82), clip = "off") +
   labs(
-    x = "<18 case reduction",
+	    x = "Case reduction\naged <18 years",
     y = "Resistant-infection\nreduction",
     tag = "b"
   ) +
@@ -418,8 +418,8 @@ implementation_sensitivity <- implementation_country %>%
     reach_status = if_else(pep_coverage_multiplier < 1, "Lower PEP reach", "Baseline PEP reach"),
     implementation_group = case_when(
       reach_status == "Lower PEP reach" ~ "Lower PEP reach",
-      pep_assumption == "Treatment + restored PEP effect" ~ "Tx + restored PEP",
-      TRUE ~ "Guided tx only"
+      pep_assumption == "Treatment + restored PEP effect" ~ "Treatment + restored PEP",
+      TRUE ~ "Guided treatment only"
     ),
     uptake_offset = case_when(
       scenario == "current_near_term" ~ 0,
@@ -444,7 +444,7 @@ implementation_plot <- bind_rows(
       pep_assumption,
       reach_status,
       implementation_group,
-      metric = "<18 cases",
+      metric = "Cases aged <18 years",
       median_reduction = median_child_adolescent_case_reduction,
       q25_reduction = q25_child_adolescent_case_reduction,
       q75_reduction = q75_child_adolescent_case_reduction,
@@ -467,12 +467,12 @@ implementation_plot <- bind_rows(
     )
 ) %>%
   mutate(
-    metric = factor(metric, levels = c("<18 cases", "Resistant infections")),
+    metric = factor(metric, levels = c("Cases aged <18 years", "Resistant infections")),
     pep_assumption = factor(pep_assumption, levels = c("Guided treatment only", "Treatment + restored PEP effect")),
     reach_status = factor(reach_status, levels = c("Baseline PEP reach", "Lower PEP reach")),
     implementation_group = factor(
       implementation_group,
-      levels = c("Guided tx only", "Tx + restored PEP", "Lower PEP reach")
+      levels = c("Guided treatment only", "Treatment + restored PEP", "Lower PEP reach")
     ),
     q25_reduction_plot = pmax(q25_reduction, reduction_axis_floor),
     q75_reduction_plot = pmin(q75_reduction, reduction_axis_ceiling),
@@ -517,8 +517,8 @@ make_implementation_panel <- function(metric_name, panel_tag, y_label = NULL) {
     scale_y_continuous(labels = pct, breaks = c(-1.0, -0.5, 0, 0.5, 0.8)) +
     scale_colour_manual(
       values = c(
-        "Guided tx only" = management_colour,
-        "Tx + restored PEP" = pep_restored_colour,
+        "Guided treatment only" = management_colour,
+        "Treatment + restored PEP" = pep_restored_colour,
         "Lower PEP reach" = lower_reach_colour
       ),
       name = "Implementation group",
@@ -542,7 +542,7 @@ make_implementation_panel <- function(metric_name, panel_tag, y_label = NULL) {
     )
 }
 
-implementation_cases_panel <- make_implementation_panel("<18 cases", "c", "Bounded response")
+implementation_cases_panel <- make_implementation_panel("Cases aged <18 years", "c", "Bounded response")
 implementation_resistance_panel <- make_implementation_panel("Resistant infections", "d", NULL)
 
 ## Panels C-D: future vaccine mechanism targets --------------------------------
@@ -583,9 +583,9 @@ combined_stress_outcomes <- read_table("lancet_child_adolescent_strategy_burden.
     country,
     country_code,
     scenario = strategy,
-    scenario_label = "Combined stress test",
+    scenario_label = "Combined upper-bound",
     primary_cases_per_100k,
-    outcome_type = "Upper-bound stress test"
+    outcome_type = "Upper-bound scenario"
   )
 
 vaccine_residual <- vaccine_mechanism_outcomes %>%
@@ -600,7 +600,7 @@ vaccine_residual <- vaccine_mechanism_outcomes %>%
   bind_rows(combined_stress_outcomes) %>%
   mutate(
     scenario_label = factor(scenario_label, levels = rev(residual_display_levels)),
-    outcome_type = factor(outcome_type, levels = c("Vaccine mechanism", "Upper-bound stress test"))
+    outcome_type = factor(outcome_type, levels = c("Vaccine mechanism", "Upper-bound scenario"))
   )
 
 vaccine_burden_summary <- vaccine_residual %>%
@@ -648,7 +648,7 @@ p4c <- ggplot(vaccine_residual, aes(primary_cases_per_100k, scenario_label, colo
     position = position_jitter(height = 0.11, width = 0)
   ) +
   geom_point(
-    data = vaccine_residual %>% filter(outcome_type == "Upper-bound stress test"),
+    data = vaccine_residual %>% filter(outcome_type == "Upper-bound scenario"),
     inherit.aes = FALSE,
     aes(primary_cases_per_100k, scenario_label),
     shape = 21,
@@ -676,7 +676,7 @@ p4c <- ggplot(vaccine_residual, aes(primary_cases_per_100k, scenario_label, colo
   scale_y_discrete(labels = vaccine_profile_axis_labels) +
   scale_colour_vaccine_profiles() +
   labs(
-    x = "Residual <18 cases per 100 000/year\n(log scale; lower is better)",
+	    x = "Remaining cases per 100 000/year\namong people aged <18 years (log scale)",
     y = NULL,
     tag = "c"
   ) +
@@ -826,8 +826,8 @@ p4d <- ggplot(
   scale_fill_manual(values = veinf_response_colours, guide = "none") +
   coord_cartesian(clip = "off") +
   labs(
-    x = expression(paste("Vaccine infectiousness effect (", VE[inf], ")")),
-    y = expression(atop("Relative reduction in <18 cases", paste("vs no ", VE[inf], " effect"))),
+    x = "Vaccine infectiousness effect",
+    y = "Relative reduction in cases aged <18 years\nversus no infectiousness effect",
     tag = "d"
   ) +
   theme_lancet(base_size = journal_compact_text_size) +

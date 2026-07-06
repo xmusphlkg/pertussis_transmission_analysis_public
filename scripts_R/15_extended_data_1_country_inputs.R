@@ -66,7 +66,7 @@ p_ed1b <- profile_inputs %>%
   scale_fill_manual(
     values = c("TRUE" = manuscript_colour("green"), "FALSE" = manuscript_colour("pale_grey")),
     labels = c("No", "Yes"),
-    name = "Maternal program"
+    name = "Maternal programme"
   ) +
   guides(
     size = guide_legend(order = 1, nrow = 1, title.position = "top"),
