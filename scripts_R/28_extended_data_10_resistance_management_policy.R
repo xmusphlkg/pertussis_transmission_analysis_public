@@ -74,13 +74,23 @@ implementation <- policy %>%
   bind_cols(implementation_bounds) %>%
   filter(analysis_layer == "Near-term implementation sensitivity") %>%
   mutate(
-    policy_read = str_replace(policy_read, "testing/treatment", "testing-\ntreatment"),
-    policy_read = str_wrap(policy_read, width = 24),
-    policy_read = fct_reorder(policy_read, median_infant_case_reduction_vs_current),
+    policy_read = str_squish(policy_read),
+    policy_short = recode(
+      policy_read,
+      "Current near-term management" = "Current",
+      "25% testing/treatment uptake plus assumed PEP improvement" = "25% uptake + improved PEP",
+      "50% testing/treatment uptake plus assumed PEP improvement" = "50% uptake + improved PEP",
+      "75% testing/treatment uptake plus assumed PEP improvement" = "75% uptake + improved PEP",
+      "100% testing/treatment uptake plus assumed PEP improvement" = "100% uptake + improved PEP",
+      "50% testing/treatment uptake only" = "50% uptake only",
+      "100% testing/treatment uptake only" = "100% uptake only",
+      "50% uptake plus assumed PEP improvement with lower PEP reach" = "50% uptake + improved PEP, lower reach"
+    ),
+    policy_short = fct_reorder(policy_short, median_infant_case_reduction_vs_current),
     pep_status = if_else(str_detect(pep_component, "improved"), "PEP improved", "Baseline PEP")
   )
 
-p_c <- ggplot(implementation, aes(median_infant_case_reduction_vs_current, policy_read, colour = pep_status)) +
+p_c <- ggplot(implementation, aes(median_infant_case_reduction_vs_current, policy_short, colour = pep_status)) +
   geom_vline(xintercept = 0, linewidth = 0.25, colour = "grey45") +
   geom_errorbar(aes(xmin = lower, xmax = upper), width = 0.18, linewidth = 0.35, orientation = "y") +
   geom_point(aes(size = countries_with_positive_reduction), fill = "white") +
@@ -93,7 +103,11 @@ p_c <- ggplot(implementation, aes(median_infant_case_reduction_vs_current, polic
   guides(colour = guide_legend(nrow = 1, byrow = TRUE), size = guide_legend(nrow = 1)) +
   labs(x = "Median infant-case\nreduction vs current", y = NULL) +
   panel_theme +
-  theme(legend.text = element_text(size = 5.2))
+  theme(
+    axis.text.y = element_text(size = journal_compact_text_size - 0.6, lineheight = 0.92),
+    legend.text = element_text(size = 5.8),
+    legend.key.size = unit(0.24, "cm")
+  )
 
 preference <- read_csv_local("outputs", "tables", "resistance_preference_weight_summary.csv") %>%
   filter(strategy %in% c("timeliness_only", "maternal_immunization", "adolescent_booster", "resistance_guided_treatment")) %>%
@@ -167,16 +181,22 @@ p_e <- ggplot(thresholds, aes(resistance_prevalence, median_minimum_VE_inf, colo
     ),
     name = NULL
   ) +
+  guides(colour = guide_legend(nrow = 2, byrow = TRUE)) +
   labs(x = "Resistance prevalence in threshold grid", y = "Minimum VE_inf") +
-  panel_theme
+  panel_theme +
+  theme(
+    legend.text = element_text(size = journal_compact_text_size - 0.8),
+    legend.key.size = unit(0.24, "cm")
+  )
 
 extended10_layout <- "
-ABC
-DEE
+AB
+CC
+DE
 "
 
 extended10 <- p_a + p_b + free(p_c) + p_d + p_e +
-  plot_layout(design = extended10_layout, heights = c(1, 1.05), guides = "keep") +
+  plot_layout(design = extended10_layout, heights = c(0.90, 1.30, 1.00), guides = "keep") +
   plot_annotation(tag_levels = "A") &
   (theme(plot.margin = margin(4, 4, 4, 4)) + theme_lancet_tags())
 
@@ -184,7 +204,7 @@ save_appendix_figure(
   extended10,
   "extended_data_figure_10_resistance_management_policy",
   width = lancet_double_width * 1.16,
-  height = 7.6
+  height = 9.1
 )
 
 cat("eFigure 10 (resistance-management and threshold diagnostics) saved.\n")

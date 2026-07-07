@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 ## Figure 1: age-structured control problem -----------------------------------
 ## Layout: (a) Post-pandemic surveillance context
-##         (b) Temporal calibration diagnostics
+##         (b) Current-practice paediatric burden
 ##         (c) Current-practice paediatric age composition
 ##         (d) Baseline estimated reported cases and infections by age group
 
@@ -102,6 +102,7 @@ pediatric_burden <- read_table("lancet_baseline_pediatric_burden.csv") %>%
   required_columns(
     c(
       "country", "primary_cases_per_100k", "infant_cases_per_100k",
+      "infant_hospitalizations_per_100k", "infant_deaths_per_100k",
       "child_1_9_cases_per_100k", "adolescent_cases_per_100k",
       "child_adolescent_reported_cases_per_100k", "child_adolescent_infections_per_100k",
       "age_case_data_availability", "lancet_endpoint_validation_tier"
@@ -134,12 +135,13 @@ age_group_colours <- c(
   "Adolescent" = palette_discrete_primary_9[[8]]
 )
 
-baseline_burden_group_colours <- c(
-  age_group_colours,
-  "Aged <18" = manuscript_colour("black")
+age_group_display_labels <- c(
+  "Infant" = "Infants <1 y",
+  "Children" = "Children 1-9 y",
+  "Adolescent" = "Adolescents 10-17 y"
 )
 
-## Panel B: temporal calibration diagnostics ----------------------------------
+## Panel B: calibration fingerprint -------------------------------------------
 
 calibration_fit <- read_table("calibration_all_countries.csv") %>%
   required_columns(
@@ -148,13 +150,15 @@ calibration_fit <- read_table("calibration_all_countries.csv") %>%
       "annualized_reported_cases_per_100k", "model_to_observed_reported_incidence_ratio",
       "calibration_interval_smape", "calibration_peak_ratio", "calibration_data_overlap_intervals",
       "calibration_log1p_correlation", "calibration_max_interval_smape",
-      "calibration_peak_ratio_min", "calibration_peak_ratio_max", "total_population"
+      "calibration_peak_ratio_min", "calibration_peak_ratio_max", "total_population",
+      "absolute_fit_relative_tolerance"
     ),
     "Calibration all-countries table"
   ) %>%
   mutate(
     country = stringr::str_replace_all(country, " ", "_"),
     country_label_text = format_country(country),
+    country_label_factor = factor(country_label_text, levels = rev(country_order)),
     country_code = unname(country_codes[country]),
     who_region = unname(country_who_region[country]),
     who_region = if_else(is.na(who_region), "Other", who_region),
@@ -168,12 +172,17 @@ calibration_fit <- read_table("calibration_all_countries.csv") %>%
     calibration_peak_ratio_min = as.numeric(calibration_peak_ratio_min),
     calibration_peak_ratio_max = as.numeric(calibration_peak_ratio_max),
     calibration_data_overlap_intervals = as.numeric(calibration_data_overlap_intervals),
+    absolute_fit_relative_tolerance = as.numeric(absolute_fit_relative_tolerance),
     total_population = as.numeric(total_population),
-    population_millions = total_population / 1e6
+    population_millions = total_population / 1e6,
+    mean_ratio_min = 1 - absolute_fit_relative_tolerance,
+    mean_ratio_max = 1 + absolute_fit_relative_tolerance
   ) %>%
   filter(
+    !is.na(country_label_factor),
     positive_rate(observed_reported_incidence_per_100k),
     positive_rate(modelled_reported_incidence_per_100k),
+    positive_rate(model_observed_ratio),
     is.finite(calibration_interval_smape),
     positive_rate(calibration_peak_ratio),
     positive_rate(total_population)
@@ -182,12 +191,16 @@ calibration_fit <- read_table("calibration_all_countries.csv") %>%
 
 calibration_thresholds <- calibration_fit %>%
   summarise(
+    mean_ratio_min = first(na.omit(mean_ratio_min)),
+    mean_ratio_max = first(na.omit(mean_ratio_max)),
     max_interval_smape = first(na.omit(calibration_max_interval_smape)),
     peak_ratio_min = first(na.omit(calibration_peak_ratio_min)),
     peak_ratio_max = first(na.omit(calibration_peak_ratio_max))
   )
 
 if (nrow(calibration_thresholds) == 0 ||
+    !is.finite(calibration_thresholds$mean_ratio_min[[1]]) ||
+    !is.finite(calibration_thresholds$mean_ratio_max[[1]]) ||
     !is.finite(calibration_thresholds$max_interval_smape[[1]]) ||
     !is.finite(calibration_thresholds$peak_ratio_min[[1]]) ||
     !is.finite(calibration_thresholds$peak_ratio_max[[1]])) {
@@ -207,6 +220,7 @@ readr::write_csv(
       calibration_interval_smape,
       calibration_peak_ratio,
       calibration_log1p_correlation,
+      absolute_fit_relative_tolerance,
       calibration_max_interval_smape,
       calibration_peak_ratio_min,
       calibration_peak_ratio_max,
@@ -215,89 +229,91 @@ readr::write_csv(
   model_path("outputs", "tables", "figure1b_model_observed_calibration.csv")
 )
 
-p1b <- ggplot(
-  calibration_fit,
-  aes(calibration_interval_smape, calibration_peak_ratio)
+theme_calibration_fingerprint <- theme_lancet_panel(
+  base_size = journal_compact_text_size,
+  plot_margin = margin(5, 4, 4, 4),
+  show_x_grid = TRUE,
+  show_y_grid = TRUE
 ) +
-  annotate(
-    "rect",
-    xmin = 0.5,
-    xmax = calibration_thresholds$max_interval_smape[[1]],
-    ymin = calibration_thresholds$peak_ratio_min[[1]],
-    ymax = calibration_thresholds$peak_ratio_max[[1]],
-    fill = manuscript_colour("pale_grey"),
-    alpha = 0.45
-  ) +
-  geom_vline(
-    xintercept = calibration_thresholds$max_interval_smape[[1]],
-    linetype = "dashed",
-    linewidth = 0.26,
-    colour = manuscript_colour("mid_grey")
-  ) +
-  geom_hline(
-    yintercept = 1,
-    linetype = "dashed",
-    linewidth = 0.26,
-    colour = manuscript_colour("mid_grey")
-  ) +
-  geom_point(
-    aes(fill = who_region, size = total_population),
-    shape = 21,
-    colour = manuscript_colour("black"),
-    alpha = 0.86,
-    stroke = 0.22,
-    show.legend = TRUE
-  ) +
-  ggrepel::geom_text_repel(
-    aes(label = country_code),
-    size = journal_point_label_text_size,
-    fontface = "bold",
-    min.segment.length = 0,
-    segment.size = 0.10,
-    max.overlaps = Inf,
-    show.legend = FALSE
-  ) +
-  scale_fill_manual(values = region_colours, guide = "none") +
-  scale_size_continuous(
-    name = "Population",
-    breaks = c(1e7, 1e8, 1e9),
-    labels = c("10 million", "100 million", "1 billion"),
-    range = c(3, 10),
-    guide = guide_legend(
-      nrow = 1,
-      byrow = TRUE,
-      title.position = "left",
-      override.aes = list(fill = manuscript_colour("light_grey"), alpha = 0.86)
-    )
-  ) +
-  scale_x_continuous(
-    breaks = c(0.5, 0.75, 1.0, 1.25, 1.5),
-    labels = label_lancet_number(accuracy = 0.01),
-    expand = expansion(mult = c(0.03, 0.08))
-  ) +
-  scale_y_log10(
-    breaks = c(0.25, 0.5, 1, 2, 4),
-    labels = label_lancet_number(accuracy = 0.01),
-    expand = expansion(mult = c(0.06, 0.06))
-  ) +
-  coord_cartesian(xlim = c(0.5, 1.36), ylim = c(0.25, 4), clip = "on") +
-  labs(
-    x = "Interval SMAPE",
-    y = "Modelled/observed peak reported cases (log)",
-    tag = "b"
-  ) +
-  theme_lancet(base_size = journal_compact_text_size) +
   theme(
-    legend.position = "inside",
-    legend.position.inside = c(0.52, 0.98),
-    legend.justification = c(0.5, 1),
-    legend.title.position = 'left',
-    legend.background = element_rect(fill = "#FFFFFFE8", colour = NA),
-    legend.key.width = unit(0.28, "cm"),
-    legend.margin = margin(0, 0, 0, 0),
-    plot.margin = margin(5, 8, 4, 4),
+    axis.ticks.y = element_blank(),
+    legend.position = "none",
+    plot.title = element_text(
+      family = lancet_font_family,
+      face = "bold",
+      size = journal_compact_text_size - 0.5,
+      hjust = 0.5,
+      margin = margin(b = 3)
+    ),
     panel.grid.major.x = element_line(linewidth = 0.16, colour = lancet_grid_light_colour)
   )
+
+p1b_mean <- ggplot(calibration_fit, aes(model_observed_ratio, country_label_factor)) +
+  annotate(
+    "rect",
+    xmin = calibration_thresholds$mean_ratio_min[[1]],
+    xmax = calibration_thresholds$mean_ratio_max[[1]],
+    ymin = -Inf,
+    ymax = Inf,
+    fill = manuscript_colour("pale_grey"),
+    alpha = 0.38
+  ) +
+  geom_vline(xintercept = 1, linewidth = 0.26, linetype = "dashed", colour = manuscript_colour("black")) +
+  geom_point(aes(fill = who_region), shape = 21, size = 2.10, colour = manuscript_colour("black"), stroke = 0.22, alpha = 0.88) +
+  scale_fill_manual(values = c(region_colours, "Other" = manuscript_colour("mid_grey")), guide = "none") +
+  scale_x_continuous(
+    breaks = c(0.75, 1.0, 1.25),
+    labels = label_lancet_number(accuracy = 0.01),
+    expand = expansion(mult = c(0.03, 0.03))
+  ) +
+  coord_cartesian(xlim = c(0.75, 1.25)) +
+  labs(x = "Mean ratio", y = NULL, tag = "b") +
+  theme_calibration_fingerprint
+
+p1b_smape <- ggplot(calibration_fit, aes(calibration_interval_smape, country_label_factor)) +
+  geom_vline(
+    xintercept = calibration_thresholds$max_interval_smape[[1]],
+    linewidth = 0.26,
+    linetype = "dashed",
+    colour = manuscript_colour("mid_grey")
+  ) +
+  geom_point(aes(fill = who_region), shape = 21, size = 2.10, colour = manuscript_colour("black"), stroke = 0.22, alpha = 0.88) +
+  scale_fill_manual(values = c(region_colours, "Other" = manuscript_colour("mid_grey")), guide = "none") +
+  scale_x_continuous(
+    breaks = c(0.5, 1.0, 1.3),
+    labels = label_lancet_number(accuracy = 0.01),
+    expand = expansion(mult = c(0.05, 0.07))
+  ) +
+  coord_cartesian(xlim = c(0.5, 1.35)) +
+  labs(x = "Interval sMAPE", y = NULL) +
+  theme_calibration_fingerprint +
+  theme(axis.text.y = element_blank())
+
+p1b_peak <- ggplot(calibration_fit, aes(calibration_peak_ratio, country_label_factor)) +
+  annotate(
+    "rect",
+    xmin = calibration_thresholds$peak_ratio_min[[1]],
+    xmax = calibration_thresholds$peak_ratio_max[[1]],
+    ymin = -Inf,
+    ymax = Inf,
+    fill = manuscript_colour("pale_grey"),
+    alpha = 0.38
+  ) +
+  geom_vline(xintercept = 1, linewidth = 0.26, linetype = "dashed", colour = manuscript_colour("black")) +
+  geom_point(aes(fill = who_region), shape = 21, size = 2.10, colour = manuscript_colour("black"), stroke = 0.22, alpha = 0.88) +
+  scale_fill_manual(values = c(region_colours, "Other" = manuscript_colour("mid_grey")), guide = "none") +
+  scale_x_log10(
+    breaks = c(0.25, 0.5, 1, 2, 4),
+    labels = c("0·25", "0·5", "1", "2", "4"),
+    expand = expansion(mult = c(0.04, 0.05))
+  ) +
+  coord_cartesian(xlim = c(0.25, 4)) +
+  labs(x = "Peak ratio (log)", y = NULL) +
+  theme_calibration_fingerprint +
+  theme(axis.text.y = element_blank())
+
+p1b <- p1b_mean + p1b_smape + p1b_peak +
+  plot_layout(widths = c(1.05, 0.95, 1.00))
 
 ## Panel C: baseline paediatric burden composition -----------------------------
 
@@ -381,7 +397,7 @@ p1c <- ggplot(baseline_composition, aes(burden_share, country_label, fill = age_
     breaks = seq(0, 1, by = 0.25),
     expand = expansion(mult = c(0, 0.01))
   ) +
-  scale_fill_manual(values = age_group_colours) +
+  scale_fill_manual(values = age_group_colours, labels = age_group_display_labels) +
   coord_cartesian(xlim = c(0, 1), clip = "off") +
   labs(
     x = "Share of symptomatic cases\namong people aged <18 years",
@@ -426,14 +442,9 @@ burden_age_map <- tibble::tribble(
   "Infant", "infant_3_11m",
   "Children", "child_1_4y",
   "Children", "child_5_9y",
-  "Adolescent", "adolescent_10_17y",
-  "Aged <18", "infant_0_2m",
-  "Aged <18", "infant_3_11m",
-  "Aged <18", "child_1_4y",
-  "Aged <18", "child_5_9y",
-  "Aged <18", "adolescent_10_17y"
+  "Adolescent", "adolescent_10_17y"
 ) %>%
-  mutate(burden_group = factor(burden_group, levels = c("Infant", "Children", "Adolescent", "Aged <18")))
+  mutate(burden_group = factor(burden_group, levels = c("Infant", "Children", "Adolescent")))
 
 analysis_years <- current_timeseries %>%
   group_by(country) %>%
@@ -477,7 +488,7 @@ burden_long <- burden_events %>%
       levels = c("reported_cases_per_100k", "estimated_infections_per_100k"),
       labels = c("Estimated reports", "Estimated infections")
     ),
-    burden_group = factor(as.character(burden_group), levels = c("Infant", "Children", "Adolescent", "Aged <18")),
+    burden_group = factor(as.character(burden_group), levels = c("Infant", "Children", "Adolescent")),
     country_label_text = format_country(country),
     country_y = as.numeric(factor(country_label_text, levels = rev(country_order))) +
       if_else(outcome == "Estimated reports", -0.12, 0.12)
@@ -501,7 +512,12 @@ readr::write_csv(
 
 baseline_burden_shapes <- c(
   "Estimated reports" = 16,
-  "Estimated infections" = 15
+  "Estimated infections" = 17
+)
+
+p1d_x_limits <- c(
+  4,
+  max(burden_long$rate_per_100k, na.rm = TRUE) * 1.24
 )
 
 p1d <- ggplot() +
@@ -509,13 +525,13 @@ p1d <- ggplot() +
     data = burden_long,
     aes(rate_per_100k, country_y, colour = burden_group, shape = outcome),
     size = 1.75,
-    alpha = 0.92,
+    alpha = 0.55,
     stroke = 0.48
   ) +
   scale_x_log10(
     breaks = c(5, 10, 30, 100, 300, 1000, 3000),
     labels = label_lancet_comma(accuracy = 1),
-    expand = expansion(mult = c(0.04, 0.08))
+    expand = expansion(mult = c(0.04, 0.12))
   ) +
   scale_y_continuous(
     breaks = seq_along(rev(country_order)),
@@ -523,20 +539,21 @@ p1d <- ggplot() +
     expand = expansion(add = c(0.35, 0.35))
   ) +
   scale_colour_manual(
-    values = baseline_burden_group_colours,
-    name = "Age group",
-    guide = guide_legend(
-      nrow = 1,
-      byrow = TRUE,
-      title.position = "left",
-      override.aes = list(shape = 16, size = 1.8, alpha = 1)
-    )
+    values = age_group_colours,
+    labels = age_group_display_labels,
+    guide = "none"
   ) +
   scale_shape_manual(
     values = baseline_burden_shapes,
     name = "Outcome",
-    guide = guide_legend(nrow = 1, byrow = TRUE, title.position = "left")
+    guide = guide_legend(
+      nrow = 1,
+      byrow = TRUE,
+      title.position = "left",
+      override.aes = list(alpha = 1)
+    )
   ) +
+  coord_cartesian(xlim = p1d_x_limits, clip = "off") +
   labs(
     x = "Annualised rate per 100 000/year,\n2025–50 (log)",
     y = NULL,

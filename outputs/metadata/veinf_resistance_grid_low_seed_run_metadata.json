@@ -10,7 +10,7 @@
     "pyyaml": "6.0.3",
     "scipy": "1.17.1"
   },
-  "generated_at_utc": "2026-07-06T14:19:00.824882+00:00",
+  "generated_at_utc": "2026-07-06T14:50:15.224586+00:00",
   "git": {
     "branch": "main",
     "commit": "ae6d015b75e673b2d4d27450708ed534c87e8c8a",
@@ -32,32 +32,13 @@
     0.6
   ],
   "grid_resistance_prevalence_values": [
-    0.0,
-    0.05,
-    0.1,
-    0.15,
-    0.2,
-    0.25,
-    0.3,
-    0.35,
-    0.4,
-    0.45,
-    0.5,
-    0.55,
-    0.6,
-    0.65,
-    0.7,
-    0.75,
-    0.8,
-    0.85,
-    0.9,
-    0.95,
-    1.0
+    0.01,
+    0.03
   ],
   "output_scope": "summary_only",
   "row_counts": {
-    "summary": 2730
+    "summary": 260
   },
   "schema_version": 1,
-  "stem": "veinf_resistance_grid"
+  "stem": "veinf_resistance_grid_low_seed"
 }

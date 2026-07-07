@@ -563,7 +563,7 @@ def resistance_parameter_justification() -> None:
             "baseline_value": "Household-contact coverage 0.30",
             "explored_range_or_scenarios": "0.05-0.60 in sensitivity analysis and selected-parameter sensitivity multiplier; implementation scenarios vary PEP reach",
             "source_or_anchor": "CDC/PAHO-style public health PEP guidance translated into scenario coverage assumptions",
-            "rationale": "Represents partial household/contact implementation rather than universal prophylaxis.",
+            "rationale": "Represents partial household/contact implementation for prioritized contacts.",
             "expected_direction_of_bias": "Higher PEP reach amplifies any strain-specific PEP effectiveness differential; lower PEP reach weakens PEP-mediated selection and management benefit.",
             "residual_caveat": "PEP targeting, timing, adherence, and contact tracing are not explicit household processes in the deterministic model.",
         },
@@ -592,7 +592,7 @@ def resistance_parameter_justification() -> None:
             "source_or_anchor": "Persistence/reintroduction assumption anchored to observed international spread",
             "rationale": "Prevents deterministic extinction of rare resistant strains while allowing decomposition of whether importation alone drives high end fractions.",
             "expected_direction_of_bias": "Higher importation affects persistence and timing; mechanism decomposition suggests it is not the main driver of near-complete replacement in the main runs.",
-            "residual_caveat": "Importation is smooth and low-level rather than a stochastic travel- or outbreak-linked process.",
+            "residual_caveat": "Importation is modelled as smooth low-level reintroduction; stochastic travel and outbreak-linked introductions are outside this term.",
         },
     ]
     _write(pd.DataFrame(rows), "outputs/tables/resistance_parameter_justification.csv")
@@ -628,19 +628,19 @@ def limitation_diagnostic_map() -> None:
             "limitation_domain": "Macrolide-resistant strain dynamics depend on fitness and management assumptions",
             "added_or_existing_diagnostic": "Resistance mechanism decomposition, fitness grids, hindcast plausibility checks, treatment/PEP implementation sensitivity, vaccine-infectiousness thresholds, and resistance-parameter justification.",
             "supplement_location": "figures S9, S10, and S11, and table S16",
-            "residual_interpretation": "Resistance trajectories remain stress tests of selection mechanisms rather than unconditional replacement predictions.",
+            "residual_interpretation": "Resistance trajectories are stress tests of selection mechanisms under specified assumptions.",
         },
         {
             "limitation_domain": "No costs, utility weights, feasibility, or equity weights",
             "added_or_existing_diagnostic": "Exploratory burden translation from model deaths and symptomatic cases, with hospitalization imputed from transparent scenario assumptions.",
             "supplement_location": "Repository health-utility output tables",
-            "residual_interpretation": "This is not a formal cost-effectiveness analysis; the model still does not include costs, decision thresholds, discounting, feasibility constraints, or equity weights.",
+            "residual_interpretation": "Costs, decision thresholds, discounting, feasibility constraints, and equity weights remain outside this exploratory burden translation.",
         },
         {
             "limitation_domain": "In-development vaccine products cannot be treated as available policies",
             "added_or_existing_diagnostic": "Pipeline-to-mechanism mapping for intranasal BPZE1, OMV-based platforms, genetically detoxified recombinant aP vaccines, and new multicomponent aP candidates.",
             "supplement_location": "table S17",
-            "residual_interpretation": "Candidate products were represented through mechanism profiles and sensitivity ranges, not product-specific policy scenarios.",
+            "residual_interpretation": "Candidate products were represented through mechanism profiles and sensitivity ranges for mechanism comparison.",
         },
     ]
     _write(pd.DataFrame(rows), "outputs/tables/limitation_diagnostic_map.csv")

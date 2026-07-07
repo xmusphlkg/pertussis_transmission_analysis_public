@@ -10,10 +10,10 @@
     "pyyaml": "6.0.3",
     "scipy": "1.17.1"
   },
-  "generated_at_utc": "2026-07-05T16:03:48.954603+00:00",
+  "generated_at_utc": "2026-07-06T08:16:42.606561+00:00",
   "git": {
     "branch": "main",
-    "commit": "a44333413103c5e04004cfd86409400c9076a176",
+    "commit": "ae6d015b75e673b2d4d27450708ed534c87e8c8a",
     "dirty": true
   },
   "row_counts": {
@@ -27,7 +27,8 @@
     "outputs/tables/lancet_child_adolescent_preferred_strategies.csv": 30,
     "outputs/tables/lancet_child_adolescent_strategy_burden.csv": 120,
     "outputs/tables/lancet_child_adolescent_strategy_summary.csv": 29,
-    "outputs/tables/lancet_endpoint_shift_summary.csv": 120
+    "outputs/tables/lancet_endpoint_shift_summary.csv": 120,
+    "outputs/tables/table1_profile_programme_priorities.csv": 10
   },
   "schema_version": 1,
   "stem": "lancet_child_adolescent_tables"

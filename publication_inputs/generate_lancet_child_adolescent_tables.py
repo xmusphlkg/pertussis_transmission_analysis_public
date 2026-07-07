@@ -68,7 +68,7 @@ STRATEGY_LABELS = {
     "adolescent_booster": "Adolescent booster",
     "pregnancy_tdap_scaleup": "Pregnancy Tdap scale-up",
     "cocooning_adjunct": "Close-contact adult adjunct",
-    "maternal_immunization": "Infant-exposure reduction",
+    "maternal_immunization": "Infant-exposure reduction composite",
     "targeted_pep_high_risk": "Targeted high-risk PEP",
     "resistance_guided_treatment": "Resistance-guided management",
     "transmission_blocking_vaccine": "Transmission-blocking vaccine target",
@@ -905,6 +905,60 @@ def _age_pattern_weighted_strategy_summary(burden: pd.DataFrame) -> pd.DataFrame
     return out.sort_values(["ordering_basis", "strategy_rank_within_basis", "strategy"])
 
 
+def _rank_margin_label(excess: float) -> str:
+    if not np.isfinite(excess):
+        return ""
+    if excess <= 5.0:
+        return "Near-tie"
+    if excess < 25.0:
+        return "Modest margin"
+    return "Clear margin"
+
+
+def _country_label(country: str) -> str:
+    return str(country).replace("_", " ")
+
+
+def _table1_programme_priorities(frontier: pd.DataFrame) -> pd.DataFrame:
+    program = frontier.loc[
+        frontier["optimization_constraint"].eq("program_only")
+        & frontier["strategy"].isin(PROGRAM_ONLY_STRATEGIES)
+    ].copy()
+    rows = []
+    for country, group in program.groupby("country", sort=False):
+        current_rows = group.loc[group["strategy"].eq("current")]
+        if current_rows.empty:
+            continue
+        ranked = (
+            group.loc[~group["strategy"].eq("current")]
+            .sort_values(["primary_cases_per_100k", "implementation_intensity", "strategy"])
+            .reset_index(drop=True)
+        )
+        if len(ranked) < 2:
+            continue
+        current = current_rows.iloc[0]
+        best = ranked.iloc[0]
+        runner_up = ranked.iloc[1]
+        excess = float(runner_up["primary_cases_per_100k"] - best["primary_cases_per_100k"])
+        rows.append(
+            {
+                "programme_profile": _country_label(country),
+                "current_practice_cases_per_100k_under18": current["primary_cases_per_100k"],
+                "lowest_burden_programme_only_strategy": best["strategy_label"],
+                "reduction_percent": 100.0 * best["primary_case_reduction"],
+                "cases_averted_per_100k_under18": current["primary_cases_per_100k"]
+                - best["primary_cases_per_100k"],
+                "infant_hospitalisations_averted_per_100k_infants": current[
+                    "infant_hospitalizations_per_100k"
+                ]
+                - best["infant_hospitalizations_per_100k"],
+                "runner_up_excess_cases_per_100k_under18": excess,
+                "rank_margin": _rank_margin_label(excess),
+            }
+        )
+    return pd.DataFrame(rows).sort_values("programme_profile")
+
+
 def main() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     intervention = _augment_with_pediatric_metrics(
         _read("outputs/summaries/intervention_scenarios_summary.csv"),
@@ -942,6 +996,7 @@ def main() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     _write(frontier, "outputs/tables/lancet_child_adolescent_decision_frontier.csv")
     _write(preferred, "outputs/tables/lancet_child_adolescent_preferred_strategies.csv")
     _write(summary, "outputs/tables/lancet_child_adolescent_strategy_summary.csv")
+    _write(_table1_programme_priorities(frontier), "outputs/tables/table1_profile_programme_priorities.csv")
     _write(_logic_blueprint(metric_basis), "outputs/tables/lancet_child_adolescent_logic_blueprint.csv")
     _write(inventory, "outputs/tables/lancet_age_case_data_inventory.csv")
     _write(_baseline_pediatric_burden(burden, inventory), "outputs/tables/lancet_baseline_pediatric_burden.csv")

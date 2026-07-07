@@ -678,11 +678,10 @@ runtime:
       description: >
         aP-like disease protection with moderate infection/transmission
         blocking. The high VE_sym value is literature-supported for disease
-        protection, while VE_sus, VE_inf, and VE_dur are a mechanistic
-        decomposition of that evidence rather than directly observed
-        surveillance parameters. VE_inf = 0.25 represents a population-average
-        residual transmission-blocking assumption across recently and distantly
-        vaccinated individuals.
+        protection; VE_sus, VE_inf, and VE_dur provide a mechanistic
+        decomposition for scenario comparison. VE_inf = 0.25 represents a
+        population-average residual transmission-blocking assumption across
+        recently and distantly vaccinated individuals.
     infection_blocking:
       VE_sus: 0.70
       VE_sym: 0.85
@@ -726,11 +725,10 @@ runtime:
         Country-specific macrolide resistance prevalence from
         data/raw/country_resistance_timeline.csv. The prevalence anchors are
         data-derived. Fitness_R = 1.0 is an epidemiologically motivated neutral
-        baseline, not a directly measured strain-fitness estimate: China MRBP
-        rose from 36% (2016) to near-fixation (>99%, 2024), and related MRBP
-        lineages were reported internationally without clear transmission
-        disadvantage. The fitness_grid and fitness_sensitivity scenarios
-        explore the full range [0.70-1.25].
+        baseline: China MRBP rose from 36% (2016) to near-fixation (>99%, 2024),
+        and related MRBP lineages were reported internationally without clear
+        transmission disadvantage. The fitness_grid and fitness_sensitivity
+        scenarios explore the full range [0.70-1.25].
     low:
       target_prevalence_at_analysis_start: 0.05
       initial_resistance_prevalence: 0.05
@@ -770,7 +768,7 @@ runtime:
     # --- Fitness sensitivity scenarios ---
     # These explicitly test whether resistance carries a fitness cost; recent
     # MRBP expansion makes a large persistent cost difficult to reconcile with
-    # surveillance, but direct relative-fitness estimates are not available.
+    # surveillance, and the fitness grid spans costs and advantages.
     country_timeline_fitness_cost:
       target_prevalence_at_analysis_start: 0.30
       initial_resistance_prevalence: 0.30
@@ -815,8 +813,7 @@ runtime:
         scenario combining high initial resistance with a fitness-advantaged
         strain, representing the upper bound of resistant infection burden.
         Motivated by genomic reports of co-selection between resistance and
-        vaccine-antigen lineages; retained as a stress-test assumption rather
-        than a directly estimated fitness value.
+        vaccine-antigen lineages; retained as a stress-test fitness assumption.
 
   intervention_scenarios:
     current:
@@ -939,7 +936,7 @@ runtime:
         Combined stress-test profile including transmission-blocking vaccine
         assumptions, pregnancy Tdap-based infant protection, close-contact
         adjuncts, adolescent boosting, targeted PEP, and resistance-guided
-        management. This is not a single implementable policy package.
+        management. The scenario is an upper-bound layering stress test.
       vaccine_scenario: transmission_blocking
       coverage_min_updates:
         infant_0_2m: 0.75
@@ -1072,10 +1069,11 @@ runtime:
       multi-parameter MCMC sampler is requested. The default beta_grid workflow
       integrates over beta_S after fixing reporting, VE, asymptomatic
       infectiousness, duration, and resistance-fitness nuisance parameters;
-      outputs must therefore be interpreted as conditional beta uncertainty, not
-      a full structural posterior. Adaptive Metropolis remains available for
-      pilot and sensitivity analyses when those additional dimensions are meant
-      to be sampled.
+      outputs are conditional beta-uncertainty summaries. A full structural
+      posterior would require sampling the additional reporting, vaccine-effect,
+      duration, asymptomatic-infectiousness, and resistance-fitness dimensions.
+      Adaptive Metropolis remains available for pilot and sensitivity analyses
+      when those additional dimensions are meant to be sampled.
     convergence_criteria:
       rhat_threshold: 1.05
       min_bulk_ess: 100
@@ -1103,34 +1101,31 @@ runtime:
         note: >
           Literature-informed decomposition parameter for reduced susceptibility
           after aP vaccination. Aggregate studies support high disease
-          protection and waning protection, but do not directly identify this
-          component from surveillance data; the posterior is constrained to
-          [0.30, 0.60] as a modeling range.
+          protection and waning protection; the posterior is constrained to
+          [0.30, 0.60] as a modelling range.
       VE_inf:
         mean: 0.25
         sd: 0.05
         note: >
           Literature-informed decomposition parameter for reduced onward
           infectiousness among vaccinated infections. It is motivated by aP
-          transmission-blocking evidence and waning studies, but the exact
-          component is not directly measured in country surveillance; range
-          [0.12, 0.38] spans weak-to-moderate residual transmission blocking.
+          transmission-blocking evidence and waning studies; range [0.12, 0.38]
+          spans weak-to-moderate residual transmission blocking.
       VE_dur:
         mean: 0.10
         sd: 0.10
         note: >
           Mechanistic duration-shortening proxy fixed at the prior mean during
           the primary conditional transmission analysis; treated as a vaccine-scenario
-          assumption rather than a directly estimated literature parameter.
+          assumption for sensitivity and pilot context.
       relative_infectiousness_asymptomatic:
         mean: 0.45
         sd: 0.10
         note: >
           Relative infectiousness of asymptomatic/subclinical infections
-          compared to symptomatic cases. The exact ratio is weakly identified
-          and not directly available from routine surveillance; range [0.20,
-          0.70] spans minimal subclinical transmission to near-equal
-          infectiousness.
+          compared to symptomatic cases. The exact ratio is weakly identified;
+          range [0.20, 0.70] spans minimal subclinical transmission to
+          near-equal infectiousness.
       infectious_duration_symptomatic:
         log_sd: 0.15
         note: >
@@ -1140,20 +1135,19 @@ runtime:
       infectious_duration_asymptomatic:
         log_sd: 0.20
         note: >
-          Modeling assumption centered on a shorter mild/asymptomatic
+          Modelling assumption centred on a shorter mild/asymptomatic
           infectious window than symptomatic pertussis; uncertainty range
-          retained because this duration is not directly measured.
+          captures plausible mild-infection duration.
       fitness_R:
         min: 0.70
         max: 1.25
         mean: 1.00
         sd: 0.12
         note: >
-          Epidemiologically motivated prior centered on fitness-neutral (1.0),
+          Epidemiologically motivated prior centred on fitness-neutral (1.0),
           because MRBP reached near-fixation in China within 8 years and spread
-          internationally without clear transmission disadvantage. This is not
-          a direct measured relative-fitness estimate; SD of 0.12 allows modest
-          fitness costs or advantages.
+          internationally without clear transmission disadvantage. SD of 0.12
+          allows modest fitness costs or advantages.
       resistance_prevalence:
         floor_sd: 0.03
         note: >
@@ -1272,4 +1266,4 @@ parameter_sources:
     note: "CDC supports PEP for household/high-risk contacts but does not define this coverage ceiling; the numeric value approximates reach in a model without explicit households."
   vaccine_scenarios:
     source: Literature-informed mechanism scenarios
-    note: "Scenario values encode mechanisms rather than product-specific effectiveness; exact VE_sus/VE_inf/VE_dur decompositions are model assumptions guided by WHO position-paper and vaccine-waning evidence."
+    note: "Scenario values encode mechanism profiles for comparison; exact VE_sus/VE_inf/VE_dur decompositions are model assumptions guided by WHO position-paper and vaccine-waning evidence."

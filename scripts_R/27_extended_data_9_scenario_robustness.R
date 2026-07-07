@@ -56,6 +56,24 @@ strategy_order <- c(
   "higher_child_coverage"
 )
 
+programme_strategy_order <- c(
+  "timeliness_only",
+  "maternal_immunization",
+  "cocooning_adjunct",
+  "targeted_pep_high_risk",
+  "pregnancy_tdap_scaleup",
+  "adolescent_booster"
+)
+
+programme_strategy_labels <- c(
+  timeliness_only = "Routine schedule\ntimeliness",
+  maternal_immunization = "Infant-exposure\ncomposite",
+  cocooning_adjunct = "Close-contact\nadult adjuncts",
+  targeted_pep_high_risk = "Targeted high-risk\nPEP",
+  pregnancy_tdap_scaleup = "Pregnancy Tdap\nscale-up",
+  adolescent_booster = "Adolescent booster\nscale-up"
+)
+
 panel_theme <- theme_lancet_panel(base_size = journal_compact_text_size, plot_margin = margin(3, 3, 3, 3))
 
 pct_label <- function(x) lancet_percent(x, accuracy = 1)
@@ -199,13 +217,140 @@ p_f <- ggplot(age_pattern, aes(ordering_basis, scenario_class_label, fill = clas
     x_hjust = 1
   )
 
+age_pattern_programme <- read_csv_local("outputs", "tables", "lancet_age_pattern_weighted_strategy_summary.csv") %>%
+  filter(
+    strategy %in% programme_strategy_order,
+    ordering_basis %in% c(
+      "all_profiles_unweighted",
+      "age_data_profiles_unweighted",
+      "age_pattern_weighted"
+    )
+  ) %>%
+  mutate(
+    strategy_label = stringr::str_replace_all(as.character(programme_strategy_labels[strategy]), "\n", " "),
+    strategy_label_plot = factor(
+      programme_strategy_labels[strategy],
+      levels = rev(programme_strategy_labels[programme_strategy_order])
+    ),
+    weighted_median_primary_case_reduction = as.numeric(weighted_median_primary_case_reduction),
+    weighted_median_primary_cases_per_100k = as.numeric(weighted_median_primary_cases_per_100k),
+    weighted_iqr_primary_case_reduction = as.character(weighted_iqr_primary_case_reduction),
+    weighted_iqr_low_primary_case_reduction = as.numeric(stringr::str_match(
+      weighted_iqr_primary_case_reduction,
+      "^\\s*([-0-9.eE]+)\\s+to\\s+([-0-9.eE]+)\\s*$"
+    )[, 2]),
+    weighted_iqr_high_primary_case_reduction = as.numeric(stringr::str_match(
+      weighted_iqr_primary_case_reduction,
+      "^\\s*([-0-9.eE]+)\\s+to\\s+([-0-9.eE]+)\\s*$"
+    )[, 3]),
+    ordering_basis_label = recode(
+      ordering_basis,
+      all_profiles_unweighted = "All profiles",
+      age_data_profiles_unweighted = "Profiles with age data",
+      age_pattern_weighted = "Age-pattern weighted"
+    ),
+    ordering_basis_label = factor(
+      ordering_basis_label,
+      levels = c("All profiles", "Profiles with age data", "Age-pattern weighted")
+    )
+  )
+
+readr::write_csv(
+  age_pattern_programme %>%
+    transmute(
+      ordering_basis,
+      ordering_basis_label = as.character(ordering_basis_label),
+      strategy,
+      strategy_label,
+      country_count,
+      effective_country_weight_sum,
+      weighted_median_primary_case_reduction,
+      weighted_iqr_low_primary_case_reduction,
+      weighted_iqr_high_primary_case_reduction,
+      weighted_iqr_primary_case_reduction,
+      weighted_median_primary_cases_per_100k,
+      strategy_rank_within_basis
+    ),
+  model_path("outputs", "tables", "extended_data_figure_9g_age_pattern_programme_robustness.csv")
+)
+
+age_pattern_programme_colours <- c(
+  "All profiles" = manuscript_colour("mid_grey"),
+  "Profiles with age data" = manuscript_colour("sky"),
+  "Age-pattern weighted" = manuscript_colour("blue")
+)
+
+age_pattern_programme_x_range <- range(
+  c(
+    0,
+    age_pattern_programme$weighted_median_primary_case_reduction,
+    age_pattern_programme$weighted_iqr_low_primary_case_reduction,
+    age_pattern_programme$weighted_iqr_high_primary_case_reduction
+  ),
+  na.rm = TRUE
+)
+
+age_pattern_programme_x_limits <- c(
+  floor((age_pattern_programme_x_range[[1]] - 0.01) / 0.05) * 0.05,
+  ceiling((age_pattern_programme_x_range[[2]] + 0.01) / 0.05) * 0.05
+)
+
+p_g <- ggplot(
+  age_pattern_programme,
+  aes(weighted_median_primary_case_reduction, strategy_label_plot, fill = ordering_basis_label)
+) +
+  geom_vline(xintercept = 0, linewidth = 0.24, colour = manuscript_colour("pale_grey")) +
+  geom_col(
+    position = position_dodge(width = 0.74),
+    width = 0.62,
+    colour = "white",
+    linewidth = 0.12,
+    alpha = 0.92
+  ) +
+  geom_errorbar(
+    aes(
+      xmin = weighted_iqr_low_primary_case_reduction,
+      xmax = weighted_iqr_high_primary_case_reduction
+    ),
+    orientation = "y",
+    position = position_dodge(width = 0.74),
+    width = 0.18,
+    linewidth = 0.28,
+    colour = lancet_text_colour
+  ) +
+  scale_x_continuous(
+    labels = pct_label,
+    breaks = seq(age_pattern_programme_x_limits[[1]], age_pattern_programme_x_limits[[2]], by = 0.05)
+  ) +
+  scale_fill_manual(
+    values = age_pattern_programme_colours,
+    labels = c("All", "Age data", "Weighted"),
+    name = NULL,
+    guide = guide_legend(nrow = 1, byrow = TRUE)
+  ) +
+  coord_cartesian(xlim = age_pattern_programme_x_limits, clip = "off") +
+  labs(x = "Median reduction in symptomatic cases among people aged <18 years", y = NULL) +
+  theme_lancet_panel(base_size = journal_compact_text_size, plot_margin = margin(3, 5, 3, 3), show_y_grid = TRUE) +
+  theme(
+    panel.grid.major.x = element_line(linewidth = 0.16, colour = lancet_grid_light_colour),
+    legend.position = "top",
+    axis.ticks.y = element_line(linewidth = lancet_axis_linewidth, colour = lancet_text_colour)
+  )
+
+extended9_layout <- "
+ABC
+DEF
+GGG
+"
+
 extended9 <- wrap_plots(
-  free(p_a), p_b, p_c,
-  p_d, free(p_e), p_f,
-  ncol = 3,
+  A = free(p_a), B = p_b, C = p_c,
+  D = p_d, E = free(p_e), F = p_f,
+  G = free(p_g),
+  design = extended9_layout,
   guides = "keep"
 ) +
-  plot_layout(heights = c(1, 1)) +
+  plot_layout(heights = c(1, 1, 0.76)) +
   plot_annotation(tag_levels = "A") &
   (theme(plot.margin = margin(4, 4, 4, 4)) + theme_lancet_tags())
 
@@ -213,7 +358,7 @@ save_appendix_figure(
   extended9,
   "extended_data_figure_9_scenario_robustness",
   width = lancet_double_width * 1.18,
-  height = 7.8
+  height = 10.0
 )
 
 cat("eFigure 9 (scenario-ordering and outcome robustness diagnostics) saved.\n")

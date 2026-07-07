@@ -34,14 +34,25 @@ if (!file.exists(scores_csv)) {
 
 hindcast <- readr::read_csv(hindcast_csv, show_col_types = FALSE)
 
-# Hindcast fitness colour palette, matching the six values in the current CSV.
+# Hindcast fitness palette: below-neutral values use cool hues, neutral is
+# black, and above-neutral values use warm hues. Line types carry the same
+# ordering so the trajectories remain readable in greyscale.
 fitness_colours <- c(
   "0.85" = manuscript_colour("blue"),
-  "0.90" = manuscript_colour("sky"),
-  "0.95" = manuscript_colour("cream"),
-  "1.00" = manuscript_colour("grey"),
-  "1.05" = manuscript_colour("sand"),
+  "0.90" = manuscript_discrete_core[["deep_teal"]],
+  "0.95" = manuscript_colour("mid_grey"),
+  "1.00" = manuscript_colour("black"),
+  "1.05" = manuscript_colour("orange"),
   "1.10" = manuscript_colour("vermillion")
+)
+
+fitness_linetypes <- c(
+  "0.85" = "solid",
+  "0.90" = "longdash",
+  "0.95" = "dotted",
+  "1.00" = "solid",
+  "1.05" = "twodash",
+  "1.10" = "dotdash"
 )
 
 calendar_year_breaks <- function(x) {
@@ -90,13 +101,21 @@ plot_country_hindcast <- function(data, obs, country_name, x_label = "Calendar y
       .groups = "drop"
     )
 
-  ggplot(country_ts, aes(calendar_year, resistant_fraction,
-                         colour = fitness_label, group = fitness_label)) +
-    geom_line(linewidth = 0.5, alpha = 0.8) +
+  ggplot(
+    country_ts,
+    aes(
+      calendar_year,
+      resistant_fraction,
+      colour = fitness_label,
+      linetype = fitness_label,
+      group = fitness_label
+    )
+  ) +
+    geom_line(linewidth = 0.52, alpha = 0.88, lineend = "round") +
     # Highlight neutral fitness
     geom_line(
       data = country_ts %>% filter(fitness_label == "1.00"),
-      linewidth = 0.9, colour = manuscript_colour("grey")
+      linewidth = 0.95, colour = manuscript_colour("black"), linetype = "solid"
     ) +
     # Observed data points
     geom_pointrange(
@@ -114,11 +133,15 @@ plot_country_hindcast <- function(data, obs, country_name, x_label = "Calendar y
       labels = scales::percent_format(accuracy = 1),
       limits = c(0, 1.02)
     ) +
-    scale_colour_manual(values = fitness_colours, drop = FALSE) +
+    scale_colour_manual(values = fitness_colours, drop = FALSE, name = expression(italic(f)[R])) +
+    scale_linetype_manual(values = fitness_linetypes, drop = FALSE, name = expression(italic(f)[R])) +
     labs(
       x = x_label,
-      y = "Resistant fraction",
-      colour = expression(italic(f)[R])
+      y = "Resistant fraction"
+    ) +
+    guides(
+      colour = guide_legend(nrow = 1, byrow = TRUE, override.aes = list(linewidth = 0.8)),
+      linetype = guide_legend(nrow = 1, byrow = TRUE)
     ) +
     theme_lancet() +
     theme(
@@ -164,7 +187,28 @@ best_fitness <- scores %>%
   filter(mean_absolute_error == min(mean_absolute_error, na.rm = TRUE)) %>%
   ungroup()
 
-p8d <- ggplot(scores, aes(fitness_R, mean_absolute_error, colour = country_label)) +
+hindcast_country_linetypes <- c(
+  "China" = "solid",
+  "Japan" = "dashed",
+  "Australia" = "dotdash"
+)
+
+hindcast_country_shapes <- c(
+  "China" = 16,
+  "Japan" = 17,
+  "Australia" = 15
+)
+
+p8d <- ggplot(
+  scores,
+  aes(
+    fitness_R,
+    mean_absolute_error,
+    colour = country_label,
+    linetype = country_label,
+    shape = country_label
+  )
+) +
   geom_line(linewidth = 0.5, alpha = 0.7) +
   geom_point(size = 1.5, alpha = 0.8) +
   # Highlight best-fitting fitness
@@ -181,11 +225,15 @@ p8d <- ggplot(scores, aes(fitness_R, mean_absolute_error, colour = country_label
     nudge_y = 0.02, segment.size = 0.2
   ) +
   scale_colour_manual(values = manuscript_country_focus_colours[c("China", "Japan", "Australia")]) +
+  scale_linetype_manual(values = hindcast_country_linetypes) +
+  scale_shape_manual(values = hindcast_country_shapes) +
   scale_x_continuous(breaks = seq(0.85, 1.10, 0.05)) +
   labs(
     x = expression(italic(f)[R]),
     y = "Mean absolute error\n(modelled vs observed)",
-    colour = NULL
+    colour = NULL,
+    linetype = NULL,
+    shape = NULL
   ) +
   theme_lancet() +
   theme(legend.position = "bottom")
