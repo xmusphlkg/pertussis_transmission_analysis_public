@@ -65,8 +65,8 @@ Sweden,infectious_duration_asymptomatic,13.999999999999996,13.999999999999996,13
 Sweden,fitness_R,1.0,1.0,1.0,1000
 Sweden,resistance_prevalence,0.01,0.01,0.01,1000
 Sweden,reporting_trend_end_multiplier,1.0,1.0,1.0,1000
-United_States,beta_S,0.011072618489174603,0.011041152266432963,0.011110914851372899,1000
-United_States,reporting_multiplier,1.0155744040732766,1.0155744040732766,1.0155744040732766,1000
+United_States,beta_S,0.011917121824790546,0.011886241063675201,0.011949264967843463,1000
+United_States,reporting_multiplier,1.0,1.0,1.0,1000
 United_States,VE_sus,0.15,0.15,0.15,1000
 United_States,VE_inf,0.25,0.25,0.25,1000
 United_States,VE_dur,0.0,0.0,0.0,1000
@@ -74,7 +74,7 @@ United_States,relative_infectiousness_asymptomatic,0.35000000000000003,0.3500000
 United_States,infectious_duration_symptomatic,21.0,21.0,21.0,1000
 United_States,infectious_duration_asymptomatic,13.999999999999996,13.999999999999996,13.999999999999996,1000
 United_States,fitness_R,1.0,1.0,1.0,1000
-United_States,resistance_prevalence,0.0,0.0,0.0,1000
+United_States,resistance_prevalence,0.01,0.01,0.01,1000
 United_States,reporting_trend_end_multiplier,1.0,1.0,1.0,1000
 Brazil,beta_S,0.011509564119631256,0.011481607008058144,0.011535876992255254,1000
 Brazil,reporting_multiplier,1.0125151384726239,1.0125151384726239,1.0125151384726239,1000

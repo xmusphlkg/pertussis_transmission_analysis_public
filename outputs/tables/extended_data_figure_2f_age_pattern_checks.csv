@@ -1,0 +1,5 @@
+country,country_code,external_label,country_age_pattern_weight,passes_age_pattern_threshold,age_pattern_status
+United_States,USA,Infants <1 y share of 2025 provisional reported cases,0.8613619270775218,TRUE,Pass
+United_Kingdom,GBR,Infants <1 y share of 2024 laboratory-confirmed cases in England,0.2127176645744506,FALSE,Below threshold
+Sweden,SWE,EU/EEA 2024 infant case share proxy for Sweden external triangulation,0.5072980192970734,TRUE,Pass
+Australia,AUS,"Children 5-14 y share of 2024 reported cases, compared with the model 5-17 y proxy",0.4190242025103845,FALSE,Below threshold

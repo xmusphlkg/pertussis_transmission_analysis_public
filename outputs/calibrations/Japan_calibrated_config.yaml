@@ -1058,10 +1058,11 @@ config:
     note: 'The production uncertainty path is conditional unless an explicit multi-parameter
       MCMC sampler is requested. The default beta_grid workflow integrates over beta_S
       after fixing reporting, VE, asymptomatic infectiousness, duration, and resistance-fitness
-      nuisance parameters; outputs must therefore be interpreted as conditional beta
-      uncertainty, not a full structural posterior. Adaptive Metropolis remains available
-      for pilot and sensitivity analyses when those additional dimensions are meant
-      to be sampled.
+      nuisance parameters; outputs are conditional beta-uncertainty summaries. A full
+      structural posterior would require sampling the additional reporting, vaccine-effect,
+      duration, asymptomatic-infectiousness, and resistance-fitness dimensions. Adaptive
+      Metropolis remains available for pilot and sensitivity analyses when those additional
+      dimensions are meant to be sampled.
 
       '
     convergence_criteria:
@@ -1092,9 +1093,8 @@ config:
         sd: 0.05
         note: 'Literature-informed decomposition parameter for reduced susceptibility
           after aP vaccination. Aggregate studies support high disease protection
-          and waning protection, but do not directly identify this component from
-          surveillance data; the posterior is constrained to [0.30, 0.60] as a modeling
-          range.
+          and waning protection; the posterior is constrained to [0.30, 0.60] as a
+          modelling range.
 
           '
       VE_inf:
@@ -1102,8 +1102,7 @@ config:
         sd: 0.05
         note: 'Literature-informed decomposition parameter for reduced onward infectiousness
           among vaccinated infections. It is motivated by aP transmission-blocking
-          evidence and waning studies, but the exact component is not directly measured
-          in country surveillance; range [0.12, 0.38] spans weak-to-moderate residual
+          evidence and waning studies; range [0.12, 0.38] spans weak-to-moderate residual
           transmission blocking.
 
           '
@@ -1112,16 +1111,15 @@ config:
         sd: 0.1
         note: 'Mechanistic duration-shortening proxy fixed at the prior mean during
           the primary conditional transmission analysis; treated as a vaccine-scenario
-          assumption rather than a directly estimated literature parameter.
+          assumption for sensitivity and pilot context.
 
           '
       relative_infectiousness_asymptomatic:
         mean: 0.45
         sd: 0.1
         note: 'Relative infectiousness of asymptomatic/subclinical infections compared
-          to symptomatic cases. The exact ratio is weakly identified and not directly
-          available from routine surveillance; range [0.20, 0.70] spans minimal subclinical
-          transmission to near-equal infectiousness.
+          to symptomatic cases. The exact ratio is weakly identified; range [0.20,
+          0.70] spans minimal subclinical transmission to near-equal infectiousness.
 
           '
       infectious_duration_symptomatic:
@@ -1133,9 +1131,9 @@ config:
           '
       infectious_duration_asymptomatic:
         log_sd: 0.2
-        note: 'Modeling assumption centered on a shorter mild/asymptomatic infectious
-          window than symptomatic pertussis; uncertainty range retained because this
-          duration is not directly measured.
+        note: 'Modelling assumption centred on a shorter mild/asymptomatic infectious
+          window than symptomatic pertussis; uncertainty range captures plausible
+          mild-infection duration.
 
           '
       fitness_R:
@@ -1143,10 +1141,10 @@ config:
         max: 1.25
         mean: 1.0
         sd: 0.12
-        note: 'Epidemiologically motivated prior centered on fitness-neutral (1.0),
+        note: 'Epidemiologically motivated prior centred on fitness-neutral (1.0),
           because MRBP reached near-fixation in China within 8 years and spread internationally
-          without clear transmission disadvantage. This is not a direct measured relative-fitness
-          estimate; SD of 0.12 allows modest fitness costs or advantages.
+          without clear transmission disadvantage. SD of 0.12 allows modest fitness
+          costs or advantages.
 
           '
       resistance_prevalence:
@@ -1335,8 +1333,8 @@ metadata:
   data_fit_score: 6325.524391872724
   n_starts: 1
   maxiter: 12
-  config_hash: 66b778bc4c792b141549da24186cd25b8d0e7046eb3bab329f1877ad44778871
-  calibration_config_hash: 17ae9068008b4c1e2081de14baa9658e40c120bf419be1476856f514e3c6595f
+  config_hash: 6e926907320a8d929f5e700e87f528c158d870d2137c2f1a259302a95f37705c
+  calibration_config_hash: 374ca2c5c483bb8158ab5616cbe6969335d9e033b8768439dd96c386454b694a
   baseline_vaccine_scenario: symptom_protective
   baseline_resistance_scenario: country_timeline
-  generated_at_utc: '2026-07-05T08:49:31.448008+00:00'
+  generated_at_utc: '2026-07-07T05:43:11.196840+00:00'

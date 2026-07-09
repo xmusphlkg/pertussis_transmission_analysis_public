@@ -860,11 +860,12 @@ runtime:
         reduction_fraction: 0.15
     maternal_immunization:
       description: >
-        Infant-exposure reduction composite strategy. This combines pregnancy
-        Tdap scale-up for direct infant antibody protection with a close-contact
-        adult Tdap/contact-reduction adjunct for reproductive-age adult sources.
-        It is a consensus-aligned infant-protection package, not a maternal
-        immunization-only effect estimate.
+        High-intensity infant-exposure pathway package. This combines
+        pregnancy Tdap scale-up for direct infant antibody protection with a
+        close-contact adult Tdap/contact-reduction adjunct for reproductive-age
+        adult sources. It is a mechanistic infant-protection package, not a
+        maternal immunization-only effect estimate or evidence that cocooning
+        alone prevents infant morbidity and mortality.
       coverage_min_updates:
         infant_0_2m: 0.75
         young_adult_18_39y: 0.55

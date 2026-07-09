@@ -6,7 +6,11 @@ suppressPackageStartupMessages({
   library(viridis)
 })
 
-helper_file <- tryCatch(normalizePath(sys.frame(1)$ofile), error = function(e) NA_character_)
+if (exists("script_dir", inherits = TRUE) && file.exists(file.path(get("script_dir"), "_helpers.R"))) {
+  helper_file <- normalizePath(file.path(get("script_dir"), "_helpers.R"), mustWork = FALSE)
+} else {
+  helper_file <- tryCatch(normalizePath(sys.frame(1)$ofile), error = function(e) NA_character_)
+}
 if (is.na(helper_file)) {
   helper_file <- file.path(getwd(), "scripts_R", "_helpers.R")
 }
@@ -14,6 +18,10 @@ root_dir <- normalizePath(file.path(dirname(helper_file), ".."), mustWork = FALS
 
 model_path <- function(...) {
   file.path(root_dir, ...)
+}
+
+if (!exists(".pertussis_model_table_cache", envir = .GlobalEnv, inherits = FALSE)) {
+  assign(".pertussis_model_table_cache", new.env(parent = emptyenv()), envir = .GlobalEnv)
 }
 
 read_model_table <- function(path_without_suffix) {
@@ -25,11 +33,20 @@ read_model_table <- function(path_without_suffix) {
   if (!file.exists(metadata_path)) {
     stop("Missing run metadata for ", stem, ". Regenerate outputs with the current Python pipeline.")
   }
+  cache_key <- normalizePath(path_without_suffix, mustWork = FALSE)
+  table_cache <- get(".pertussis_model_table_cache", envir = .GlobalEnv)
+  if (exists(cache_key, envir = table_cache, inherits = FALSE)) {
+    return(get(cache_key, envir = table_cache, inherits = FALSE))
+  }
   if (file.exists(csv_path)) {
-    return(readr::read_csv(csv_path, show_col_types = FALSE))
+    out <- readr::read_csv(csv_path, show_col_types = FALSE)
+    assign(cache_key, out, envir = table_cache)
+    return(out)
   }
   if (requireNamespace("arrow", quietly = TRUE) && file.exists(parquet_path)) {
-    return(arrow::read_parquet(parquet_path))
+    out <- arrow::read_parquet(parquet_path)
+    assign(cache_key, out, envir = table_cache)
+    return(out)
   }
   stop("Could not find either ", parquet_path, " or ", csv_path)
 }

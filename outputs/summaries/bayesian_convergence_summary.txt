@@ -35,4 +35,4 @@ Per-country worst diagnostics:
   Sweden: worst R-hat=0.997 (beta_S), min ESS=1000 (beta_S)
   Thailand: worst R-hat=0.998 (beta_S), min ESS=1000 (beta_S)
   United_Kingdom: worst R-hat=0.997 (beta_S), min ESS=905 (beta_S)
-  United_States: worst R-hat=0.998 (beta_S), min ESS=981 (beta_S)
+  United_States: worst R-hat=0.998 (beta_S), min ESS=984 (beta_S)

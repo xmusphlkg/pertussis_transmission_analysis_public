@@ -118,6 +118,11 @@ def test_new_country_raw_dependencies_are_present() -> None:
     assert contacts.loc[contacts["country"].isin(["Brazil", "Thailand"])].groupby("country").size().eq(256).all()
     assert set(resistance.loc[resistance["country"].isin(["Brazil", "Thailand"]), "country"]) == {"Brazil", "Thailand"}
     assert not resistance["country"].eq("Singapore").any()
+    us_resistance = resistance.loc[(resistance["country"].eq("United_States")) & (resistance["year"].eq(2024))]
+    assert len(us_resistance) == 1
+    assert np.isclose(us_resistance["resistant_fraction"].iloc[0], 0.01)
+    assert us_resistance["evidence_type"].iloc[0] == "low_detected_model_anchor"
+    assert "No population-based national resistant fraction" in us_resistance["notes"].iloc[0]
 
 
 def test_who_country_level_outputs_are_limited_to_configured_countries() -> None:

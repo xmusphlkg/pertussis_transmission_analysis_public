@@ -1,6 +1,24 @@
 args <- commandArgs(FALSE)
 file_arg <- sub("^--file=", "", args[grepl("^--file=", args)])
-script_dir <- if (length(file_arg) > 0) dirname(normalizePath(file_arg[[1]])) else file.path(getwd(), "scripts_R")
+find_scripts_dir <- function(start_dir) {
+  candidate <- normalizePath(start_dir, mustWork = FALSE)
+  for (i in seq_len(8)) {
+    if (file.exists(file.path(candidate, "_helpers.R"))) {
+      return(candidate)
+    }
+    parent <- dirname(candidate)
+    if (identical(parent, candidate)) {
+      break
+    }
+    candidate <- parent
+  }
+  normalizePath(file.path(getwd(), "scripts_R"), mustWork = FALSE)
+}
+script_dir <- if (length(file_arg) > 0) {
+  find_scripts_dir(dirname(normalizePath(file_arg[[1]], mustWork = FALSE)))
+} else {
+  find_scripts_dir(file.path(getwd(), "scripts_R"))
+}
 source(file.path(script_dir, "_helpers.R"))
 
 suppressPackageStartupMessages({
@@ -244,29 +262,53 @@ theme_lancet_inside_legend <- function(text_size = journal_base_text_size,
                                        key_width = unit(0.28, "cm"),
                                        key_height = unit(0.2, "cm"),
                                        position = c(0.999, 0.001),
-                                       justification = c(1, 0)) {
-  theme(
+                                       justification = c(1, 0),
+                                       direction = "vertical",
+                                       box = NULL,
+                                       box_just = NULL,
+                                       title_face = "bold",
+                                       title_lineheight = 0.95,
+                                       title_hjust = NULL,
+                                       text_lineheight = 0.95,
+                                       text_hjust = NULL,
+                                       text_margin = NULL,
+                                       spacing_x = unit(3, "pt"),
+                                       spacing_y = unit(1, "pt"),
+                                       background_fill = "#FFFFFFE6",
+                                       box_margin = margin(0, 0, 0, 0),
+                                       legend_margin = margin(0, 0, 0, 0)) {
+  theme_args <- list(
     legend.position = "inside",
     legend.position.inside = position,
     legend.justification = justification,
-    legend.direction = "vertical",
-    legend.background = element_rect(fill = "#FFFFFFE6", colour = NA),
+    legend.direction = direction,
+    legend.box = box,
+    legend.box.just = box_just,
+    legend.background = element_rect(fill = background_fill, colour = NA),
     legend.title = element_text(
       family = lancet_font_family,
       colour = lancet_text_colour,
-      face = "bold",
+      face = title_face,
       size = title_size,
-      lineheight = 0.95
+      lineheight = title_lineheight,
+      hjust = title_hjust
     ),
     legend.text = element_text(
       family = lancet_font_family,
       colour = lancet_text_colour,
       size = text_size,
-      lineheight = 0.95
+      lineheight = text_lineheight,
+      hjust = text_hjust,
+      margin = text_margin
     ),
     legend.key.width = key_width,
-    legend.key.height = key_height
+    legend.key.height = key_height,
+    legend.spacing.x = spacing_x,
+    legend.spacing.y = spacing_y,
+    legend.box.margin = box_margin,
+    legend.margin = legend_margin
   )
+  do.call(theme, theme_args[!vapply(theme_args, is.null, logical(1))])
 }
 
 set_lancet_text_defaults <- function() {
@@ -607,6 +649,8 @@ interval_label <- function(median, low, high, formatter = label_lancet_number(ac
   paste0(formatter(median), "\n[", formatter(low), "–", formatter(high), "]")
 }
 
+source(file.path(script_dir, "10_plot_helpers.R"))
+
 country_levels <- c(
   "Australia", "China", "Japan", "New_Zealand",
   "South_Africa", "Sweden", "United_Kingdom", "United_States", "Brazil", "Thailand"
@@ -681,7 +725,7 @@ intervention_labels <- c(
   adolescent_booster = "Adolescent booster",
   pregnancy_tdap_scaleup = "Pregnancy Tdap scale-up",
   cocooning_adjunct = "Close-contact adjunct",
-  maternal_immunization = "Infant-exposure\nreduction composite",
+  maternal_immunization = "Infant-exposure\npackage",
   targeted_pep_high_risk = "Targeted high-risk PEP",
   resistance_guided_treatment = "Resistance-guided management",
   next_generation_vaccine = "High transmission-blocking\nvaccine target",
@@ -818,6 +862,7 @@ require_efigure_timeseries <- function(df, figure_label, output_stem) {
   )
 }
 
+if (!isTRUE(getOption("pertussis.skip_shared_data", FALSE))) {
 baseline <- read_model_table(model_path("outputs", "summaries", "country_scenarios_summary")) %>%
   add_country_label()
 vaccine_summary <- read_model_table(model_path("outputs", "summaries", "vaccine_scenarios_summary")) %>%
@@ -967,4 +1012,5 @@ if (nrow(fitness_benefit_psa_summary) > 0) {
 }
 if (nrow(bayesian_summary) > 0) {
   bayesian_summary <- with_burden_order(bayesian_summary)
+}
 }

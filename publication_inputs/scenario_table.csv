@@ -2,7 +2,7 @@ scenario,VE_sus,VE_sym,VE_inf,VE_dur,description
 no_vaccine,0.0,0.0,0.0,0.0,No vaccine protection.
 symptom_protective,0.15,0.85,0.25,0.0,"aP-like disease protection with moderate infection/transmission blocking. The high VE_sym value is literature-supported for disease protection; VE_sus, VE_inf, and VE_dur provide a mechanistic decomposition for scenario comparison. VE_inf = 0.25 represents a population-average residual transmission-blocking assumption across recently and distantly vaccinated individuals.
 "
-infection_blocking,0.7,0.85,0.4,0.1,"Stronger reduction in susceptibility to infection. VE_inf = 0.40 represents a plausible upper mechanism bound for recently boosted or more infection-blocking protection.
+infection_blocking,0.7,0.85,0.4,0.1,"Stronger reduction in susceptibility to infection. VE_inf = 0.40 represents a plausible upper mechanism bound for recently boosted or more infection-blocking protection, not a direct empirical estimate for current aP products.
 "
 transmission_blocking,0.3,0.85,0.55,0.3,"Strong reduction in onward infectiousness and duration. Represents an improved aP formulation or wP-like transmission blocking.
 "

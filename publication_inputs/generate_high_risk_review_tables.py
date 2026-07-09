@@ -587,7 +587,7 @@ def resistance_parameter_justification() -> None:
         },
         {
             "parameter_group": "Resistant importation",
-            "baseline_value": "Low-level importation enabled; default rate 0.20 per 100,000 persons/year with country/scenario resistant fraction",
+            "baseline_value": "Low-level importation enabled; default rate 0.20 per 100 000 persons/year with country/scenario resistant fraction",
             "explored_range_or_scenarios": "Resistance mechanism decomposition separates ongoing importation from fitness and treatment/PEP differentials",
             "source_or_anchor": "Persistence/reintroduction assumption anchored to observed international spread",
             "rationale": "Prevents deterministic extinction of rare resistant strains while allowing decomposition of whether importation alone drives high end fractions.",
@@ -608,8 +608,8 @@ def limitation_diagnostic_map() -> None:
         },
         {
             "limitation_domain": "Strategy-profile ordering under selected-parameter sensitivity",
-            "added_or_existing_diagnostic": "Country-level order positions, analysis-window order positions, infant-age/window order positions, strategy-ordering summary, Figure 2A-D decision-framework source data, retained regret source data, and selected-parameter deterministic strategy-ordering diagnostics.",
-            "supplement_location": "Figure 2A-D and figures S5 and S6",
+            "added_or_existing_diagnostic": "Country-level order positions, analysis-window order positions, infant-age/window order positions, strategy-ordering summary, Figure 2A-C decision-framework source data, retained regret source data, and selected-parameter deterministic strategy-ordering diagnostics.",
+            "supplement_location": "Figure 2A-C and figures S5 and S6",
             "residual_interpretation": "Order-position probabilities are conditional on the selected epidemiologic sensitivity ranges and do not include costs, feasibility, or equity weights.",
         },
         {
@@ -935,63 +935,151 @@ def _constraint_frontier_points(burden: pd.DataFrame) -> pd.DataFrame:
     return out.loc[:, keep].sort_values(["optimization_constraint", "country", "implementation_intensity", "strategy"])
 
 
-def _infant_case_interval_frame() -> pd.DataFrame:
+def _current_rate_interval_frame(outcome: str, interval_source: str = "combined") -> pd.DataFrame:
     overlay_path = ROOT / "outputs/summaries/bayesian_stochastic_overlay_intervals_summary.csv"
     if overlay_path.exists():
         intervals = pd.read_csv(overlay_path)
-        low_col = "combined_credible_interval_low"
-        high_col = "combined_credible_interval_high"
+        center_col = "posterior_median" if "posterior_median" in intervals.columns else None
+        if interval_source == "parameter":
+            low_col = "parameter_credible_interval_low"
+            high_col = "parameter_credible_interval_high"
+        else:
+            low_col = "combined_credible_interval_low"
+            high_col = "combined_credible_interval_high"
     else:
         intervals = _read_csv("outputs/summaries/bayesian_uncertainty_intervals_summary.csv")
+        center_col = "posterior_median" if "posterior_median" in intervals.columns else None
         low_col = "credible_interval_low"
         high_col = "credible_interval_high"
 
-    intervals = intervals.loc[
-        intervals["outcome"].eq("annualized_infant_cases_per_100k"),
-        ["country", low_col, high_col],
-    ].copy()
-    return intervals.rename(columns={low_col: "current_rate_q025", high_col: "current_rate_q975"})
+    missing = {low_col, high_col}.difference(intervals.columns)
+    if missing:
+        raise ValueError(f"Uncertainty interval source {interval_source!r} lacks columns: {sorted(missing)}")
+
+    keep_cols = ["country", low_col, high_col]
+    if center_col is not None:
+        keep_cols.append(center_col)
+    intervals = intervals.loc[intervals["outcome"].eq(outcome), keep_cols].copy()
+    if intervals.empty:
+        raise ValueError(f"No current-practice uncertainty interval found for outcome: {outcome}")
+    intervals = intervals.rename(
+        columns={
+            low_col: "current_rate_q025",
+            high_col: "current_rate_q975",
+            center_col: "current_rate_interval_center",
+        }
+    )
+    if "current_rate_interval_center" not in intervals.columns:
+        intervals["current_rate_interval_center"] = (
+            intervals["current_rate_q025"] + intervals["current_rate_q975"]
+        ) / 2.0
+    return intervals
 
 
 def intervention_predictive_interval_audit() -> None:
     burden = _optimization_burden_frame()
-    current = burden.loc[
-        burden["strategy"].eq("current"),
-        ["country", "annualized_infant_cases_per_100k"],
-    ].rename(columns={"annualized_infant_cases_per_100k": "current_rate_point"})
-    intervals = _infant_case_interval_frame()
+    interval_specs = [
+        {
+            "rate_col": "annualized_infant_cases_per_100k",
+            "reduction_col": "relative_reduction_infant_cases",
+            "output_path": "outputs/tables/figure2b_intervention_predictive_interval_audit.csv",
+            "strategies": INTERVENTION_INTERVAL_AUDIT_STRATEGIES,
+            "outcome_label": "infant_cases",
+            "interval_source": "combined",
+            "reduction_interval_denominator": "current_interval",
+            "interval_basis": (
+                "Scaled from current-practice Bayesian posterior predictive intervals; "
+                "not a full intervention-specific probabilistic simulation."
+            ),
+        },
+        {
+            "rate_col": "annualized_child_adolescent_cases_per_100k",
+            "reduction_col": "relative_reduction_child_adolescent_cases",
+            "output_path": "outputs/tables/figure2c_programme_primary_predictive_interval_audit.csv",
+            "strategies": (
+                "timeliness_only",
+                "adolescent_booster",
+                "pregnancy_tdap_scaleup",
+                "cocooning_adjunct",
+                "maternal_immunization",
+                "targeted_pep_high_risk",
+            ),
+            "outcome_label": "child_adolescent_cases",
+            "interval_source": "parameter",
+            "reduction_interval_denominator": "current_point",
+            "center_interval_on_current_point": True,
+            "interval_basis": (
+                "Scaled from current-practice Bayesian calibration-parameter credible intervals; "
+                "not a full intervention-specific probabilistic simulation."
+            ),
+        },
+    ]
 
-    audit = burden.loc[burden["strategy"].isin(INTERVENTION_INTERVAL_AUDIT_STRATEGIES)].copy()
-    audit = audit.merge(current, on="country", how="left").merge(intervals, on="country", how="left")
+    for spec in interval_specs:
+        rate_col = spec["rate_col"]
+        reduction_col = spec["reduction_col"]
+        current = burden.loc[burden["strategy"].eq("current"), ["country", rate_col]].rename(
+            columns={rate_col: "current_rate_point"}
+        )
+        intervals = _current_rate_interval_frame(rate_col, str(spec.get("interval_source", "combined")))
 
-    current_point = pd.to_numeric(audit["current_rate_point"], errors="coerce").replace(0, np.nan)
-    intervention_point = pd.to_numeric(audit["annualized_infant_cases_per_100k"], errors="coerce")
-    current_low = pd.to_numeric(audit["current_rate_q025"], errors="coerce")
-    current_high = pd.to_numeric(audit["current_rate_q975"], errors="coerce")
-    audit["intervention_rate_q025"] = intervention_point * current_low / current_point
-    audit["intervention_rate_q975"] = intervention_point * current_high / current_point
-    audit["reduction_q025"] = 1.0 - audit["intervention_rate_q975"] / current_low.replace(0, np.nan)
-    audit["reduction_q975"] = 1.0 - audit["intervention_rate_q025"] / current_high.replace(0, np.nan)
-    audit["scenario_key"] = audit["strategy"]
-    audit["scenario_label"] = audit["strategy"].map(INTERVENTION_INTERVAL_LABELS).fillna(audit["strategy_label"])
+        audit = burden.loc[burden["strategy"].isin(spec["strategies"])].copy()
+        audit = audit.merge(current, on="country", how="left").merge(intervals, on="country", how="left")
 
-    _write(
-        audit[
-            [
-                "country",
-                "scenario_key",
-                "scenario_label",
-                "relative_reduction_infant_cases",
-                "reduction_q025",
-                "reduction_q975",
-                "current_rate_q025",
-                "current_rate_q975",
-                "intervention_rate_q025",
-                "intervention_rate_q975",
-            ]
-        ].sort_values(["country", "scenario_key"]),
-        "outputs/tables/figure2b_intervention_predictive_interval_audit.csv",
-    )
+        current_point = pd.to_numeric(audit["current_rate_point"], errors="coerce").replace(0, np.nan)
+        point_reduction = pd.to_numeric(audit[reduction_col], errors="coerce")
+        intervention_point_from_reduction = current_point * (1.0 - point_reduction)
+        intervention_point = intervention_point_from_reduction.where(
+            np.isfinite(intervention_point_from_reduction),
+            pd.to_numeric(audit[rate_col], errors="coerce"),
+        )
+        current_low = pd.to_numeric(audit["current_rate_q025"], errors="coerce")
+        current_high = pd.to_numeric(audit["current_rate_q975"], errors="coerce")
+        if spec.get("center_interval_on_current_point"):
+            current_center = pd.to_numeric(audit["current_rate_interval_center"], errors="coerce").replace(0, np.nan)
+            interval_low_multiplier = current_low / current_center
+            interval_high_multiplier = current_high / current_center
+            audit["current_rate_q025"] = current_point * interval_low_multiplier
+            audit["current_rate_q975"] = current_point * interval_high_multiplier
+            audit["intervention_rate_q025"] = intervention_point * interval_low_multiplier
+            audit["intervention_rate_q975"] = intervention_point * interval_high_multiplier
+            current_low = pd.to_numeric(audit["current_rate_q025"], errors="coerce")
+            current_high = pd.to_numeric(audit["current_rate_q975"], errors="coerce")
+        else:
+            audit["intervention_rate_q025"] = intervention_point * current_low / current_point
+            audit["intervention_rate_q975"] = intervention_point * current_high / current_point
+        if spec.get("reduction_interval_denominator") == "current_point":
+            reduction_low = 1.0 - audit["intervention_rate_q975"] / current_point
+            reduction_high = 1.0 - audit["intervention_rate_q025"] / current_point
+        else:
+            reduction_low = 1.0 - audit["intervention_rate_q975"] / current_low.replace(0, np.nan)
+            reduction_high = 1.0 - audit["intervention_rate_q025"] / current_high.replace(0, np.nan)
+        audit["reduction_q025"] = np.minimum(reduction_low, reduction_high)
+        audit["reduction_q975"] = np.maximum(reduction_low, reduction_high)
+        audit["scenario_key"] = audit["strategy"]
+        audit["scenario_label"] = audit["strategy"].map(INTERVENTION_INTERVAL_LABELS).fillna(audit["strategy_label"])
+        audit["outcome"] = spec["outcome_label"]
+        audit["interval_basis"] = spec["interval_basis"]
+
+        _write(
+            audit[
+                [
+                    "country",
+                    "scenario_key",
+                    "scenario_label",
+                    "outcome",
+                    reduction_col,
+                    "reduction_q025",
+                    "reduction_q975",
+                    "current_rate_q025",
+                    "current_rate_q975",
+                    "intervention_rate_q025",
+                    "intervention_rate_q975",
+                    "interval_basis",
+                ]
+            ].sort_values(["country", "scenario_key"]),
+            str(spec["output_path"]),
+        )
 
 
 def _non_dominated_summary(frontier: pd.DataFrame) -> pd.DataFrame:

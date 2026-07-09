@@ -142,7 +142,7 @@ config:
       - 2.502963
       - 1.794424
   transmission:
-    beta_S: 0.010947406525756433
+    beta_S: 0.011764168752393736
     fitness_R: 1.0
     relative_infectiousness_asymptomatic: 0.35
     seasonal_amplitude: 0.10425214743289625
@@ -178,7 +178,7 @@ config:
   importation:
     enabled: true
     rate_per_100k_per_year: 0.2
-    resistant_fraction: 0.0
+    resistant_fraction: 0.01
     age_distribution:
       infant_0_2m: 0.02
       infant_3_11m: 0.05
@@ -261,8 +261,8 @@ config:
 
       '
   resistance:
-    target_prevalence_at_analysis_start: 0.0
-    importation_fraction: 0.0
+    target_prevalence_at_analysis_start: 0.01
+    importation_fraction: 0.01
     rebalance_after_burn_in: true
     prevalence_anchor_rate_per_year: 2.0
     anchor_during_dynamics: false
@@ -272,17 +272,26 @@ config:
       country: United_States
       iso3: USA
       resistance_anchor_year: 2025
-      resistant_fraction: 0.0
+      resistant_fraction: 0.01
       lower: 0.0
-      upper: 0.003
+      upper: 0.05
       method: nearest_past_year
-      evidence_years: '2015'
-      evidence_type: measured_multistate_surveillance_fraction
-      source: https://www.walshmedicalmedia.com/conference-abstracts-files/2155-9597.C1.016-015.pdf
-      notes: 'CDC surveillance abstract: 1208 B. pertussis isolates collected from
-        2011-2015 across 7 enhanced-surveillance states, 2 outbreak states, and 6
-        sporadic-state settings were susceptible to erythromycin and azithromycin;
-        54 DNA NPS extracts had no A2047G mutation.'
+      evidence_years: '2024'
+      evidence_type: low_detected_model_anchor
+      source: https://www.cdc.gov/pertussis/hcp/antibiotic-resistance/index.html;
+        https://www.health.state.mn.us/diseases/reportable/dcn/pertussis.html; https://trace.ncbi.nlm.nih.gov/Traces/sra-db-be/runinfo?acc=SRR32181461%2CSRR32181462;
+        https://doi.org/10.1128/jcm.01064-25; https://pubmed.ncbi.nlm.nih.gov/41802571/;
+        https://www.paho.org/en/news/26-8-2025-paho-calls-strengthened-vaccination-and-surveillance-amid-spread-antibiotic
+      notes: CDC states reported MRBP infections remain rare in the United States
+        and recommends continued surveillance. Minnesota's 2024 annual report states
+        12 erythromycin-resistant B. pertussis cases have been identified nationally,
+        including one Minnesota case in 2024. Public SRA metadata show SRR32181461
+        and SRR32181462 are ONT and Illumina WGS runs for the same Minnesota BioSample
+        SAMN46491808/sample MDH-25-000001, not independent cases. Global genomic analyses
+        assigned the 2024 USA evidence to MT28-ptxP3-MRBP/A2047G or MR-MT28 emergence,
+        and PAHO reported resistant pertussis cases in the United States since 2024.
+        No population-based national resistant fraction or denominator was located;
+        use a conservative low detected anchor pending surveillance.
   stochastic_resistance:
     enabled: false
     effective_population_size: 2000
@@ -863,7 +872,7 @@ config:
   initial_conditions:
     initial_exposed_per_100k: 1.5
     initial_infectious_per_100k: 0.6
-    initial_resistance_prevalence: 0.0
+    initial_resistance_prevalence: 0.01
     seed_age_distribution:
       infant_0_2m: 0.03
       infant_3_11m: 0.07
@@ -1059,10 +1068,11 @@ config:
     note: 'The production uncertainty path is conditional unless an explicit multi-parameter
       MCMC sampler is requested. The default beta_grid workflow integrates over beta_S
       after fixing reporting, VE, asymptomatic infectiousness, duration, and resistance-fitness
-      nuisance parameters; outputs must therefore be interpreted as conditional beta
-      uncertainty, not a full structural posterior. Adaptive Metropolis remains available
-      for pilot and sensitivity analyses when those additional dimensions are meant
-      to be sampled.
+      nuisance parameters; outputs are conditional beta-uncertainty summaries. A full
+      structural posterior would require sampling the additional reporting, vaccine-effect,
+      duration, asymptomatic-infectiousness, and resistance-fitness dimensions. Adaptive
+      Metropolis remains available for pilot and sensitivity analyses when those additional
+      dimensions are meant to be sampled.
 
       '
     convergence_criteria:
@@ -1093,9 +1103,8 @@ config:
         sd: 0.05
         note: 'Literature-informed decomposition parameter for reduced susceptibility
           after aP vaccination. Aggregate studies support high disease protection
-          and waning protection, but do not directly identify this component from
-          surveillance data; the posterior is constrained to [0.30, 0.60] as a modeling
-          range.
+          and waning protection; the posterior is constrained to [0.30, 0.60] as a
+          modelling range.
 
           '
       VE_inf:
@@ -1103,8 +1112,7 @@ config:
         sd: 0.05
         note: 'Literature-informed decomposition parameter for reduced onward infectiousness
           among vaccinated infections. It is motivated by aP transmission-blocking
-          evidence and waning studies, but the exact component is not directly measured
-          in country surveillance; range [0.12, 0.38] spans weak-to-moderate residual
+          evidence and waning studies; range [0.12, 0.38] spans weak-to-moderate residual
           transmission blocking.
 
           '
@@ -1113,16 +1121,15 @@ config:
         sd: 0.1
         note: 'Mechanistic duration-shortening proxy fixed at the prior mean during
           the primary conditional transmission analysis; treated as a vaccine-scenario
-          assumption rather than a directly estimated literature parameter.
+          assumption for sensitivity and pilot context.
 
           '
       relative_infectiousness_asymptomatic:
         mean: 0.45
         sd: 0.1
         note: 'Relative infectiousness of asymptomatic/subclinical infections compared
-          to symptomatic cases. The exact ratio is weakly identified and not directly
-          available from routine surveillance; range [0.20, 0.70] spans minimal subclinical
-          transmission to near-equal infectiousness.
+          to symptomatic cases. The exact ratio is weakly identified; range [0.20,
+          0.70] spans minimal subclinical transmission to near-equal infectiousness.
 
           '
       infectious_duration_symptomatic:
@@ -1134,9 +1141,9 @@ config:
           '
       infectious_duration_asymptomatic:
         log_sd: 0.2
-        note: 'Modeling assumption centered on a shorter mild/asymptomatic infectious
-          window than symptomatic pertussis; uncertainty range retained because this
-          duration is not directly measured.
+        note: 'Modelling assumption centred on a shorter mild/asymptomatic infectious
+          window than symptomatic pertussis; uncertainty range captures plausible
+          mild-infection duration.
 
           '
       fitness_R:
@@ -1144,10 +1151,10 @@ config:
         max: 1.25
         mean: 1.0
         sd: 0.12
-        note: 'Epidemiologically motivated prior centered on fitness-neutral (1.0),
+        note: 'Epidemiologically motivated prior centred on fitness-neutral (1.0),
           because MRBP reached near-fixation in China within 8 years and spread internationally
-          without clear transmission disadvantage. This is not a direct measured relative-fitness
-          estimate; SD of 0.12 allows modest fitness costs or advantages.
+          without clear transmission disadvantage. SD of 0.12 allows modest fitness
+          costs or advantages.
 
           '
       resistance_prevalence:
@@ -1265,13 +1272,22 @@ config:
     resistance_timeline_anchor_year: 2025
     resistance_timeline_allows_future_evidence: false
     resistance_timeline_method: nearest_past_year
-    resistance_timeline_evidence_years: '2015'
-    resistance_timeline_evidence_type: measured_multistate_surveillance_fraction
-    resistance_timeline_source: https://www.walshmedicalmedia.com/conference-abstracts-files/2155-9597.C1.016-015.pdf
-    resistance_timeline_notes: 'CDC surveillance abstract: 1208 B. pertussis isolates
-      collected from 2011-2015 across 7 enhanced-surveillance states, 2 outbreak states,
-      and 6 sporadic-state settings were susceptible to erythromycin and azithromycin;
-      54 DNA NPS extracts had no A2047G mutation.'
+    resistance_timeline_evidence_years: '2024'
+    resistance_timeline_evidence_type: low_detected_model_anchor
+    resistance_timeline_source: https://www.cdc.gov/pertussis/hcp/antibiotic-resistance/index.html;
+      https://www.health.state.mn.us/diseases/reportable/dcn/pertussis.html; https://trace.ncbi.nlm.nih.gov/Traces/sra-db-be/runinfo?acc=SRR32181461%2CSRR32181462;
+      https://doi.org/10.1128/jcm.01064-25; https://pubmed.ncbi.nlm.nih.gov/41802571/;
+      https://www.paho.org/en/news/26-8-2025-paho-calls-strengthened-vaccination-and-surveillance-amid-spread-antibiotic
+    resistance_timeline_notes: CDC states reported MRBP infections remain rare in
+      the United States and recommends continued surveillance. Minnesota's 2024 annual
+      report states 12 erythromycin-resistant B. pertussis cases have been identified
+      nationally, including one Minnesota case in 2024. Public SRA metadata show SRR32181461
+      and SRR32181462 are ONT and Illumina WGS runs for the same Minnesota BioSample
+      SAMN46491808/sample MDH-25-000001, not independent cases. Global genomic analyses
+      assigned the 2024 USA evidence to MT28-ptxP3-MRBP/A2047G or MR-MT28 emergence,
+      and PAHO reported resistant pertussis cases in the United States since 2024.
+      No population-based national resistant fraction or denominator was located;
+      use a conservative low detected anchor pending surveillance.
     diagnostic_standard_country: United_States
     diagnostic_standard_iso3: USA
     diagnostic_standard_periods_loaded: 3
@@ -1328,18 +1344,17 @@ config:
       evidence_strength: high
       source_ids: US_CSTE_2024;US_CDC_MANUAL_2024
       notes: Important for comparisons across the 2020 boundary.
-  reporting_multiplier: 1.0155744040732766
 metadata:
   country: United_States
   accepted: true
   optimizer_success: true
   calibration_status: accepted
-  fit_score: 2622.624894892156
-  data_fit_score: 2622.624894892156
+  fit_score: 3359.920703791835
+  data_fit_score: 3359.218961302842
   n_starts: 1
   maxiter: 12
-  config_hash: 66b778bc4c792b141549da24186cd25b8d0e7046eb3bab329f1877ad44778871
-  calibration_config_hash: 17ae9068008b4c1e2081de14baa9658e40c120bf419be1476856f514e3c6595f
+  config_hash: 6e926907320a8d929f5e700e87f528c158d870d2137c2f1a259302a95f37705c
+  calibration_config_hash: 374ca2c5c483bb8158ab5616cbe6969335d9e033b8768439dd96c386454b694a
   baseline_vaccine_scenario: symptom_protective
   baseline_resistance_scenario: country_timeline
-  generated_at_utc: '2026-07-05T08:48:54.705823+00:00'
+  generated_at_utc: '2026-07-07T05:42:40.321561+00:00'

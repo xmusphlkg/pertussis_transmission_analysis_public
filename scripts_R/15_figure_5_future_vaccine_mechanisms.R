@@ -18,54 +18,18 @@ suppressPackageStartupMessages({
   library(ggrepel)
 })
 
-read_table <- function(name) {
-  readr::read_csv(model_path("outputs", "tables", name), show_col_types = FALSE)
-}
-
-read_summary <- function(name) {
-  readr::read_csv(model_path("outputs", "summaries", name), show_col_types = FALSE)
-}
-
-vaccine_profile_labels <- c(
-  no_vaccine = "No vaccine",
-  symptom_protective = "Current aP",
-  infection_blocking = "Inf.-blocking",
-  transmission_blocking = "Trans.-blocking",
-  next_generation = "High-blocking"
-)
-
-vaccine_profile_axis_labels <- c(
-  "No vaccine" = "No vaccine",
-  "Current aP" = "Current acellular-\npertussis-like",
-  "Inf.-blocking" = "Infection-\nblocking",
-  "Trans.-blocking" = "Transmission-\nblocking",
-  "High-blocking" = "High-blocking",
-  "Combined stress test" = "Combined future\nstress test"
-)
-
-vaccine_target_levels <- c("infection_blocking", "transmission_blocking", "next_generation")
-vaccine_display_levels <- c("symptom_protective", vaccine_target_levels)
-vaccine_display_labels <- unname(vaccine_profile_labels[vaccine_display_levels])
-residual_display_levels <- c(vaccine_display_labels, "Combined stress test")
-vaccine_legend_levels <- residual_display_levels
-
-vaccine_outcome_colours <- c(
-  "Current aP" = manuscript_vaccine_profile_colours[["Current aP"]],
-  "Inf.-blocking" = manuscript_vaccine_profile_colours[["Inf.-blocking"]],
-  "Trans.-blocking" = manuscript_vaccine_profile_colours[["Trans.-blocking"]],
-  "High-blocking" = manuscript_vaccine_profile_colours[["Upper-bound"]],
-  "Combined stress test" = manuscript_colour("black")
-)
+vaccine_profile <- vaccine_profile_spec("short")
+vaccine_profile_labels <- vaccine_profile$labels
+vaccine_profile_axis_labels <- vaccine_profile$axis_labels
+vaccine_target_levels <- vaccine_profile$target_levels
+vaccine_display_levels <- vaccine_profile$display_levels
+vaccine_display_labels <- vaccine_profile$display_labels
+residual_display_levels <- vaccine_profile$residual_display_levels
+vaccine_legend_levels <- vaccine_profile$legend_levels
+vaccine_outcome_colours <- vaccine_profile$colours
 
 scale_colour_vaccine_profiles <- function(guide = "none") {
-  scale_colour_manual(
-    values = vaccine_outcome_colours,
-    limits = unname(vaccine_legend_levels),
-    breaks = unname(vaccine_legend_levels),
-    drop = FALSE,
-    name = "Vaccine profile",
-    guide = guide
-  )
+  scale_colour_vaccine_profile(vaccine_outcome_colours, vaccine_legend_levels, guide = guide)
 }
 
 ## Panel A: vaccine mechanism matrix ------------------------------------------
@@ -296,7 +260,7 @@ p5c <- ggplot(vaccine_residual, aes(primary_cases_per_100k, scenario_label, colo
 veinf_grid <- read_summary("veinf_resistance_grid_summary.csv") %>%
   transmute(
     country = stringr::str_replace_all(country, " ", "_"),
-    grid_VE_inf = round(as.numeric(grid_VE_inf), 1),
+    grid_VE_inf = round(as.numeric(grid_VE_inf), 2),
     grid_resistance_prevalence = round(as.numeric(grid_resistance_prevalence), 2),
     primary_cases_per_100k = as.numeric(annualized_child_adolescent_cases_per_100k),
     all_infections_per_100k = as.numeric(annualized_infections_per_100k)

@@ -1,7 +1,7 @@
 parameter,prior,interpretation
 log_beta_S,"Normal(log calibrated sensitive-strain transmission coefficient, 0.8)",Transmission-rate uncertainty
 log_reporting_multiplier,"Normal(log calibrated reporting multiplier, 0.8)",Surveillance/reporting uncertainty
-VE_sus,"Beta(mean=0.45, sd=0.05)","Literature-informed decomposition parameter for reduced susceptibility after aP vaccination. Aggregate studies support high disease protection and waning protection; [0.30, 0.60] is retained as a modelling range for sensitivity and pilot uncertainty runs."
+VE_sus,"Beta(mean=0.45, sd=0.05)","Literature-informed decomposition parameter for reduced susceptibility after aP vaccination. Aggregate studies support high disease protection and waning protection, but do not directly identify this component from surveillance data; [0.30, 0.60] is retained as a modeling range for sensitivity and pilot uncertainty runs."
 VE_inf,"Beta(mean=0.25, sd=0.05)","Literature-informed decomposition parameter for reduced onward infectiousness among vaccinated infections. It is motivated by aP transmission-blocking evidence and waning studies; range [0.12, 0.38] spans weak-to-moderate residual transmission blocking.
 "
 VE_dur,"Beta(mean=0.1, sd=0.1)","Mechanistic duration-shortening proxy fixed at the prior mean during the primary conditional transmission analysis; treated as a vaccine-scenario assumption for sensitivity and pilot context.

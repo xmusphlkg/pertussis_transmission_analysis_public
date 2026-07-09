@@ -1,0 +1,11 @@
+country,minimum_lambda_for_resistance_guided_preferred,resistance_guided_infant_case_regret_per_100k,resistance_guided_standardized_infant_regret_vs_current,resistance_guided_resistant_infection_reduction,country_code,threshold_label
+Australia,0.09,52.637708923223954,0.01948291852292518,0.23089238664793543,AUS,AUS
+Brazil,0,0,0,0.6367261632486754,BRA,NA
+China,0,0,0,0.740383273405881,CHN,NA
+Japan,0,0,0,0.4162982880745286,JPN,NA
+New_Zealand,0.36,244.13467742024227,0.11242559673386972,0.20629184595567884,NZL,NZL
+South_Africa,0,0,0,0.6375829428000221,ZAF,NA
+Sweden,0,0,0,0.5393111940854105,SWE,NA
+Thailand,0,0,0,0.6742646835963575,THA,NA
+United_Kingdom,0.31,290.31972256775543,0.11711180302607174,0.29512261111741445,GBR,GBR
+United_States,0,0,0,0.6107618924773461,USA,NA

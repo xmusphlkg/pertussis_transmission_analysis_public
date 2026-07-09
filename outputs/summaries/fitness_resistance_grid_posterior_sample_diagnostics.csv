@@ -98,8 +98,8 @@ United_Kingdom,infectious_duration_asymptomatic,100,1,13.999999999999998,1.78530
 United_Kingdom,fitness_R,100,1,1.0,0.0,0.0,1.0,1.0,1.0,False,True,conditional_beta_grid_posterior
 United_Kingdom,resistance_prevalence,100,1,0.003,0.0,0.0,0.003,0.003,0.003,False,False,conditional_beta_grid_posterior
 United_Kingdom,reporting_trend_end_multiplier,100,1,1.0,0.0,0.0,1.0,1.0,1.0,False,False,conditional_beta_grid_posterior
-United_States,beta_S,100,89,0.011074955133551273,1.7465461334095298e-05,0.0015770232135012593,0.011044252224016797,0.011072827973323532,0.011111377536031046,True,False,conditional_beta_grid_posterior
-United_States,reporting_multiplier,100,1,1.0155744040732768,2.2316322462394835e-16,2.197408911930853e-16,1.0155744040732766,1.0155744040732766,1.0155744040732766,False,False,conditional_beta_grid_posterior
+United_States,beta_S,100,89,0.011917803689516749,1.5198297254212487e-05,0.0012752599094731992,0.011887863887506598,0.011917260795501376,0.011949194223577066,True,False,conditional_beta_grid_posterior
+United_States,reporting_multiplier,100,1,1.0,0.0,0.0,1.0,1.0,1.0,False,False,conditional_beta_grid_posterior
 United_States,VE_sus,100,1,0.15,0.0,0.0,0.15,0.15,0.15,False,False,conditional_beta_grid_posterior
 United_States,VE_inf,100,1,0.25,0.0,0.0,0.25,0.25,0.25,False,True,conditional_beta_grid_posterior
 United_States,VE_dur,100,1,0.0,0.0,,0.0,0.0,0.0,False,False,conditional_beta_grid_posterior
@@ -107,5 +107,5 @@ United_States,relative_infectiousness_asymptomatic,100,1,0.3500000000000001,5.57
 United_States,infectious_duration_symptomatic,100,1,21.0,0.0,0.0,21.0,21.0,21.0,False,False,conditional_beta_grid_posterior
 United_States,infectious_duration_asymptomatic,100,1,13.999999999999998,1.785305796991587e-15,1.275218426422562e-16,13.999999999999996,13.999999999999996,13.999999999999996,False,False,conditional_beta_grid_posterior
 United_States,fitness_R,100,1,1.0,0.0,0.0,1.0,1.0,1.0,False,True,conditional_beta_grid_posterior
-United_States,resistance_prevalence,100,1,0.0,0.0,,0.0,0.0,0.0,False,False,conditional_beta_grid_posterior
+United_States,resistance_prevalence,100,1,0.009999999999999998,1.7434626923745965e-18,1.7434626923745968e-16,0.01,0.01,0.01,False,False,conditional_beta_grid_posterior
 United_States,reporting_trend_end_multiplier,100,1,1.0,0.0,0.0,1.0,1.0,1.0,False,False,conditional_beta_grid_posterior

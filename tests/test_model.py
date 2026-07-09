@@ -458,7 +458,10 @@ def test_country_resistance_timeline_sets_country_specific_anchor():
     )
 
     assert china["resistance"]["target_prevalence_at_analysis_start"] > 0.90
-    assert united_states["resistance"]["target_prevalence_at_analysis_start"] <= 0.05
+    assert 0.0 < united_states["resistance"]["target_prevalence_at_analysis_start"] <= 0.05
+    assert united_states["resistance"]["country_timeline"]["evidence_years"] == "2024"
+    assert united_states["resistance"]["country_timeline"]["evidence_type"] == "low_detected_model_anchor"
+    assert "No population-based national resistant fraction" in united_states["resistance"]["country_timeline"]["notes"]
     assert china["importation"]["resistant_fraction"] == china["resistance"]["importation_fraction"]
     assert united_states["importation"]["resistant_fraction"] == united_states["resistance"]["importation_fraction"]
     assert china["resistance"]["prevalence_anchor_rate_per_year"] == 2.0
