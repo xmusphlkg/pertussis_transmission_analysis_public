@@ -255,17 +255,16 @@ runtime:
       n_jobs: -1
     calendar:
       enabled: true
-      analysis_start_date: "2025-01-01"
+      analysis_start_date: "2027-01-01"
       analysis_end_date: "2050-12-31"
       note: >
         Simulation time is stored as days since analysis_start_date; end_time is
-        derived from (analysis_end_date - analysis_start_date). Output rows
+        set to midnight after the inclusive analysis_end_date. Output rows
         include calendar_date/calendar_year. Calibration overrides these dates
         to the observed surveillance window so modelled and observed annual
         cases align by real calendar year, with reporting intervals split across
-        calendar-year boundaries. Start date set to 2025-01-01 to allow
-        short-term out-of-sample validation against 2025 surveillance data
-        before the forward projection period.
+        calendar-year boundaries. The prospective interface starts after the
+        latest partial 2026 surveillance interval.
     age_groups:
       - label: infant_0_2m
         population: 206666.667
@@ -332,7 +331,7 @@ runtime:
       multi_year_phase: 0
       npi_contact_reduction:
         enabled: true
-        reduction_column: baseline_contact_reduction
+        reduction_column: contact_reduction_mean
         note: >
           Loads country-specific COVID-19/NPI effective contact-reduction
           periods from data/raw/covid_npi_contact_reduction_timeline.csv. The
@@ -580,7 +579,7 @@ runtime:
           increased awareness, better diagnostics, or expanded testing).
       # --- Literature-anchored age-specific scenarios ---
       # These scenarios are derived from the quantitative evidence in
-      # publication_inputs/reporting_evidence_summary.md and the new
+      # manuscript_notes/reporting_evidence_summary.md and the new
       # age-specific reporting literature review.
       infant_high_adult_very_low:
         age_multipliers:
@@ -1218,7 +1217,7 @@ runtime:
 parameter_sources:
   simulation.end_time:
     source: Analysis design
-    note: "Calendar-defined 2025-01-01 to 2050-12-31 horizon (26 years); this is an analysis-design choice, not a literature-estimated parameter."
+    note: "Calendar-defined 2027-01-01 to 2050-12-31 horizon (24 years); this is an analysis-design choice, not a literature-estimated parameter."
   simulation.burn_in_years:
     source: Analysis design
     note: "Initialization choice used to reduce dependence on arbitrary starting infections and immunity; not a directly cited biological parameter."

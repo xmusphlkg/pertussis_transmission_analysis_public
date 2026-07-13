@@ -17,7 +17,15 @@ from src_python.model.compartments import (
 from src_python.model.contact_matrix import balance_reciprocity, reciprocity_error
 from src_python.model.force_of_infection import _npi_contact_reduction_at
 from src_python.model.ode_system import _routine_delivery_multiplier_at, rhs
-from src_python.model.outputs import _daily_metrics, active_resistant_fraction, initial_state, solve_model, summarize_timeseries
+from src_python.model.outputs import (
+    GREGORIAN_YEAR_DAYS,
+    _compute_severity_outcomes,
+    _daily_metrics,
+    active_resistant_fraction,
+    initial_state,
+    solve_model,
+    summarize_timeseries,
+)
 from src_python.model.parameters import PreparedParameters
 from src_python.calibration.calibrate_baseline import (
     annual_reported_cases,
@@ -83,6 +91,8 @@ def test_wpp_trajectory_drives_population_toward_target():
     )
     # Short window so we can verify WPP nudging moves the total population from
     # the 2024 snapshot toward the 2026 trajectory target.
+    config["calendar"]["analysis_start_date"] = "2025-01-01"
+    config["simulation"]["initial_state_strategy"] = "fixed_duration"
     config["simulation"]["burn_in_years"] = 1
     config["simulation"]["end_time"] = 365
     config["transmission"]["beta_S"] = 0.0
@@ -193,6 +203,89 @@ def test_timeseries_has_valid_epidemiological_columns():
         "dose3plus_origin_infection_share",
     ]:
         assert col in summary
+
+
+def test_severity_cascade_uses_configured_probabilities():
+    config = make_config(vaccine_scenario="symptom_protective", resistance_scenario="moderate")
+    params = PreparedParameters.from_config(
+        config,
+        analysis="test",
+        scenario="configured_severity",
+    )
+    severity = params.severity_model
+
+    assert severity["age_death_given_hospitalization"]["infant_0_2m"] == pytest.approx(0.020)
+    assert severity["age_death_given_hospitalization"]["infant_3_11m"] == pytest.approx(0.005)
+    assert severity["origin_conditional_ve_hospitalization"]["maternal"] == pytest.approx(0.50)
+
+    hospitalization, deaths, symptomatic = _compute_severity_outcomes(
+        {"maternal": 100.0},
+        "infant_0_2m",
+        severity_model=severity,
+    )
+    assert symptomatic == pytest.approx(100.0)
+    assert hospitalization == pytest.approx(100.0 * 0.60 * (1.0 - 0.50))
+    assert deaths == pytest.approx(hospitalization * 0.020 * (1.0 - 0.80))
+
+    overall_maternal_ve_hosp = 1.0 - (
+        (1.0 - 0.75 * 0.55)
+        * (1.0 - 0.75 * 0.92)
+        * (1.0 - severity["origin_conditional_ve_hospitalization"]["maternal"])
+    )
+    assert overall_maternal_ve_hosp == pytest.approx(0.91, abs=0.002)
+    assert "structural cascade mapping" in severity["note"]
+
+
+def test_legacy_severity_fallback_uses_documented_infant_cfr():
+    config = make_config(vaccine_scenario="symptom_protective", resistance_scenario="moderate")
+    config.pop("severity_model")
+    params = PreparedParameters.from_config(
+        config,
+        analysis="test",
+        scenario="legacy_severity_fallback",
+    )
+    assert params.severity_model == {}
+
+    hospitalization, deaths, _ = _compute_severity_outcomes(
+        {"unvaccinated": 100.0},
+        "infant_0_2m",
+    )
+
+    assert hospitalization == pytest.approx(60.0)
+    assert deaths == pytest.approx(60.0 * 0.020)
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (
+            lambda severity: severity["age_hospitalization_probability"].pop("infant_0_2m"),
+            "invalid keys",
+        ),
+        (
+            lambda severity: severity["origin_conditional_ve_death"].__setitem__("maternal", 1.01),
+            r"within \[0, 1\]",
+        ),
+        (
+            lambda severity: severity.__setitem__("age_hospitalisation_probability", {}),
+            "unknown keys",
+        ),
+        (
+            lambda severity: severity.pop("origin_conditional_ve_hospitalization"),
+            "all severity probability maps",
+        ),
+    ],
+)
+def test_severity_configuration_rejects_invalid_keys_and_probabilities(mutate, message):
+    config = make_config(vaccine_scenario="symptom_protective", resistance_scenario="moderate")
+    mutate(config["severity_model"])
+
+    with pytest.raises(ValueError, match=message):
+        PreparedParameters.from_config(
+            config,
+            analysis="test",
+            scenario="invalid_severity",
+        )
 
 
 def test_daily_metrics_uses_origin_cached_maternal_susceptibility():
@@ -494,7 +587,7 @@ def test_explicit_resistance_override_takes_precedence_over_country_timeline():
     assert np.isclose(config["importation"]["resistant_fraction"], 0.40)
 
 
-def test_country_npi_timeline_uses_baseline_reduction_column_by_default():
+def test_country_npi_timeline_uses_external_mean_reduction_by_default():
     baseline = make_config(
         vaccine_scenario="symptom_protective",
         resistance_scenario="moderate",
@@ -502,7 +595,11 @@ def test_country_npi_timeline_uses_baseline_reduction_column_by_default():
         load_calibration=False,
     )
     assert baseline["transmission"]["npi_contact_reduction_periods"]
-    assert baseline["transmission"]["npi_contact_reduction_periods"][0]["reduction"] == pytest.approx(0.0)
+    assert baseline["transmission"]["npi_contact_reduction_periods"][0]["reduction"] > 0.0
+    assert (
+        baseline["metadata"]["npi_contact_reduction_reduction_column"]
+        == "contact_reduction_mean"
+    )
 
     config = make_config(
         vaccine_scenario="symptom_protective",
@@ -726,6 +823,9 @@ def test_summarize_timeseries_detects_recurring_peak_intervals():
     row = summary.iloc[0]
 
     assert row["n_epidemic_peaks"] == 3
+    assert row["analysis_years"] == pytest.approx(
+        (times.max() - times.min()) / GREGORIAN_YEAR_DAYS
+    )
     assert np.isfinite(row["mean_peak_interval_years"])
     assert 2.5 < row["mean_peak_interval_years"] < 3.5
 
@@ -745,6 +845,17 @@ def test_country_profiles_carry_reporting_prior_bands_into_runtime_config():
     assert runtime["reporting_rate_prior"]["note"]
 
 
+def test_runtime_config_exposes_default_reporting_multiplier():
+    runtime = make_config(
+        vaccine_scenario="symptom_protective",
+        resistance_scenario="moderate",
+        country_profile="Japan",
+        load_calibration=False,
+    )
+
+    assert runtime["reporting_multiplier"] == 1.0
+
+
 def test_missing_run_metadata_is_rejected():
     with pytest.raises(FileNotFoundError):
         validate_run_metadata("__missing_test_output__")
@@ -755,6 +866,7 @@ def _run_metadata_fixture() -> dict[str, object]:
         "schema_version": simulation_common.METADATA_SCHEMA_VERSION,
         "stem": "test_output",
         "config_hash": "current-config",
+        "source_code_hash": "current-source",
         "dependency_versions": {
             "python": "3.12.3",
             **{name: "1.0" for name in simulation_common.DEPENDENCY_VERSION_PACKAGES},
@@ -768,6 +880,7 @@ def test_run_metadata_missing_dependency_version_is_rejected(monkeypatch):
     metadata["dependency_versions"].pop("numba")
     monkeypatch.setattr(simulation_common, "read_run_metadata", lambda stem: metadata)
     monkeypatch.setattr(simulation_common, "config_fingerprint", lambda: "current-config")
+    monkeypatch.setattr(simulation_common, "source_code_fingerprint", lambda: "current-source")
 
     with pytest.raises(ValueError, match="dependency_versions missing numba"):
         simulation_common.validate_run_metadata("test_output")
@@ -778,11 +891,77 @@ def test_run_metadata_dependency_check_can_be_deferred_for_qc(monkeypatch):
     metadata["dependency_versions"].pop("numba")
     monkeypatch.setattr(simulation_common, "read_run_metadata", lambda stem: metadata)
     monkeypatch.setattr(simulation_common, "config_fingerprint", lambda: "current-config")
+    monkeypatch.setattr(simulation_common, "source_code_fingerprint", lambda: "current-source")
 
     assert simulation_common.validate_run_metadata(
         "test_output",
         require_dependency_versions=False,
     ) is metadata
+
+
+@pytest.mark.parametrize("recorded_hash", [None, "stale-source"])
+def test_run_metadata_requires_current_source_code_hash(monkeypatch, recorded_hash):
+    metadata = _run_metadata_fixture()
+    if recorded_hash is None:
+        metadata.pop("source_code_hash")
+    else:
+        metadata["source_code_hash"] = recorded_hash
+    monkeypatch.setattr(simulation_common, "read_run_metadata", lambda stem: metadata)
+    monkeypatch.setattr(simulation_common, "config_fingerprint", lambda: "current-config")
+    monkeypatch.setattr(simulation_common, "source_code_fingerprint", lambda: "current-source")
+
+    with pytest.raises(ValueError, match="source-code fingerprint|stale source code"):
+        simulation_common.validate_run_metadata("test_output")
+
+
+def test_source_code_fingerprint_is_stable_and_excludes_bytecode_cache(monkeypatch, tmp_path):
+    model_dir = tmp_path / "src_python" / "model"
+    cache_dir = model_dir / "__pycache__"
+    calibration_dir = tmp_path / "src_python" / "calibration"
+    simulation_dir = tmp_path / "src_python" / "simulation"
+    model_dir.mkdir(parents=True)
+    cache_dir.mkdir()
+    calibration_dir.mkdir(parents=True)
+    simulation_dir.mkdir(parents=True)
+    source_path = model_dir / "example.py"
+    calibration_path = calibration_dir / "fit.py"
+    common_path = simulation_dir / "common.py"
+    analysis_path = simulation_dir / "analysis.py"
+    source_path.write_text("VALUE = 1\n", encoding="utf-8")
+    calibration_path.write_text("FIT = 1\n", encoding="utf-8")
+    common_path.write_text("COMMON = 1\n", encoding="utf-8")
+    analysis_path.write_text("ANALYSIS = 1\n", encoding="utf-8")
+    bytecode_path = cache_dir / "example.py"
+    bytecode_path.write_text("ignored = 1\n", encoding="utf-8")
+    monkeypatch.setattr(simulation_common, "project_path", lambda *parts: tmp_path.joinpath(*parts))
+
+    simulation_common.source_code_fingerprint.cache_clear()
+    first = simulation_common.source_code_fingerprint()
+    simulation_common.calibration_source_code_fingerprint.cache_clear()
+    first_calibration = simulation_common.calibration_source_code_fingerprint()
+    simulation_common.source_code_fingerprint.cache_clear()
+    assert simulation_common.source_code_fingerprint() == first
+
+    bytecode_path.write_text("ignored = 2\n", encoding="utf-8")
+    simulation_common.source_code_fingerprint.cache_clear()
+    assert simulation_common.source_code_fingerprint() == first
+
+    calibration_path.write_text("FIT = 2\n", encoding="utf-8")
+    simulation_common.source_code_fingerprint.cache_clear()
+    assert simulation_common.source_code_fingerprint() != first
+    simulation_common.calibration_source_code_fingerprint.cache_clear()
+    assert simulation_common.calibration_source_code_fingerprint() != first_calibration
+
+    calibration_path.write_text("FIT = 1\n", encoding="utf-8")
+    analysis_path.write_text("ANALYSIS = 2\n", encoding="utf-8")
+    simulation_common.calibration_source_code_fingerprint.cache_clear()
+    assert simulation_common.calibration_source_code_fingerprint() == first_calibration
+
+    common_path.write_text("COMMON = 2\n", encoding="utf-8")
+    simulation_common.calibration_source_code_fingerprint.cache_clear()
+    assert simulation_common.calibration_source_code_fingerprint() != first_calibration
+    simulation_common.source_code_fingerprint.cache_clear()
+    simulation_common.calibration_source_code_fingerprint.cache_clear()
 
 
 def test_runtime_data_hash_ignores_non_model_provenance_text(monkeypatch, tmp_path):
@@ -880,11 +1059,42 @@ def test_vaccine_uncertainty_config_distinguishes_infection_and_infectiousness_e
     assert "infection-acquisition" not in ve_inf_note
 
 
-def test_waning_durations_are_reported_as_sensitivity_parameters():
-    table = pd.read_csv(project_path("publication_inputs/parameter_table.csv")).set_index("parameter")
+def test_active_waning_durations_are_reported_with_evidence_distributions():
+    table = pd.read_csv(project_path("manuscript_notes/parameter_table.csv")).set_index("parameter")
+    assert not bool(table.loc["Post-infection protection duration", "used_in_sensitivity_analysis"])
+    assert "inactive" in str(table.loc["Post-infection protection duration", "range"])
+    assert bool(table.loc["Vaccine-derived protection duration", "used_in_sensitivity_analysis"])
+    assert "half" in str(table.loc["Vaccine-derived protection duration", "range"])
     for parameter in [
-        "Post-infection protection duration",
-        "Vaccine-derived protection duration",
+        "SIRWS recovered-to-waned duration",
+        "SIRWS waned-to-susceptible duration",
     ]:
         assert bool(table.loc[parameter, "used_in_sensitivity_analysis"])
-        assert "reciprocal" in str(table.loc[parameter, "range"])
+        assert "half" in str(table.loc[parameter, "range"])
+
+
+def test_manuscript_parameter_table_covers_core_values_and_ranges():
+    table = pd.read_csv(project_path("manuscript_notes/parameter_table.csv"))
+    assert len(table) >= 50
+    assert not table["range"].astype(str).str.strip().eq("").any()
+    assert not table["source_or_assumption"].astype(str).str.strip().eq("").any()
+
+    required_parameters = {
+        "Seasonal forcing amplitude",
+        "SIRWS boosting efficiency",
+        "Age-specific reporting probabilities",
+        "Reporting multiplier",
+        "Negative-binomial calibration dispersion",
+        "Routine vaccination maximum daily flow",
+        "Sensitive-strain treatment duration reduction",
+        "Resistant-strain treatment infectiousness reduction",
+        "PEP activation prevalence proxy",
+    }
+    assert required_parameters.issubset(set(table["parameter"]))
+
+
+def test_supplementary_parameter_renderer_preserves_small_nonzero_values():
+    from manuscript_notes.render_supplementary_tables import format_value
+
+    assert format_value("1e-5", "baseline_value") == "1.00e-05"
+    assert format_value("2e-5", "baseline_value") == "2.00e-05"

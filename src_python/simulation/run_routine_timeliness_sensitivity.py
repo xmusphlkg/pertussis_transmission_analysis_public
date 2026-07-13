@@ -11,6 +11,7 @@ import pandas as pd
 from src_python.simulation.common import (
     load_configs,
     make_intervention_config,
+    publication_country_names,
     run_scenario_list,
 )
 from src_python.utils.io import project_path, write_dataframe
@@ -204,7 +205,7 @@ def _apply_timeliness(config: dict[str, Any]) -> dict[str, Any]:
 def _build_scenarios(configs: dict[str, Any]) -> list[dict[str, Any]]:
     scenarios: list[dict[str, Any]] = []
     resistance_name = configs["baseline"].get("baseline_resistance_scenario", "country_timeline")
-    for country in configs["countries"]:
+    for country in publication_country_names(configs):
         for scenario_name, intervention_name, apply_timeliness, note in SCENARIO_DEFINITIONS:
             config, vaccine_name = make_intervention_config(intervention_name, country_profile=country)
             if apply_timeliness:

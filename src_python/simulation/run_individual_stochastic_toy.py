@@ -7,7 +7,12 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from src_python.simulation.common import current_run_metadata, load_configs, write_run_metadata
+from src_python.simulation.common import (
+    current_run_metadata,
+    load_configs,
+    publication_country_names,
+    write_run_metadata,
+)
 from src_python.utils.io import project_path, write_dataframe
 
 
@@ -32,7 +37,6 @@ DEFAULT_COUNTRIES = (
     "Australia",
     "China",
     "Japan",
-    "South_Africa",
     "United_States",
 )
 STRUCTURAL_CAVEAT = (
@@ -179,6 +183,14 @@ def _load_setting_matrices(country: str, contact_matrix: np.ndarray) -> tuple[di
 def _load_country_inputs(selected_countries: tuple[str, ...]) -> list[CountryInputs]:
     configs = load_configs()
     profiles = configs["countries"]
+    publication_countries = set(publication_country_names(configs))
+    outside_publication_scope = sorted(set(selected_countries) - publication_countries)
+    if outside_publication_scope:
+        raise ValueError(
+            "Individual stochastic publication outputs are restricted to the "
+            "prespecified publication country set; excluded: "
+            + ", ".join(outside_publication_scope)
+        )
     countries: list[CountryInputs] = []
     for country in selected_countries:
         if country not in profiles:

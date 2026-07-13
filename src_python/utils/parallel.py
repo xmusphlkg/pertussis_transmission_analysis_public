@@ -38,7 +38,12 @@ def available_cpus() -> int:
 
 def resolve_n_jobs(requested: int | None = None) -> int:
     env_value = os.environ.get("PERTUSSIS_N_JOBS")
-    if env_value:
+    # The environment supplies a default for top-level runners.  Nested
+    # schedulers pass a smaller explicit allocation after dividing the global
+    # budget between outer tasks and inner likelihood workers; replacing that
+    # value here would silently oversubscribe the host (for example 22 islands
+    # x 5 workers despite a 100-worker budget).
+    if requested is None and env_value:
         requested = int(env_value)
     if requested is None:
         requested = -1

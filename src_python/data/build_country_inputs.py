@@ -40,6 +40,23 @@ EXCEL_DATE_ORIGIN = pd.Timestamp("1899-12-30")
 INFANT_0_2M_FRACTION = 2.0 / 12.0
 INFANT_3_11M_FRACTION = 1.0 - INFANT_0_2M_FRACTION
 
+# The source workbook contains five known monthly rows where Date disagrees
+# with Year/Month.  Resolve them explicitly so a future inconsistency cannot
+# silently duplicate a likelihood interval or move cases between years.
+DATE_AUTHORITATIVE_MONTHLY_ROWS = frozenset(
+    {
+        ("CN", "2026-01-01", 2025, 1),
+        ("CN", "2026-02-01", 2025, 2),
+        ("CN", "2026-03-01", 2025, 3),
+    }
+)
+YEAR_MONTH_AUTHORITATIVE_MONTHLY_ROWS = frozenset(
+    {
+        ("NZ", "2016-04-01", 2017, 4),
+        ("SE", "2016-04-01", 2017, 4),
+    }
+)
+
 
 class NoAliasDumper(yaml.SafeDumper):
     def ignore_aliases(self, data):
@@ -205,7 +222,7 @@ def _text_or_default(value: Any, default: str = "") -> str:
     if pd.isna(value):
         return default
     text = str(value).strip()
-    return default if text.lower() == "nan" else text
+    return default if text.lower() in {"nan", "na", "none", "null"} else text
 
 
 def _resolve_path(path: str | Path) -> Path:
@@ -474,6 +491,11 @@ def _normalize_incidence_frame(raw: pd.DataFrame) -> pd.DataFrame:
     df["Year"] = pd.to_numeric(df["Year"], errors="coerce")
     df["Month"] = pd.to_numeric(df["Month"], errors="coerce")
     df["Week"] = pd.to_numeric(df["Week"], errors="coerce")
+    # Preserve the workbook fields for provenance before canonical calendar
+    # values are derived below.  Some known source rows have a stale Year or
+    # Month even though Date identifies the intended surveillance interval.
+    df["source_year"] = df["Year"]
+    df["source_month"] = df["Month"]
     df["Cases"] = pd.to_numeric(df["Cases"], errors="coerce").fillna(0.0)
     df["Date"] = _parse_incidence_dates(df["Date"])
     df = df.dropna(subset=["Country", "Year", "Date"]).copy()
@@ -490,6 +512,7 @@ def _normalize_incidence_frame(raw: pd.DataFrame) -> pd.DataFrame:
         default="annual",
     )
     period_start = pd.Series(pd.NaT, index=df.index, dtype="datetime64[ns]")
+    df["period_date_resolution"] = "consistent_year_month"
     if has_month.any():
         monthly_start = pd.to_datetime(
             {
@@ -500,6 +523,26 @@ def _normalize_incidence_frame(raw: pd.DataFrame) -> pd.DataFrame:
             errors="coerce",
         )
         period_start.loc[has_month] = monthly_start
+        date_month_start = df.loc[has_month, "Date"].dt.to_period("M").dt.to_timestamp()
+        mismatch = date_month_start.ne(monthly_start)
+        for row_index in mismatch.index[mismatch]:
+            row = df.loc[row_index]
+            key = (
+                str(row["Country"]),
+                pd.Timestamp(row["Date"]).date().isoformat(),
+                int(row["Year"]),
+                int(row["Month"]),
+            )
+            if key in DATE_AUTHORITATIVE_MONTHLY_ROWS:
+                period_start.loc[row_index] = pd.Timestamp(row["Date"]).to_period("M").start_time
+                df.loc[row_index, "period_date_resolution"] = "explicit_source_date_override"
+            elif key in YEAR_MONTH_AUTHORITATIVE_MONTHLY_ROWS:
+                df.loc[row_index, "period_date_resolution"] = "explicit_year_month_override"
+            else:
+                raise ValueError(
+                    "Unresolved monthly incidence Date versus Year/Month mismatch: "
+                    f"{key}"
+                )
     period_start.loc[has_week] = df.loc[has_week, "Date"]
     annual_mask = ~(has_week | has_month)
     period_start.loc[annual_mask] = pd.to_datetime(
@@ -508,6 +551,11 @@ def _normalize_incidence_frame(raw: pd.DataFrame) -> pd.DataFrame:
     )
     period_start = period_start.fillna(df["Date"])
     df["period_start"] = period_start
+    # Downstream annualization and seasonality must use the resolved interval,
+    # not a stale workbook label.  The original labels remain available in the
+    # source_* audit columns above.
+    df["Year"] = df["period_start"].dt.year.astype(int)
+    df["Month"] = df["period_start"].dt.month.astype(int)
 
     period_end = pd.Series(pd.NaT, index=df.index, dtype="datetime64[ns]")
     period_end.loc[has_week] = df.loc[has_week, "period_start"] + pd.to_timedelta(7, unit="D")
@@ -782,8 +830,8 @@ def build_profiles() -> tuple[
     profile_inputs = load_country_profile_inputs().set_index("config_key", drop=False)
 
     # Analysis horizon drives how many WPP years we embed into the YAML profile.
-    # We always emit a 2 year buffer on either side of the analysis window so the
-    # ODE demographic trajectory can interpolate without extrapolating.
+    # A buffer is useful for interpolation, but the policy horizon itself must
+    # never exceed the source data and silently freeze the final WPP year.
     settings_path = project_path("config/model_settings.yaml")
     horizon_start_year = None
     horizon_end_year = None
@@ -798,14 +846,41 @@ def build_profiles() -> tuple[
         horizon_start_year = year
     if horizon_end_year is None:
         horizon_end_year = year + 25
+    wpp_year_values = pd.to_numeric(
+        pd.read_csv(wpp_csv, usecols=["Time"])["Time"],
+        errors="raise",
+    )
+    wpp_end_year = int(wpp_year_values.max())
+    if horizon_end_year > wpp_end_year:
+        raise ValueError(
+            "Configured analysis horizon exceeds WPP demographic support: "
+            f"analysis_end_year={horizon_end_year}, WPP_end_year={wpp_end_year}"
+        )
     # Extend the trajectory window back to cover the burn-in period.
     # The full age-structured WPP data starts at 1990; for years before that
     # we use the 1990 age structure with births from the extended WPP births file.
     burn_in_years = int(
         settings.get("runtime", {}).get("baseline_parameters", {}).get("simulation", {}).get("burn_in_years", 60)
     ) if settings_path.exists() else 60
-    embed_start_year = max(1950, horizon_start_year - burn_in_years - 2)
-    embed_end_year = min(2050, horizon_end_year + 2)
+    history_start_value = (
+        settings.get("runtime", {})
+        .get("baseline_parameters", {})
+        .get("simulation", {})
+        .get("history_start_date")
+        if settings_path.exists()
+        else None
+    )
+    legacy_start_year = horizon_start_year - burn_in_years
+    fixed_history_start_year = (
+        int(str(history_start_value)[:4])
+        if history_start_value
+        else legacy_start_year
+    )
+    embed_start_year = max(
+        1950,
+        min(legacy_start_year, fixed_history_start_year) - 2,
+    )
+    embed_end_year = min(wpp_end_year, horizon_end_year + 2)
 
     profiles: dict[str, Any] = {}
     population_rows = []

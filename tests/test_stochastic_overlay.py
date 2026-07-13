@@ -137,8 +137,14 @@ def test_combined_interval_is_at_least_as_wide_as_parameter_interval():
     samples = stochastic_overlay_samples(summary, overlay=overlay)
     intervals = summarize_overlay_intervals(summary, samples, overlay=overlay)
     row = intervals.loc[intervals["outcome"].eq("annualized_reported_cases_per_100k")].iloc[0]
-    param_width = row["parameter_credible_interval_high"] - row["parameter_credible_interval_low"]
-    combined_width = row["combined_credible_interval_high"] - row["combined_credible_interval_low"]
+    param_width = (
+        row["propagated_uncertainty_interval_high"]
+        - row["propagated_uncertainty_interval_low"]
+    )
+    combined_width = (
+        row["combined_prediction_interval_high"]
+        - row["combined_prediction_interval_low"]
+    )
     assert combined_width >= param_width
     assert bool(row["stochastic_overlay_applied"])
 

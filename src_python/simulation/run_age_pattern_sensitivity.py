@@ -78,7 +78,7 @@ class AgePatternCheck:
     age_groups: tuple[str, ...]
     external_label: str
     source_note: str
-    model_window: str = "2025-2050 scenario horizon"
+    model_window: str = "configured prospective scenario horizon"
 
 
 AGE_PATTERN_CHECKS = (

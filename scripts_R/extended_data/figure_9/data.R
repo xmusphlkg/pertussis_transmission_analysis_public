@@ -102,16 +102,16 @@ prepare_extended_data_figure_9_data <- function(inputs = load_extended_data_figu
       scenario_label = factor(recode(scenario, !!!strategy_labels), levels = rev(strategy_labels[strategy_order])),
       analysis_window = recode(
         analysis_window,
-        `2025_2029` = "2025–2029",
-        `2025_2034` = "2025–2034",
-        `2025_2039` = "2025–2039",
-        `2025_2050_full_horizon` = "2025–2050",
-        `2030_2050_excluding_initial_transient` = "2030–2050"
+        first_5_years = "First 5 years",
+        first_10_years = "First 10 years",
+        first_15_years = "First 15 years",
+        excluding_initial_5_years = "After first 5 years",
+        full_horizon = "Full horizon"
       )
     )
 
   age_summary <- inputs$age_split %>%
-    filter(analysis_window == "2025_2050_full_horizon", scenario %in% strategy_order) %>%
+    filter(analysis_window == "full_horizon", scenario %in% strategy_order) %>%
     group_by(scenario, age_group) %>%
     summarise(median_reduction = median(relative_reduction_infant_cases, na.rm = TRUE), .groups = "drop") %>%
     mutate(

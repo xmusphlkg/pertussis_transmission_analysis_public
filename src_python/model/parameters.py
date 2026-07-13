@@ -40,6 +40,7 @@ class PreparedParameters:
     importation: dict[str, Any]
     calendar: dict[str, Any]
     calendar_start_date: date | None
+    severity_model: dict[str, Any] = field(default_factory=dict)
     reporting_time_variation: dict[str, float] = field(default_factory=dict)
     diagnostic_reporting_time_variation: dict[str, Any] = field(default_factory=dict)
     reporting_multiplier: float = 1.0
@@ -138,6 +139,10 @@ class PreparedParameters:
 
         natural_history = config["natural_history"]
         immunity_model = config.get("immunity_model", {})
+        severity_model = _validated_severity_model(
+            config.get("severity_model", {}),
+            age_groups=age_groups,
+        )
         waned_vaccine_duration = float(
             immunity_model.get(
                 "waned_vaccine_duration",
@@ -246,6 +251,7 @@ class PreparedParameters:
             initial=config["initial_conditions"],
             immunity_model=immunity_model,
             observation_model=config.get("observation_model", {}),
+            severity_model=severity_model,
             resistance=config.get("resistance", {}),
             demography=deepcopy(config.get("demography", {"enabled": False})),
             routine_vaccination=deepcopy(config.get("routine_vaccination", {"enabled": False})),
@@ -320,9 +326,16 @@ class PreparedParameters:
             return 1.0
 
         parsed.sort(key=lambda item: (item[0], item[1]))
+        previous_multiplier = parsed[0][2]
         for start, end, multiplier in parsed:
             if start <= calendar_date <= end:
                 return multiplier
+            if calendar_date < start:
+                # Gaps inherit the most recent diagnostic regime.  Returning
+                # the final (future) period here would leak future surveillance
+                # standards backwards in time.
+                return previous_multiplier
+            previous_multiplier = multiplier
         if calendar_date < parsed[0][0]:
             return parsed[0][2]
         return parsed[-1][2]
@@ -336,15 +349,33 @@ class PreparedParameters:
         start_time = float(self.raw["simulation"].get("start_time", 0.0))
         return self.calendar_start_date + timedelta(days=float(t) - start_time)
 
+    def calendar_ordinal_at(self, t: float) -> float | None:
+        """Continuous proleptic-Gregorian day coordinate at model time ``t``."""
+
+        if self.calendar_start_date is None:
+            return None
+        start_time = float(self.raw["simulation"].get("start_time", 0.0))
+        return float(self.calendar_start_date.toordinal()) + float(t) - start_time
+
     def calendar_year_at(self, t: float) -> int | None:
         calendar_date = self.calendar_date_at(t)
         return calendar_date.year if calendar_date else None
 
     def calendar_day_of_year_at(self, t: float) -> float:
-        calendar_date = self.calendar_date_at(t)
-        if calendar_date is None:
+        if self.calendar_start_date is None:
             return float(t % 365.0)
-        return float(min(calendar_date.timetuple().tm_yday, 365))
+        start_time = float(self.raw["simulation"].get("start_time", 0.0))
+        delta_days = float(t) - start_time
+        whole_days = int(np.floor(delta_days))
+        fraction = delta_days - whole_days
+        calendar_date = self.calendar_start_date + timedelta(days=whole_days)
+        year_start = date(calendar_date.year, 1, 1)
+        next_year = date(calendar_date.year + 1, 1, 1)
+        year_length = float((next_year - year_start).days)
+        elapsed = float((calendar_date - year_start).days) + fraction
+        # Map both 365- and 366-day calendar years continuously onto the
+        # model's 365-day seasonal phase while preserving Jan-1 == day 1.
+        return 1.0 + 365.0 * elapsed / year_length
 
     def wpp_trajectory_active(self) -> bool:
         """Return True when country-specific WPP annual trajectory is wired in."""
@@ -406,6 +437,82 @@ def _validate_probability_values(values: Any, label: str) -> None:
     arr = np.asarray(list(values), dtype=float)
     if not np.isfinite(arr).all() or np.any((arr < 0.0) | (arr > 1.0)):
         raise ValueError(f"{label} must be finite probabilities within [0, 1].")
+
+
+def _validated_severity_model(
+    value: Any,
+    *,
+    age_groups: tuple[str, ...],
+) -> dict[str, Any]:
+    """Validate configured severity-cascade probabilities and keys.
+
+    An absent severity block remains supported for legacy tests and external
+    callers; the output layer then uses its compatibility defaults. If a
+    probability map is supplied, however, it must cover exactly the active age
+    groups or vaccine origins so a misspelled/missing key cannot silently alter
+    production burden estimates.
+    """
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise ValueError("severity_model must be a mapping.")
+
+    allowed_keys = {
+        "residual_maternal_protection_for_unvaccinated_origin",
+        "age_hospitalization_probability",
+        "age_death_given_hospitalization",
+        "origin_conditional_ve_hospitalization",
+        "origin_conditional_ve_death",
+        "note",
+    }
+    unknown_keys = set(value) - allowed_keys
+    if unknown_keys:
+        raise ValueError(
+            "severity_model contains unknown keys: "
+            + ", ".join(sorted(str(key) for key in unknown_keys))
+        )
+
+    residual_key = "residual_maternal_protection_for_unvaccinated_origin"
+    if residual_key in value and not isinstance(value[residual_key], (bool, np.bool_)):
+        raise ValueError(f"severity_model.{residual_key} must be boolean.")
+
+    from src_python.model.compartments import VACCINE_ORIGINS
+
+    expected_by_key = {
+        "age_hospitalization_probability": set(age_groups),
+        "age_death_given_hospitalization": set(age_groups),
+        "origin_conditional_ve_hospitalization": set(VACCINE_ORIGINS),
+        "origin_conditional_ve_death": set(VACCINE_ORIGINS),
+    }
+    supplied_probability_maps = set(value) & set(expected_by_key)
+    if supplied_probability_maps and supplied_probability_maps != set(expected_by_key):
+        missing_maps = set(expected_by_key) - supplied_probability_maps
+        raise ValueError(
+            "severity_model must configure all severity probability maps together; missing: "
+            + ", ".join(sorted(missing_maps))
+        )
+    for key, expected_keys in expected_by_key.items():
+        if key not in value:
+            continue
+        mapping = value[key]
+        if not isinstance(mapping, dict):
+            raise ValueError(f"severity_model.{key} must be a mapping.")
+        actual_keys = set(mapping)
+        missing = expected_keys - actual_keys
+        extra = actual_keys - expected_keys
+        if missing or extra:
+            details: list[str] = []
+            if missing:
+                details.append("missing=" + ",".join(sorted(missing)))
+            if extra:
+                details.append("unknown=" + ",".join(sorted(str(item) for item in extra)))
+            raise ValueError(f"severity_model.{key} has invalid keys ({'; '.join(details)}).")
+        _validate_probability_values(
+            mapping.values(),
+            f"severity_model.{key} values",
+        )
+
+    return deepcopy(value)
 
 
 def _probability_array(values: Any, label: str) -> np.ndarray:

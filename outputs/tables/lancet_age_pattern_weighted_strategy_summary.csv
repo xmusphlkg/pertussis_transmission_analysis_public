@@ -1,49 +1,49 @@
 ordering_basis,strategy,strategy_label,primary_case_metric,country_count,effective_country_weight_sum,weighted_median_primary_case_reduction,weighted_iqr_primary_case_reduction,weighted_median_primary_cases_per_100k,strategy_rank_within_basis
-age_data_profiles_unweighted,combined_strategy,Combined future stress-test profile,child_adolescent_0_17y,4,4.0,0.6603212073394578,0.4741 to 0.9724,12.971486423937197,1.0
-age_data_profiles_unweighted,next_generation_vaccine,High-transmission-blocking vaccine target,child_adolescent_0_17y,4,4.0,0.5241806704064828,0.4546 to 0.9907,4.353925913277631,2.0
-age_data_profiles_unweighted,transmission_blocking_vaccine,Transmission-blocking vaccine target,child_adolescent_0_17y,4,4.0,0.33475732404556646,0.2982 to 0.7365,123.64187231222036,3.0
-age_data_profiles_unweighted,resistance_guided_treatment,Resistance-guided management,child_adolescent_0_17y,4,4.0,0.17120027297267004,0.1588 to 0.4842,242.0615377518686,4.0
-age_data_profiles_unweighted,timeliness_only,Routine timeliness,child_adolescent_0_17y,4,4.0,0.08628066665479173,-0.02641 to 0.1025,481.6371984870536,5.0
-age_data_profiles_unweighted,maternal_immunization,Infant-exposure package,child_adolescent_0_17y,4,4.0,0.0859545029178288,0.01376 to 0.08613,428.87803776363324,6.0
-age_data_profiles_unweighted,cocooning_adjunct,Close-contact adult adjunct,child_adolescent_0_17y,4,4.0,0.0752943279503383,0.001011 to 0.07597,433.6438978039015,7.0
-age_data_profiles_unweighted,targeted_pep_high_risk,Targeted high-risk PEP,child_adolescent_0_17y,4,4.0,0.04665644414692993,0.006577 to 0.05634,447.4009590567873,8.0
-age_data_profiles_unweighted,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,child_adolescent_0_17y,4,4.0,0.012095832641962345,0.01205 to 0.01259,463.64246876947465,9.0
-age_data_profiles_unweighted,current,Current practice,child_adolescent_0_17y,4,4.0,0.0,0 to 0,469.2966728957474,10.0
-age_data_profiles_unweighted,adolescent_booster,Adolescent booster,child_adolescent_0_17y,4,4.0,-0.0005906867656391146,-0.01856 to -0.0001737,469.26508079648534,11.0
-age_data_profiles_unweighted,higher_child_coverage,Nominal coverage floor,child_adolescent_0_17y,4,4.0,-0.0070119433880000415,-0.007166 to -0.005639,471.9432409263772,12.0
-age_pattern_pass_filter,next_generation_vaccine,High-transmission-blocking vaccine target,child_adolescent_0_17y,2,2.0,0.9907224445325753,0.9907 to 0.9943,0.8312029662837275,1.0
-age_pattern_pass_filter,combined_strategy,Combined future stress-test profile,child_adolescent_0_17y,2,2.0,0.972359730694664,0.9724 to 0.9795,5.184551946360285,2.0
-age_pattern_pass_filter,transmission_blocking_vaccine,Transmission-blocking vaccine target,child_adolescent_0_17y,2,2.0,0.7365379312209892,0.7365 to 0.7579,85.81593936376346,3.0
-age_pattern_pass_filter,resistance_guided_treatment,Resistance-guided management,child_adolescent_0_17y,2,2.0,0.4842035930228197,0.4842 to 0.5205,172.39615206735536,4.0
-age_pattern_pass_filter,maternal_immunization,Infant-exposure package,child_adolescent_0_17y,2,2.0,0.0859545029178288,0.08595 to 0.08604,355.4674816626684,5.0
-age_pattern_pass_filter,cocooning_adjunct,Close-contact adult adjunct,child_adolescent_0_17y,2,2.0,0.0752943279503383,0.07529 to 0.07563,359.6131672031759,6.0
-age_pattern_pass_filter,targeted_pep_high_risk,Targeted high-risk PEP,child_adolescent_0_17y,2,2.0,0.04665644414692993,0.04666 to 0.0515,366.9843776286176,7.0
-age_pattern_pass_filter,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,child_adolescent_0_17y,2,2.0,0.012048251080939876,0.01205 to 0.01207,384.19073026316215,8.0
-age_pattern_pass_filter,current,Current practice,child_adolescent_0_17y,2,2.0,0.0,0 to 0,388.89473491693457,9.0
-age_pattern_pass_filter,adolescent_booster,Adolescent booster,child_adolescent_0_17y,2,2.0,-0.0005906867656391146,-0.0005907 to -0.0002617,389.12445029986173,10.0
-age_pattern_pass_filter,higher_child_coverage,Nominal coverage floor,child_adolescent_0_17y,2,2.0,-0.0071664944031868405,-0.007166 to -0.006403,391.6817474792507,11.0
-age_pattern_pass_filter,timeliness_only,Routine timeliness,child_adolescent_0_17y,2,2.0,-0.026409286273385124,-0.02641 to 0.02994,355.3473061859215,12.0
-age_pattern_weighted,combined_strategy,Combined future stress-test profile,child_adolescent_0_17y,4,2.00040181345943,0.886960007954087,0.5451 to 0.9784,7.315705620059444,1.0
-age_pattern_weighted,next_generation_vaccine,High-transmission-blocking vaccine target,child_adolescent_0_17y,4,2.00040181345943,0.8630377672406282,0.4811 to 0.9937,1.7953132938495644,2.0
-age_pattern_weighted,transmission_blocking_vaccine,Transmission-blocking vaccine target,child_adolescent_0_17y,4,2.00040181345943,0.6265773017244092,0.3121 to 0.7545,96.16826429937619,3.0
-age_pattern_weighted,resistance_guided_treatment,Resistance-guided management,child_adolescent_0_17y,4,2.00040181345943,0.3985398215700412,0.1673 to 0.5146,191.4624024716375,4.0
-age_pattern_weighted,maternal_immunization,Infant-exposure package,child_adolescent_0_17y,4,2.00040181345943,0.062471040838974874,0.02056 to 0.08603,375.5587225448637,5.0
-age_pattern_weighted,cocooning_adjunct,Close-contact adult adjunct,child_adolescent_0_17y,4,2.00040181345943,0.05113123349698476,0.008003 to 0.07559,379.8741394690506,6.0
-age_pattern_weighted,targeted_pep_high_risk,Targeted high-risk PEP,child_adolescent_0_17y,4,2.00040181345943,0.047487005223310993,0.01298 to 0.05311,388.99305041641026,7.0
-age_pattern_weighted,timeliness_only,Routine timeliness,child_adolescent_0_17y,4,2.00040181345943,0.0380760379983804,-0.02641 to 0.09138,389.9107365966496,8.0
-age_pattern_weighted,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,child_adolescent_0_17y,4,2.00040181345943,0.012075478995338298,0.01205 to 0.01225,405.9353416872205,9.0
-age_pattern_weighted,current,Current practice,child_adolescent_0_17y,4,2.00040181345943,0.0,0 to 0,410.8994000376559,10.0
-age_pattern_weighted,adolescent_booster,Adolescent booster,child_adolescent_0_17y,4,2.00040181345943,-0.0021318833809391424,-0.01256 to -0.0001702,411.05759993496594,11.0
-age_pattern_weighted,higher_child_coverage,Nominal coverage floor,child_adolescent_0_17y,4,2.00040181345943,-0.00706562029244633,-0.007166 to -0.005859,413.6479752816003,12.0
-all_profiles_unweighted,combined_strategy,Combined future stress-test profile,child_adolescent_0_17y,10,10.0,0.972359730694664,0.6247 to 0.994,5.184551946360285,1.0
-all_profiles_unweighted,next_generation_vaccine,High-transmission-blocking vaccine target,child_adolescent_0_17y,10,10.0,0.9311695238257779,0.4894 to 0.9926,9.16640774299554,2.0
-all_profiles_unweighted,transmission_blocking_vaccine,Transmission-blocking vaccine target,child_adolescent_0_17y,10,10.0,0.694619480449357,0.3165 to 0.7443,99.50504198947299,3.0
-all_profiles_unweighted,resistance_guided_treatment,Resistance-guided management,child_adolescent_0_17y,10,10.0,0.4842035930228197,0.165 to 0.5727,172.39615206735536,4.0
-all_profiles_unweighted,maternal_immunization,Infant-exposure package,child_adolescent_0_17y,10,10.0,0.0970540648122431,0.05224 to 0.1806,311.61617881594583,5.0
-all_profiles_unweighted,timeliness_only,Routine timeliness,child_adolescent_0_17y,10,10.0,0.08743989474176461,-0.005355 to 0.1068,337.0846907405567,6.0
-all_profiles_unweighted,cocooning_adjunct,Close-contact adult adjunct,child_adolescent_0_17y,10,10.0,0.08310582144930201,0.04114 to 0.1699,316.5512055912224,7.0
-all_profiles_unweighted,targeted_pep_high_risk,Targeted high-risk PEP,child_adolescent_0_17y,10,10.0,0.05016764322937928,0.03379 to 0.07866,331.25183358391547,8.0
-all_profiles_unweighted,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,child_adolescent_0_17y,10,10.0,0.013643349179670805,0.01207 to 0.01584,352.2537373945296,9.0
-all_profiles_unweighted,adolescent_booster,Adolescent booster,child_adolescent_0_17y,10,10.0,6.731831350270667e-05,-0.009575 to 0.05606,348.10753207775826,10.0
-all_profiles_unweighted,current,Current practice,child_adolescent_0_17y,10,10.0,0.0,0 to 0,356.3272170672158,11.0
-all_profiles_unweighted,higher_child_coverage,Nominal coverage floor,child_adolescent_0_17y,10,10.0,-0.007373410461163354,-0.01632 to -0.006326,361.8014877985,12.0
+age_data_profiles_unweighted,combined_strategy,Combined future stress-test profile,child_adolescent_0_17y,4,4.0,0.4082424375026249,0.3683 to 0.6685,202.47383247163873,1.0
+age_data_profiles_unweighted,next_generation_vaccine,High-transmission-blocking vaccine target,child_adolescent_0_17y,4,4.0,0.3991165110746562,0.368 to 0.4084,279.13604002590586,2.0
+age_data_profiles_unweighted,timeliness_only,Routine timeliness,child_adolescent_0_17y,4,4.0,0.14540345344780214,0.1383 to 0.1467,609.3703830698836,3.0
+age_data_profiles_unweighted,transmission_blocking_vaccine,Transmission-blocking vaccine target,child_adolescent_0_17y,4,4.0,0.13219165924678622,-1.174 to 0.1751,619.6616319733166,4.0
+age_data_profiles_unweighted,resistance_guided_treatment,Resistance-guided management,child_adolescent_0_17y,4,4.0,0.12698286719251461,0.1115 to 0.1824,570.4496050811811,5.0
+age_data_profiles_unweighted,maternal_immunization,Infant-exposure package,child_adolescent_0_17y,4,4.0,0.02313761156131966,0.02257 to 0.04427,682.4448262813912,6.0
+age_data_profiles_unweighted,targeted_pep_high_risk,Targeted high-risk PEP,child_adolescent_0_17y,4,4.0,0.02119600640080499,0.01018 to 0.02552,698.9184727260571,7.0
+age_data_profiles_unweighted,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,child_adolescent_0_17y,4,4.0,0.015808585730392122,0.01297 to 0.01972,704.7892161977255,8.0
+age_data_profiles_unweighted,cocooning_adjunct,Close-contact adult adjunct,child_adolescent_0_17y,4,4.0,0.013949393355009998,0.003939 to 0.03269,690.7118639433772,9.0
+age_data_profiles_unweighted,current,Current practice,child_adolescent_0_17y,4,4.0,0.0,0 to 0,714.0535563826013,10.0
+age_data_profiles_unweighted,adolescent_booster,Adolescent booster,child_adolescent_0_17y,4,4.0,-0.00021304295496982206,-0.004579 to -8.135e-06,714.2056804625383,11.0
+age_data_profiles_unweighted,higher_child_coverage,Nominal coverage floor,child_adolescent_0_17y,4,4.0,-0.005001059295562271,-0.04876 to -0.002482,717.6245805144296,12.0
+age_pattern_pass_filter,combined_strategy,Combined future stress-test profile,child_adolescent_0_17y,1,1.0,0.7164444731209388,0.7164 to 0.7164,202.47383247163873,1.0
+age_pattern_pass_filter,next_generation_vaccine,High-transmission-blocking vaccine target,child_adolescent_0_17y,1,1.0,0.6090824875540832,0.6091 to 0.6091,279.13604002590586,2.0
+age_pattern_pass_filter,resistance_guided_treatment,Resistance-guided management,child_adolescent_0_17y,1,1.0,0.20111089721621678,0.2011 to 0.2011,570.4496050811811,3.0
+age_pattern_pass_filter,timeliness_only,Routine timeliness,child_adolescent_0_17y,1,1.0,0.14666964821875306,0.1467 to 0.1467,609.3703830698836,4.0
+age_pattern_pass_filter,transmission_blocking_vaccine,Transmission-blocking vaccine target,child_adolescent_0_17y,1,1.0,0.13219165924678622,0.1322 to 0.1322,619.6616319733166,5.0
+age_pattern_pass_filter,maternal_immunization,Infant-exposure package,child_adolescent_0_17y,1,1.0,0.04426660983516373,0.04427 to 0.04427,682.4448262813912,6.0
+age_pattern_pass_filter,cocooning_adjunct,Close-contact adult adjunct,child_adolescent_0_17y,1,1.0,0.032688994044889785,0.03269 to 0.03269,690.7118639433772,7.0
+age_pattern_pass_filter,targeted_pep_high_risk,Targeted high-risk PEP,child_adolescent_0_17y,1,1.0,0.02119600640080499,0.0212 to 0.0212,698.9184727260571,8.0
+age_pattern_pass_filter,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,child_adolescent_0_17y,1,1.0,0.012974293168863005,0.01297 to 0.01297,704.7892161977255,9.0
+age_pattern_pass_filter,current,Current practice,child_adolescent_0_17y,1,1.0,0.0,0 to 0,714.0535563826013,10.0
+age_pattern_pass_filter,adolescent_booster,Adolescent booster,child_adolescent_0_17y,1,1.0,-0.00021304295496982206,-0.000213 to -0.000213,714.2056804625383,11.0
+age_pattern_pass_filter,higher_child_coverage,Nominal coverage floor,child_adolescent_0_17y,1,1.0,-0.005001059295562271,-0.005001 to -0.005001,717.6245805144296,12.0
+age_pattern_weighted,combined_strategy,Combined future stress-test profile,child_adolescent_0_17y,4,1.3042502965497267,0.6047104920404076,0.3753 to 0.6912,166.04072006896763,1.0
+age_pattern_weighted,next_generation_vaccine,High-transmission-blocking vaccine target,child_adolescent_0_17y,4,1.3042502965497267,0.40733661722898723,0.3798 to 0.5036,209.52994298471822,2.0
+age_pattern_weighted,resistance_guided_treatment,Resistance-guided management,child_adolescent_0_17y,4,1.3042502965497267,0.1688299921859547,0.1143 to 0.1913,404.8813169660215,3.0
+age_pattern_weighted,timeliness_only,Routine timeliness,child_adolescent_0_17y,4,1.3042502965497267,0.14560285440942405,0.1396 to 0.1463,433.76071446562594,4.0
+age_pattern_weighted,maternal_immunization,Infant-exposure package,child_adolescent_0_17y,4,1.3042502965497267,0.03151434656362796,0.02297 to 0.04262,474.1864889272107,5.0
+age_pattern_weighted,cocooning_adjunct,Close-contact adult adjunct,child_adolescent_0_17y,4,1.3042502965497267,0.02137883544183722,0.007754 to 0.03123,479.8369547247388,6.0
+age_pattern_weighted,targeted_pep_high_risk,Targeted high-risk PEP,child_adolescent_0_17y,4,1.3042502965497267,0.016845231252237358,0.01106 to 0.0239,488.11779877019706,7.0
+age_pattern_weighted,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,child_adolescent_0_17y,4,1.3042502965497267,0.013297987509786021,0.01297 to 0.01694,493.67694639867074,8.0
+age_pattern_weighted,current,Current practice,child_adolescent_0_17y,4,1.3042502965497267,0.0,0 to 0,500.3655451448019,9.0
+age_pattern_weighted,adolescent_booster,Adolescent booster,child_adolescent_0_17y,4,1.3042502965497267,-0.0009005483784601635,-0.003195 to -4.396e-05,500.21784857609384,10.0
+age_pattern_weighted,higher_child_coverage,Nominal coverage floor,child_adolescent_0_17y,4,1.3042502965497267,-0.011892157227985103,-0.03489 to -0.002923,499.69974691099316,11.0
+age_pattern_weighted,transmission_blocking_vaccine,Transmission-blocking vaccine target,child_adolescent_0_17y,4,1.3042502965497267,-0.38550652298081,-1.072 to 0.1588,524.8491780443735,12.0
+all_profiles_unweighted,combined_strategy,Combined future stress-test profile,child_adolescent_0_17y,9,9.0,0.48826024941104595,0.4206 to 0.7045,244.20980366856745,1.0
+all_profiles_unweighted,next_generation_vaccine,High-transmission-blocking vaccine target,child_adolescent_0_17y,9,9.0,0.4037564780627981,0.3667 to 0.5637,398.70856089510244,2.0
+all_profiles_unweighted,transmission_blocking_vaccine,Transmission-blocking vaccine target,child_adolescent_0_17y,9,9.0,0.15365616682226801,-0.2509 to 0.206,665.5731163569503,3.0
+all_profiles_unweighted,timeliness_only,Routine timeliness,child_adolescent_0_17y,9,9.0,0.1460365508332776,0.08824 to 0.1729,661.142157211128,4.0
+all_profiles_unweighted,resistance_guided_treatment,Resistance-guided management,child_adolescent_0_17y,9,9.0,0.13949567063768414,0.1226 to 0.1964,637.8222162220068,5.0
+all_profiles_unweighted,maternal_immunization,Infant-exposure package,child_adolescent_0_17y,9,9.0,0.027638864259033946,0.02271 to 0.08781,762.7560669584918,6.0
+all_profiles_unweighted,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,child_adolescent_0_17y,9,9.0,0.017761954883591946,0.01175 to 0.02421,773.0444041810317,7.0
+all_profiles_unweighted,targeted_pep_high_risk,Targeted high-risk PEP,child_adolescent_0_17y,9,9.0,0.015415715747830516,0.006243 to 0.02336,769.7186188931903,8.0
+all_profiles_unweighted,cocooning_adjunct,Close-contact adult adjunct,child_adolescent_0_17y,9,9.0,0.009954507483644959,0.00274 to 0.07777,770.6059051792874,9.0
+all_profiles_unweighted,current,Current practice,child_adolescent_0_17y,9,9.0,0.0,0 to 0,788.2926486391533,10.0
+all_profiles_unweighted,adolescent_booster,Adolescent booster,child_adolescent_0_17y,9,9.0,-0.00013401116556321924,-0.001531 to 0.002586,790.3433467718597,11.0
+all_profiles_unweighted,higher_child_coverage,Nominal coverage floor,child_adolescent_0_17y,9,9.0,-0.003741624564538304,-0.008084 to 0.006433,805.9430525214881,12.0

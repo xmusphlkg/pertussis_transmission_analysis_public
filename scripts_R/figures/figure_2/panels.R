@@ -39,12 +39,13 @@ plot_figure_2_panel_a <- function(data) {
     ) +
     scale_x_continuous(labels = label_lancet_percent(accuracy = 1),
                        limits = c(-0.10, 0.5),
-                       breaks = c(0, 0.25, 0.5)) +
+                       breaks = seq(-0.10, 0.50, by = 0.10),
+                       expand = expansion(mult = 0, add = 0)) +
     scale_colour_manual(values = strategy_colours, guide = "none") +
     scale_shape_profile_median() +
-    scale_linetype_iqr(label = "Cross-profile IQR", linewidth = 1.0, alpha = 0.72) +
+    scale_linetype_iqr(label = "Cross-profile\nIQR", linewidth = 1.0, alpha = 0.72) +
     labs(
-      x = "Case reduction in people aged <18 years",
+      x = "Conditional scenario reduction in annualised symptomatic cases\namong people aged <18 years (%)",
       y = NULL,
       tag = "a"
     ) +
@@ -53,11 +54,11 @@ plot_figure_2_panel_a <- function(data) {
       axis.text.y = element_text(lineheight = 0.88)
     ) +
     theme_lancet_inside_legend(
-      key_height = unit(0.46, "cm"),
+      key_height = unit(0.34, "cm"),
       title_lineheight = 0.90,
       text_lineheight = 1.16,
-      text_margin = margin(t = 3, b = 3),
-      spacing_y = unit(8, "pt"),
+      text_margin = margin(t = 0, b = 0),
+      spacing_y = unit(0, "pt"),
       box_margin = margin(0, 0, 1, 0),
       legend_margin = margin(3, 0, 3, 0)
     )
@@ -77,13 +78,12 @@ plot_figure_2_panel_b <- function(data) {
       fill = manuscript_colour("light_grey"),
       alpha = 0.45
     ) +
-    geom_vline(xintercept = 5, linewidth = 0.24, linetype = "dashed", colour = manuscript_colour("grey")) +
-    geom_vline(xintercept = 25, linewidth = 0.20, linetype = "dotted", colour = manuscript_colour("grey")) +
+    geom_vline(xintercept = c(0, 5, 25), linewidth = 0.24, linetype = "dashed", colour = manuscript_colour("grey")) +
     geom_text(
       data = data.frame(
         label_x = 2.5,
         country_label_margin = factor(data$heatmap_country_order[[1]], levels = rev(data$heatmap_country_order)),
-        label_text = "near-tie \u22645"
+        label_text = "near-tie \u22645\u00B70"
       ),
       aes(x = label_x, y = country_label_margin, label = label_text),
       inherit.aes = FALSE,
@@ -113,15 +113,15 @@ plot_figure_2_panel_b <- function(data) {
       colour = manuscript_colour("black")
     ) +
     scale_x_continuous(
-      breaks = c(0, 5, 25, 50, 100),
+      breaks = c(0, 5, 25, 50, 100, 150),
       labels = label_lancet_comma(accuracy = 1),
-      expand = expansion(mult = c(0, 0.10))
+      expand = expansion(mult = 0, add = 0)
     ) +
     scale_fill_manual(
       values = strategy_colours,
       breaks = data$selected_strategy_order,
       labels = data$selected_strategy_legend_labels,
-      name = "Lowest-burden option",
+      name = "Lowest burden\n(point estimate)",
       guide = guide_legend(
         ncol = 1,
         title.position = "top",
@@ -132,9 +132,9 @@ plot_figure_2_panel_b <- function(data) {
     ) +
     scale_colour_manual(values = strategy_colours, guide = "none") +
     scale_y_discrete(limits = rev(data$heatmap_country_order)) +
-    coord_cartesian(xlim = c(0, max(data$selected_program$winner_margin_cases_per_100k, na.rm = TRUE) * 1.28), clip = "off") +
+    coord_cartesian(xlim = c(-5, max(data$selected_program$winner_margin_cases_per_100k, na.rm = TRUE) * 1.28), clip = "off") +
     labs(
-      x = "Extra annualised symptomatic cases per 100 000\npeople aged <18 years if second-ranked strategy used",
+      x = "Extra annualised symptomatic cases per 100 000\npeople aged <18 years when the second-ranked\nscenario is used",
       y = NULL,
       tag = "b"
     ) +
@@ -155,7 +155,7 @@ plot_figure_2_panel_b <- function(data) {
 }
 
 plot_figure_2_panel_c <- function(data) {
-  ggplot(data$program_heatmap, aes(x = strategy_axis, y = country_label, fill = primary_case_reduction)) +
+  ggplot(data$program_heatmap, aes(x = strategy_axis, y = country_label, fill = primary_case_reduction_display)) +
     geom_tile(colour = "white", linewidth = lancet_heatmap_tile_linewidth) +
     geom_hline(
       yintercept = data$heatmap_group_separators,
@@ -166,7 +166,7 @@ plot_figure_2_panel_c <- function(data) {
       data = filter(data$program_heatmap, preferred_in_program_only),
       fill = NA,
       colour = manuscript_colour("black"),
-      linewidth = 0.30
+      linewidth = 0.22
     ) +
     geom_text(
       aes(label = effect_label, colour = effect_text_colour),
@@ -182,7 +182,7 @@ plot_figure_2_panel_c <- function(data) {
       breaks = seq(-0.10, 0.50, by = 0.10),
       labels = label_lancet_percent(accuracy = 1),
       oob = scales::squish,
-      name = "Median [95% PI] of reduction",
+      name = data$primary_interval_legend_title,
       guide = guide_lancet_colourbar(
         barwidth = unit(0.30, "cm"),
         barheight = unit(5.0, "cm"),
@@ -239,7 +239,7 @@ plot_figure_2_rank_distribution <- function(data) {
       values = data$rank_colours,
       breaks = data$rank_labels,
       drop = FALSE,
-      name = "Rank",
+      name = "Scenario rank",
       guide = guide_legend(
         nrow = 1,
         title.position = "left",
@@ -250,7 +250,7 @@ plot_figure_2_rank_distribution <- function(data) {
     scale_colour_identity() +
     coord_cartesian(xlim = c(0, 10), clip = "off") +
     labs(
-      x = "Profiles (n=10)",
+      x = paste0("Profiles (n=", length(data$publication_countries), ")"),
       y = NULL,
       tag = "c"
     ) +

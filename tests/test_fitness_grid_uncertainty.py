@@ -161,7 +161,6 @@ def test_fig3d_psa_nuisance_sample_keeps_grid_overrides_fixed() -> None:
     }
     sample = {
         "psa_sample_id": 7,
-        "reporting_multiplier": 1.35,
         "infant_contact_multiplier": 1.50,
         "VE_inf_baseline": 0.60,
         "relative_infectiousness_asymptomatic": 0.70,
@@ -173,7 +172,7 @@ def test_fig3d_psa_nuisance_sample_keeps_grid_overrides_fixed() -> None:
     sampled = fitness_grid._apply_fig3d_psa_nuisance_sample(config, sample)
     overridden = fitness_grid._apply_grid_overrides(sampled, fitness_r=0.85, ve_inf=0.55)
 
-    assert np.isclose(overridden["reporting_multiplier"], 1.35)
+    assert np.isclose(overridden["reporting_multiplier"], 1.0)
     assert np.isclose(overridden["contact_matrix"]["rows"][0][1], 3.0)
     assert np.isclose(overridden["contact_matrix"]["rows"][0][2], 4.5)
     assert np.isclose(overridden["transmission"]["relative_infectiousness_asymptomatic"], 0.70)
@@ -181,6 +180,28 @@ def test_fig3d_psa_nuisance_sample_keeps_grid_overrides_fixed() -> None:
     assert np.isclose(overridden["PEP"]["coverage_household_contacts"], 0.60)
     assert np.isclose(overridden["transmission"]["fitness_R"], 0.85)
     assert np.isclose(overridden["vaccine"]["VE_inf"], 0.55)
+
+
+def test_fig3d_psa_loader_accepts_current_true_case_design_without_reporting(tmp_path) -> None:
+    row = {
+        "psa_sample_id": 1,
+        "sample_design": "latin_hypercube_inverse_cdf",
+        "uncertainty_schema_version": 1,
+        "infant_contact_multiplier": 1.0,
+        "VE_inf_baseline": 0.25,
+        "relative_infectiousness_asymptomatic": 0.5,
+        "infectious_duration_asymptomatic": 17.0,
+        "fitness_R": 1.0,
+        "resistance_management_uptake": 0.7,
+        "PEP_coverage_multiplier": 1.0,
+    }
+    path = tmp_path / "psa.csv"
+    pd.DataFrame([row]).to_csv(path, index=False)
+
+    loaded = fitness_grid._load_psa_samples(path)
+
+    assert loaded["psa_sample_id"].tolist() == [1]
+    assert "reporting_multiplier" not in loaded.columns
 
 
 def test_summarise_psa_benefits_uses_paired_low_high_samples() -> None:

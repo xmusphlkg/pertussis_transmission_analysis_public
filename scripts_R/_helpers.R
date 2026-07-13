@@ -24,10 +24,10 @@ if (!exists(".pertussis_model_table_cache", envir = .GlobalEnv, inherits = FALSE
   assign(".pertussis_model_table_cache", new.env(parent = emptyenv()), envir = .GlobalEnv)
 }
 
-read_model_table <- function(path_without_suffix) {
+read_model_table <- function(path_without_suffix, metadata_stem = NULL) {
   parquet_path <- paste0(path_without_suffix, ".parquet")
   csv_path <- paste0(path_without_suffix, ".csv")
-  stem <- basename(path_without_suffix)
+  stem <- if (is.null(metadata_stem)) basename(path_without_suffix) else as.character(metadata_stem)
   stem <- sub("_summary$", "", stem)
   metadata_path <- model_path("outputs", "metadata", paste0(stem, "_run_metadata.json"))
   if (!file.exists(metadata_path)) {
@@ -51,16 +51,16 @@ read_model_table <- function(path_without_suffix) {
   stop("Could not find either ", parquet_path, " or ", csv_path)
 }
 
-read_model_table_optional <- function(path_without_suffix) {
+read_model_table_optional <- function(path_without_suffix, metadata_stem = NULL) {
   parquet_path <- paste0(path_without_suffix, ".parquet")
   csv_path <- paste0(path_without_suffix, ".csv")
-  stem <- basename(path_without_suffix)
+  stem <- if (is.null(metadata_stem)) basename(path_without_suffix) else as.character(metadata_stem)
   stem <- sub("_summary$", "", stem)
   metadata_path <- model_path("outputs", "metadata", paste0(stem, "_run_metadata.json"))
   if (!file.exists(metadata_path) || (!file.exists(csv_path) && !file.exists(parquet_path))) {
     return(tibble())
   }
-  read_model_table(path_without_suffix)
+  read_model_table(path_without_suffix, metadata_stem = stem)
 }
 
 save_figure <- function(plot, filename, width = 9, height = 6) {

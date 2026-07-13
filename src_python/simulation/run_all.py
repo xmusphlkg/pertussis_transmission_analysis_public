@@ -3,11 +3,15 @@ from __future__ import annotations
 import argparse
 import os
 
-from src_python.simulation.common import load_configs, write_manuscript_tables
+from src_python.simulation.common import (
+    load_configs,
+    publication_country_names,
+    write_manuscript_tables,
+)
 from src_python.simulation.run_age_pattern_sensitivity import main as run_age_pattern_sensitivity
 from src_python.simulation.run_bayesian_uncertainty import main as run_bayesian_uncertainty
 from src_python.simulation.run_baseline import main as run_baseline
-from src_python.simulation.run_calibration_diagnostics import main as run_calibration_diagnostics
+from src_python.simulation.run_calibration_diagnostics import run as run_calibration_diagnostics
 from src_python.simulation.run_country_scenarios import main as run_countries
 from src_python.simulation.run_fitness_grid import main as run_fitness_grid
 from src_python.simulation.run_heatmap_grid import main as run_heatmap
@@ -20,7 +24,7 @@ from src_python.simulation.run_maternal_duration_sensitivity import main as run_
 from src_python.simulation.run_program_portfolio_factorial import main as run_program_portfolio_factorial
 from src_python.simulation.run_reporting_scenarios import main as run_reporting
 from src_python.simulation.run_resistance_fitness_sensitivity import main as run_resistance_fitness
-from src_python.simulation.run_resistance_hindcast import main as run_hindcast
+from src_python.simulation.run_resistance_hindcast import run as run_hindcast
 from src_python.simulation.run_resistance_mechanism_decomposition import main as run_resistance_mechanism
 from src_python.simulation.run_resistance_scenarios import main as run_resistance
 from src_python.simulation.run_routine_timeliness_sensitivity import main as run_routine_timeliness
@@ -37,6 +41,7 @@ BAYESIAN_FIXED_PARAMETERS = (
     "reporting_multiplier",
     "VE_sus",
     "VE_inf",
+    "VE_dur",
     "relative_infectiousness_asymptomatic",
     "fitness_R",
 )
@@ -73,23 +78,20 @@ def main(
         run_bayesian_uncertainty(
             n_jobs=n_jobs,
             solver_mode="calibration",
-            sampler="beta_grid",
-            proposal_scale=1.0,
+            sampler="state_space_exact_importance_cut",
             warmup=0,
-            draws=250,
-            fix_durations=True,
-            fixed_parameters=BAYESIAN_FIXED_PARAMETERS,
-            grid_points=81,
-            grid_log_beta_half_width=0.08,
-            grid_max_points=321,
-            grid_max_refinements=5,
-            grid_smoothing="auto",
+            draws=128,
+            n_chains=4,
+            fix_durations=False,
+            fixed_parameters=(),
+            importance_nuisance_draws=128,
+            output_stem="bayesian_uncertainty_figure2c_conditional",
         )
     if include_publication_diagnostics:
         configs = load_configs()
-        countries = tuple(configs["countries"].keys())
-        run_hindcast()
-        run_calibration_diagnostics()
+        countries = tuple(publication_country_names(configs))
+        run_hindcast(n_jobs=n_jobs)
+        run_calibration_diagnostics(countries)
         run_age_pattern_sensitivity()
         run_resistance_mechanism(n_jobs=n_jobs)
         run_program_portfolio_factorial(n_jobs=n_jobs)
@@ -132,15 +134,19 @@ if __name__ == "__main__":
     parser.add_argument(
         "--include-bayesian",
         action="store_true",
-        help="Also run the beta-grid Bayesian uncertainty target with pre-specified checks.",
+        help=(
+            "Also run the conditional annual state-space uncertainty route with "
+            "exact-target importance correction and pre-specified quality checks."
+        ),
     )
     parser.add_argument(
         "--include-publication-diagnostics",
         action="store_true",
         help=(
             "Also run the simulation-only publication diagnostics subset of "
-            "make publication-data. This does not run publication_inputs publication "
-            "table scripts; requires existing Bayesian posterior samples unless "
+            "make publication-data. This does not run manuscript_notes publication "
+            "table scripts or the rolling-origin release gate; requires existing "
+            "conditional uncertainty samples unless "
             "--include-bayesian is also used."
         ),
     )

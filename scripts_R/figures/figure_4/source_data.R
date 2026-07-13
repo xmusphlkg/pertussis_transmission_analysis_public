@@ -6,10 +6,10 @@ figure_4_source_filenames <- c(
   preference_weight_summary = "figure4c_resistance_preference_weight_summary.csv",
   preference_country_thresholds = "figure4c_resistance_preference_country_thresholds.csv",
   implementation_sensitivity = "figure4_resistance_implementation_sensitivity_appendix.csv",
-  future_vaccine_residual_burden = "figure4c_future_vaccine_residual_burden.csv",
-  future_veinf_thresholds = "figure4d_future_veinf_thresholds.csv",
-  future_veinf_attainment = "figure4d_future_veinf_attainment.csv",
-  future_veinf_seeded_attainment_summary = "figure4d_future_veinf_seeded_attainment_summary.csv"
+  future_vaccine_residual_burden = "figure4e_future_vaccine_residual_burden.csv",
+  future_veinf_thresholds = "figure4f_future_veinf_thresholds.csv",
+  future_veinf_attainment = "figure4f_future_veinf_attainment.csv",
+  future_veinf_seeded_attainment_summary = "figure4f_future_veinf_seeded_attainment_summary.csv"
 )
 
 make_figure_4_source_data <- function(data) {

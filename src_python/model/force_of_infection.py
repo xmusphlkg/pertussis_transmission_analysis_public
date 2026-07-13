@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from datetime import date, datetime
+from math import exp
+
 import numpy as np
 
 from src_python.model.compartments import (
@@ -24,6 +27,114 @@ try:
     )
 except ImportError:
     NUMBA_AVAILABLE = False
+
+
+def _parse_log_beta_time_variation_periods(
+    transmission: object,
+) -> tuple[tuple[int, int, float], ...]:
+    """Validate calendar log-beta periods and return numeric half-open rows.
+
+    The public configuration contract is
+    ``transmission.log_beta_time_variation.periods``.  Configured end dates are
+    inclusive calendar days, while the ODE is continuous in time, so parsed
+    rows use ``[start_ordinal, end_ordinal + 1)``.  Unlike the older optional
+    shock inputs, malformed or overlapping process intervals are rejected: a
+    latent transmission trajectory must never depend on silent record drops or
+    ambiguous precedence.
+    """
+
+    if not isinstance(transmission, dict):
+        raise ValueError("transmission must be a mapping.")
+    variation = transmission.get("log_beta_time_variation")
+    if variation is None:
+        return ()
+    if not isinstance(variation, dict):
+        raise ValueError("transmission.log_beta_time_variation must be a mapping.")
+    if "periods" not in variation:
+        return ()
+    periods = variation["periods"]
+    if not isinstance(periods, (list, tuple)):
+        raise ValueError(
+            "transmission.log_beta_time_variation.periods must be a sequence of mappings."
+        )
+
+    parsed: list[tuple[int, int, float]] = []
+    for position, period in enumerate(periods):
+        path = f"transmission.log_beta_time_variation.periods[{position}]"
+        if not isinstance(period, dict):
+            raise ValueError(f"{path} must be a mapping.")
+        missing = {
+            key for key in ("start_date", "end_date", "log_multiplier") if key not in period
+        }
+        if missing:
+            raise ValueError(f"{path} is missing required keys: {sorted(missing)}")
+        try:
+            start_value = period["start_date"]
+            end_value = period["end_date"]
+            start = (
+                start_value.date()
+                if isinstance(start_value, datetime)
+                else start_value
+                if isinstance(start_value, date)
+                else datetime.strptime(str(start_value), "%Y-%m-%d").date()
+            )
+            end = (
+                end_value.date()
+                if isinstance(end_value, datetime)
+                else end_value
+                if isinstance(end_value, date)
+                else datetime.strptime(str(end_value), "%Y-%m-%d").date()
+            )
+            log_multiplier = float(period["log_multiplier"])
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"{path} requires ISO dates and a numeric log_multiplier."
+            ) from exc
+        if end < start:
+            raise ValueError(f"{path}.end_date must be on or after start_date.")
+        if not np.isfinite(log_multiplier):
+            raise ValueError(f"{path}.log_multiplier must be finite.")
+        try:
+            multiplier = exp(log_multiplier)
+        except OverflowError as exc:
+            raise ValueError(
+                f"{path}.log_multiplier is outside the finite floating-point range."
+            ) from exc
+        if not np.isfinite(multiplier) or multiplier <= 0.0:
+            raise ValueError(
+                f"{path}.log_multiplier is outside the positive floating-point range."
+            )
+        parsed.append((start.toordinal(), end.toordinal() + 1, log_multiplier))
+
+    parsed.sort(key=lambda row: (row[0], row[1]))
+    for previous, current in zip(parsed, parsed[1:]):
+        if current[0] < previous[1]:
+            raise ValueError(
+                "transmission.log_beta_time_variation.periods must not overlap: "
+                f"ordinal intervals [{previous[0]}, {previous[1]}) and "
+                f"[{current[0]}, {current[1]}) overlap."
+            )
+    return tuple(parsed)
+
+
+def _log_beta_time_variation_multiplier_at(
+    t: float,
+    params: PreparedParameters,
+) -> float:
+    """Return ``exp(log_multiplier)`` for the active calendar interval."""
+
+    periods = _parse_log_beta_time_variation_periods(params.transmission)
+    if not periods:
+        return 1.0
+    calendar_ordinal = params.calendar_ordinal_at(t)
+    if calendar_ordinal is None:
+        raise ValueError(
+            "transmission.log_beta_time_variation.periods requires an enabled calendar."
+        )
+    for start, end_exclusive, log_multiplier in periods:
+        if start <= calendar_ordinal < end_exclusive:
+            return float(np.exp(log_multiplier))
+    return 1.0
 
 
 def _seasonal_multiplier(t: float, params: PreparedParameters) -> float:
@@ -63,8 +174,8 @@ def _npi_contact_reduction_at(t: float, params: PreparedParameters) -> float:
     if not periods:
         return 1.0
 
-    calendar_date = params.calendar_date_at(t)
-    if calendar_date is None:
+    calendar_ordinal = params.calendar_ordinal_at(t)
+    if calendar_ordinal is None:
         return 1.0
 
     from datetime import date as date_type
@@ -99,19 +210,30 @@ def _npi_contact_reduction_at(t: float, params: PreparedParameters) -> float:
 
     parsed.sort(key=lambda x: x[0])
 
-    # Check if we're inside any period
+    # Surveillance/policy dates are calendar-day intervals.  Treat the
+    # configured inclusive end date as a half-open boundary at end + 1 day,
+    # while retaining continuous solver time inside recovery ramps.
+    multiplier = 1.0
     for start, end, reduction, _ramp_days in parsed:
-        if start <= calendar_date <= end:
-            return 1.0 - reduction
+        start_ordinal = float(start.toordinal())
+        end_exclusive = float(end.toordinal() + 1)
+        if start_ordinal <= calendar_ordinal < end_exclusive:
+            multiplier = min(multiplier, 1.0 - reduction)
+    if multiplier < 1.0:
+        return multiplier
 
-    # Check if we're in a ramp-down after a period
+    # Check if we're in a continuous ramp-down after a period.
     for _start, end, reduction, ramp_days in parsed:
-        days_after = (calendar_date - end).days
-        if 0 < days_after <= ramp_days:
-            progress = 1.0 if ramp_days <= 0.0 else days_after / ramp_days
-            return (1.0 - reduction) + reduction * progress
+        ramp_start = float(end.toordinal() + 1)
+        days_after = calendar_ordinal - ramp_start
+        if ramp_days > 0.0 and 0.0 <= days_after < ramp_days:
+            progress = days_after / ramp_days
+            multiplier = min(
+                multiplier,
+                (1.0 - reduction) + reduction * progress,
+            )
 
-    return 1.0
+    return multiplier
 
 
 def compute_force_of_infection(
@@ -193,7 +315,11 @@ def compute_force_of_infection(
                 )
             pressure_by_strain[strain] = pressure / population
 
-    beta_s = float(params.transmission["beta_S"]) * _seasonal_multiplier(t, params)
+    beta_s = (
+        float(params.transmission["beta_S"])
+        * _seasonal_multiplier(t, params)
+        * _log_beta_time_variation_multiplier_at(t, params)
+    )
     beta_r = beta_s * float(params.transmission.get("fitness_R", 1.0))
     lambda_s_base = beta_s * params.contact_matrix.dot(pressure_by_strain["S"])
     lambda_r_base = beta_r * params.contact_matrix.dot(pressure_by_strain["R"])

@@ -1,13 +1,15 @@
 resolve_calendar_horizon_r <- function(config) {
   sim <- config$simulation
   cal <- config$calendar
-  start_date <- as.Date(cal$analysis_start_date %||% "2025-01-01")
+  start_date <- as.Date(cal$analysis_start_date %||% "2027-01-01")
   end_date <- as.Date(cal$analysis_end_date %||% "2035-12-31")
   if (!is.finite(as.numeric(end_date - start_date)) || end_date <= start_date) {
     stop("calendar.analysis_end_date must be after analysis_start_date.", call. = FALSE)
   }
   sim$start_time <- as.numeric(sim$start_time %||% 0)
-  sim$end_time <- as.numeric(end_date - start_date)
+  # Calendar end dates are inclusive; the solver interval ends at midnight
+  # immediately after the final requested day.
+  sim$end_time <- as.numeric((end_date + 1) - start_date)
   config$simulation <- sim
   config
 }
@@ -287,7 +289,7 @@ prepare_params_r <- function(config,
     routine_vaccination = config$routine_vaccination %||% list(enabled = FALSE),
     importation = config$importation %||% list(enabled = FALSE),
     calendar = config$calendar %||% list(),
-    calendar_start_date = as.Date((config$calendar %||% list())$analysis_start_date %||% "2025-01-01"),
+    calendar_start_date = as.Date((config$calendar %||% list())$analysis_start_date %||% "2027-01-01"),
     reporting_multiplier = reporting_multiplier,
     metadata = c(config$metadata %||% list(), metadata),
     origin_relative_effects = rel_effects,

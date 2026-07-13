@@ -11,6 +11,7 @@ from src_python.simulation.common import (
     execute_scenario_summary_list,
     load_configs,
     make_config,
+    publication_country_names,
     write_run_metadata,
 )
 from src_python.utils.io import project_path, write_dataframe
@@ -44,7 +45,7 @@ def main():
     stem = os.environ.get("PERTUSSIS_HEATMAP_GRID_STEM", "veinf_resistance_grid")
     scenarios = []
 
-    for country in configs["countries"]:
+    for country in publication_country_names(configs):
         for ve_inf in ve_inf_values:
             for resistance in resistance_values:
                 scenario = f"VEinf_{ve_inf:.2f}_res_{resistance:.2f}"

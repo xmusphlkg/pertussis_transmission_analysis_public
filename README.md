@@ -1,74 +1,115 @@
 # Pertussis Transmission Analysis
 
-This repository contains the public code, input data, source-data tables,
-figures, and run metadata for an age-structured pertussis transmission analysis
-of vaccination strategies and macrolide resistance.
+This is the public reproducibility snapshot for the manuscript “Risk-targeted
+strategies for post-pandemic pertussis control in children and adolescents: an
+age-structured transmission modelling study”. It contains the current
+deterministic scenario model, leakage-safe predictive validation, paired
+Latin-hypercube sensitivity workflow, retained source-data tables, figures,
+run metadata, and companion Shiny application source.
 
-The repository is intended for reproducibility and data availability. It does
-not include submitted manuscript text, submission packages, internal working
-records, reference PDFs, or bulk simulation intermediates.
+The release deliberately separates three quantities:
+
+1. next-reporting-interval notification predictions from a stacked ensemble
+   containing a semi-mechanistic discrepancy POMP;
+2. deterministic conditional policy-scenario contrasts; and
+3. paired input-sensitivity diagnostics that are not posterior probabilities.
+
+The repository does not claim absolute national burden, calibrated prediction
+in every country, validated annual forecasts to 2050, or posterior policy
+intervals. The versioned estimands, gates, and deviations from the superseded
+MCMC workflow are recorded in `ANALYSIS_PROTOCOL.md`.
 
 ## Contents
 
-- `src_python/`: deterministic transmission model, calibration helpers, and
-  scenario runners.
-- `scripts_R/`: figure rendering scripts.
-- `config/`: model settings and country profiles.
-- `data/raw/` and `data/processed/`: public-source extracts and processed model
-  inputs used by the analysis.
-- `publication_inputs/*.csv`: generated scenario, parameter, prior, and country
-  profile tables used by analysis and figure scripts.
-- `outputs/tables/` and `outputs/summaries/`: retained source-data tables.
-- `outputs/figures/` and `outputs/appendix/`: rendered main and extended figures.
-- `outputs/metadata/`: run metadata and Bayesian beta-grid diagnostics.
-- `outputs/calibrations/`: retained country calibration configurations.
+- `ANALYSIS_PROTOCOL.md`: versioned questions, estimands, validation rules,
+  exclusions, claim boundaries, and deviations.
+- `src_python/`: transmission model, calibration, simulation, and predictive
+  validation code.
+- `scripts_R/`: modular main and extended-figure rendering code.
+- `config/`: model, profile, and sensitivity settings.
+- `data/raw/` and `data/processed/`: redistributable source extracts and
+  processed inputs.
+- `manuscript_notes/`: a strict allowlist of scenario, parameter, and
+  table-generation inputs required by the computational pipeline; manuscript
+  drafts and internal review records are excluded.
+- `outputs/tables/`, `outputs/summaries/`, and `outputs/metadata/`: retained
+  source data, diagnostics, hashes, and run metadata.
+- `outputs/figures/` and `outputs/appendix/`: rendered main and extended
+  figures.
+- `ShinyApp/`: source and compact data bundle for the companion exploratory
+  simulator.
+- `SOURCE_DATA_MANIFEST.md`: figure-to-script-to-source-data mapping.
 
-Large time-series and grid intermediates under `outputs/simulations/` are not
-tracked. They can be regenerated locally by the pipeline.
+Bulk regenerated time series and parquet mirrors are omitted to keep the public
+snapshot tractable. They can be recreated by the pipeline.
 
-## Quick Start
+## Environment
 
-Create the recommended environment:
+Python 3.12 is recommended. Create an isolated environment and install locked
+project requirements:
 
 ```bash
-conda create -y -n pertussis_model -c conda-forge python=3.12 numpy pandas scipy pyyaml tqdm joblib numba pyarrow pytest
-conda activate pertussis_model
-```
-
-Install R packages:
-
-```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
 Rscript install_R_packages.R
 ```
 
-Run tests:
+## Verify the retained release
 
-```bash
-pytest
-```
-
-Run a public validation check against the retained source-data layer:
+The fastest integrity check uses the retained outputs:
 
 ```bash
 make validate-public
+make test
 ```
 
-## Reproducing Outputs
+The predictive gate verifies that retained POMP/ensemble artifacts, audited
+source data, code/configuration hashes, and Figure 2 release inputs are
+mutually current.
 
-The full analysis is compute-intensive. On a high-core workstation, increase
-`N_JOBS`.
+## Rebuild
+
+Independent simulation and validation tasks use bounded process workers. Set
+`N_JOBS` to suit the machine; the audited server used 96 workers and supports
+up to 100.
+
+```bash
+make full N_JOBS=96
+```
+
+For a staged rebuild:
 
 ```bash
 make data
-make calibrate N_JOBS=40
-make simulate N_JOBS=40
-make bayesian N_JOBS=40
-make hindcast N_JOBS=40
-make publication-data N_JOBS=40
+make calibrate N_JOBS=96
+make simulate N_JOBS=96
+make calibration-hindcast N_JOBS=96
+make panel-pomp-block-stress N_JOBS=96
+make publication-data N_JOBS=96
 make figures
+make validate-public
 ```
 
-The retained CSV source-data tables are enough to inspect the figure inputs
-without regenerating the large simulation parquet files. See
-`SOURCE_DATA_MANIFEST.md` for the main mapping between rendered figures,
-scripts, and source-data tables.
+The retired high-dimensional MCMC route remains available only for historical
+method research and is not required by `make full`.
+
+## Companion simulator
+
+The hosted simulator is available at
+https://lkg1116.shinyapps.io/pertussis_simulation/. To run it locally:
+
+```r
+setwd("ShinyApp")
+source("install_packages.R")
+shiny::runApp(".")
+```
+
+The simulator is an exploratory interface, not a stand-alone policy
+recommendation tool and not a source of the submitted numerical results.
+
+## Licence and data access
+
+Reuse is governed by `LICENSE`. Public raw sources are identified in the source
+tables. Where third-party redistribution is restricted, this snapshot provides
+the source location, access route, and processing code instead of redistributing
+the restricted file.

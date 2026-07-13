@@ -16,6 +16,7 @@ from src_python.simulation.common import (
     calibrated_country_artifact_path,
     current_run_metadata,
     load_configs,
+    publication_country_names,
     run_prepared_config,
     write_run_metadata,
 )
@@ -125,7 +126,14 @@ def _run_country(country: str, recent_years: int) -> tuple[pd.DataFrame, pd.Data
 def run(countries: Iterable[str] | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     configs = load_configs()
     recent_years = int(configs["baseline"].get("calibration", {}).get("recent_years", 0))
-    countries = list(countries or configs["countries"].keys())
+    publication_countries = publication_country_names(configs)
+    countries = list(countries) if countries is not None else publication_countries
+    outside_publication_scope = sorted(set(countries) - set(publication_countries))
+    if outside_publication_scope:
+        raise ValueError(
+            "Calibration publication diagnostics exclude countries outside the "
+            "prespecified publication set: " + ", ".join(outside_publication_scope)
+        )
     aligned_frames: list[pd.DataFrame] = []
     summary_frames: list[pd.DataFrame] = []
     for country in countries:

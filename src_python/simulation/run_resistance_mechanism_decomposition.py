@@ -7,7 +7,13 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from src_python.simulation.common import execute_scenario_list, load_configs, make_config, write_outputs
+from src_python.simulation.common import (
+    execute_scenario_list,
+    load_configs,
+    make_config,
+    publication_country_names,
+    write_outputs,
+)
 from src_python.utils.io import project_path, write_dataframe
 
 
@@ -85,7 +91,7 @@ def _build_scenarios(configs: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
     scenarios: list[dict[str, Any]] = []
-    for country in configs["countries"]:
+    for country in publication_country_names(configs):
         for name, importation, treatment_diff, pep_diff, fitness, interpretation, mutators in scenario_specs:
             config = make_config(
                 vaccine_scenario="symptom_protective",

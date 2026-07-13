@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 from src_python.utils import validation
@@ -94,6 +95,32 @@ def test_validate_main_output_windows_skips_missing_optional_summaries(monkeypat
     validation.validate_main_output_windows()
 
 
+def test_summary_window_uses_gregorian_year_denominator(monkeypatch, tmp_path) -> None:
+    duration_days = 8766.0
+    summary_dir = tmp_path / "outputs" / "summaries"
+    summary_dir.mkdir(parents=True)
+    pd.DataFrame(
+        {
+            "calendar_start_date": ["2027-01-01"],
+            "analysis_years": [duration_days / validation.GREGORIAN_YEAR_DAYS],
+        }
+    ).to_csv(summary_dir / "baseline_timeseries_summary.csv", index=False)
+    monkeypatch.setattr(
+        validation,
+        "load_configs",
+        lambda: {
+            "baseline": {
+                "calendar": {"analysis_start_date": "2027-01-01"},
+                "simulation": {"start_time": 0.0, "end_time": duration_days},
+            }
+        },
+    )
+    monkeypatch.setattr(validation, "project_path", lambda *parts: tmp_path.joinpath(*parts))
+    monkeypatch.setattr(validation, "validate_run_metadata", lambda stem: None)
+
+    validation._validate_summary_window("baseline_timeseries")
+
+
 def test_validate_publication_outputs_rejects_missing_metadata(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr(validation, "PUBLICATION_METADATA_STEMS", ("missing_publication",))
     monkeypatch.setattr(validation, "PUBLICATION_REQUIRED_TABLES", {"missing_publication": ()})
@@ -101,4 +128,3 @@ def test_validate_publication_outputs_rejects_missing_metadata(monkeypatch, tmp_
 
     with pytest.raises(FileNotFoundError):
         validation.validate_publication_outputs()
-

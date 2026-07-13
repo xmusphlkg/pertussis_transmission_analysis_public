@@ -49,7 +49,7 @@ plot_extended_data_figure_11_panel_d <- function(data) {
     geom_col(width = 0.65, colour = "black", linewidth = 0.15) +
     scale_x_continuous(labels = label_number(accuracy = 1), expand = expansion(mult = c(0.02, 0.08))) +
     scale_fill_manual(values = manuscript_temporal_colours, name = NULL) +
-    labs(x = "Median infant cases per 100k/y, 2025-2029", y = NULL) +
+    labs(x = "Median infant cases per 100k/y, 2027–2031", y = NULL) +
     extended_data_figure_11_panel_theme()
 }
 

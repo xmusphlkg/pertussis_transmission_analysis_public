@@ -42,7 +42,18 @@ def test_run_all_publication_diagnostics_match_makefile_simulation_layer(monkeyp
     ):
         monkeypatch.setattr(run_all, name, recorder(name))
 
-    monkeypatch.setattr(run_all, "load_configs", lambda: {"countries": {"A": {}, "B": {}}})
+    monkeypatch.setattr(
+        run_all,
+        "load_configs",
+        lambda: {
+            "countries": {"A": {}, "B": {}},
+            "baseline": {
+                "bayesian_uncertainty": {
+                    "publication_country_exclusions": {"B": "not accepted"}
+                }
+            },
+        },
+    )
     monkeypatch.setattr(run_all, "SELECTED_STRATEGIES", ("current", "timeliness_only"))
 
     run_all.main(n_jobs=7, include_bayesian=True, include_publication_diagnostics=True)
@@ -74,6 +85,14 @@ def test_run_all_publication_diagnostics_match_makefile_simulation_layer(monkeyp
     ][0]
     assert deterministic_grid_call == {"n_jobs": 7, "posterior_draws": 0}
 
+    bayesian_call = [
+        kwargs for name, _, kwargs in calls if name == "run_bayesian_uncertainty"
+    ][0]
+    assert bayesian_call["sampler"] == "state_space_exact_importance_cut"
+    assert bayesian_call["n_chains"] == 4
+    assert bayesian_call["fixed_parameters"] == ()
+    assert "grid_points" not in bayesian_call
+
     publication_grid_call = [
         kwargs
         for name, _, kwargs in calls
@@ -88,11 +107,14 @@ def test_run_all_publication_diagnostics_match_makefile_simulation_layer(monkeyp
         "run_deterministic_grid": False,
     }
 
+    hindcast_call = [kwargs for name, _, kwargs in calls if name == "run_hindcast"][0]
+    assert hindcast_call == {"n_jobs": 7}
+
     joint_psa_call = [kwargs for name, _, kwargs in calls if name == "run_joint_psa"][0]
     assert joint_psa_call == {
         "sample_size": 128,
         "seed": 20260521,
-        "countries": ("A", "B"),
+        "countries": ("A",),
         "strategies": ("current", "timeliness_only"),
         "n_jobs": 7,
         "sample_batch_size": 8,
@@ -100,3 +122,8 @@ def test_run_all_publication_diagnostics_match_makefile_simulation_layer(monkeyp
         "smoke_runtime": False,
         "keep_timeseries": False,
     }
+
+    calibration_call = [
+        args for name, args, _ in calls if name == "run_calibration_diagnostics"
+    ][0]
+    assert calibration_call == (("A",),)

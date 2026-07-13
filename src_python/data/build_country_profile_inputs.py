@@ -54,21 +54,40 @@ def _parse_year(value: Any) -> float:
 
 
 def _age_to_months(value: Any) -> float:
+    bounds = _age_to_month_bounds(value)
+    return bounds[0]
+
+
+def _age_to_month_bounds(value: Any) -> tuple[float, float]:
     text = str(value).strip()
     if not text:
-        return np.nan
-    match = re.match(r"(?i)^(?P<unit>[mwy])\s*(?P<value>\d+(?:\.\d+)?)", text)
-    if not match:
-        match = re.search(r"(?i)(?P<unit>[mwy])\s*(?P<value>\d+(?:\.\d+)?)", text)
-    if not match:
-        return np.nan
-    unit = match.group("unit").lower()
-    amount = float(match.group("value"))
-    if unit == "w":
-        return amount / 4.345238095238095
-    if unit == "y":
-        return amount * 12.0
-    return amount
+        return (np.nan, np.nan)
+
+    def _parse_part(part: str, last_unit: str = "") -> tuple[float, str]:
+        match = re.match(r"(?i)^\s*(?P<unit>[mwy]?)\s*(?P<value>\d+(?:\.\d+)?)", part)
+        if not match:
+            match = re.search(r"(?i)(?P<unit>[mwy]?)\s*(?P<value>\d+(?:\.\d+)?)", part)
+        if not match:
+            return (np.nan, last_unit)
+        unit = (match.group("unit") or last_unit).lower()
+        amount = float(match.group("value"))
+        if unit == "w":
+            return (amount / 4.345238095238095, unit)
+        if unit == "y":
+            return (amount * 12.0, unit)
+        if unit == "m":
+            return (amount, unit)
+        return (np.nan, unit)
+
+    parsed: list[float] = []
+    last_unit = ""
+    for part in text.split("-"):
+        months, last_unit = _parse_part(part, last_unit)
+        if not np.isnan(months):
+            parsed.append(months)
+    if not parsed:
+        return (np.nan, np.nan)
+    return (float(min(parsed)), float(max(parsed)))
 
 
 def load_data_sources() -> dict[str, Any]:
@@ -180,9 +199,17 @@ def _routine_age_pattern(routine_rows: pd.DataFrame) -> str:
 def _first_nonempty(values: pd.Series | list[Any] | tuple[Any, ...]) -> str:
     for value in values:
         text = str(value).strip()
-        if text and text.lower() != "nan":
+        if text and text.lower() not in {"nan", "na", "none", "null"}:
             return text
     return ""
+
+
+def _finite_or_nan(value: Any) -> float:
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return np.nan
+    return numeric if np.isfinite(numeric) else np.nan
 
 
 def _schedule_measurements(
@@ -202,8 +229,15 @@ def _schedule_measurements(
     adolescent_booster = any(_age_to_months(age) >= 120.0 for age in routine_ages)
     routine_dose_count = float(len(routine_ages))
 
-    routine_first_shot = np.nan
-    routine_last_shot = np.nan
+    routine_age_bounds = [
+        _age_to_month_bounds(age)
+        for age in routine_ages
+    ]
+    routine_age_lowers = [lower for lower, _ in routine_age_bounds if np.isfinite(lower)]
+    routine_age_uppers = [upper for _, upper in routine_age_bounds if np.isfinite(upper)]
+
+    routine_first_shot = min(routine_age_lowers) if routine_age_lowers else np.nan
+    routine_last_shot = max(routine_age_uppers) if routine_age_uppers else np.nan
     schedule_year = np.nan
     routine_scheduler_codes = sorted(
         {
@@ -214,8 +248,12 @@ def _schedule_measurements(
     )
     routine_scheduler_code = ";".join(routine_scheduler_codes)
     if summary_row is not None:
-        routine_first_shot = _clean_number(summary_row.get("TimeFirstShot", np.nan))
-        routine_last_shot = _clean_number(summary_row.get("TimeLastShot", np.nan))
+        summary_first_shot = _clean_number(summary_row.get("TimeFirstShot", np.nan))
+        summary_last_shot = _clean_number(summary_row.get("TimeLastShot", np.nan))
+        if not np.isfinite(routine_first_shot):
+            routine_first_shot = summary_first_shot
+        if not np.isfinite(routine_last_shot):
+            routine_last_shot = summary_last_shot
 
     if "YEAR" in detailed_schedule.columns:
         years = pd.to_numeric(detailed_schedule["YEAR"], errors="coerce").dropna()
@@ -260,16 +298,33 @@ def _summary_flag(summary_row: pd.Series | None, column: str) -> bool:
     return bool(not np.isnan(numeric) and numeric > 0.0)
 
 
-def _maternal_measurement(maternal_row: pd.Series | None, *, maternal_program: bool) -> dict[str, Any]:
+def _maternal_measurement(
+    maternal_row: pd.Series | None,
+    *,
+    maternal_program: bool,
+    fallback_coverage: Any = np.nan,
+    fallback_source: str = "",
+) -> dict[str, Any]:
     if maternal_row is None:
+        fallback = _finite_or_nan(fallback_coverage)
+        if maternal_program and np.isfinite(fallback):
+            fallback = float(np.clip(fallback, 0.0, 1.0))
+            return {
+                "maternal_coverage": fallback,
+                "maternal_coverage_raw": f"{fallback:.6g}",
+                "maternal_coverage_year": np.nan,
+                "maternal_coverage_category": "Configuration fallback for missing measured coverage",
+                "maternal_coverage_source_type": "configuration_assumption",
+                "maternal_coverage_source": fallback_source,
+            }
         if maternal_program:
             return {
-                "maternal_coverage": np.nan,
+                "maternal_coverage": 0.0,
                 "maternal_coverage_raw": "",
                 "maternal_coverage_year": np.nan,
-                "maternal_coverage_category": "",
-                "maternal_coverage_source_type": "missing",
-                "maternal_coverage_source": "",
+                "maternal_coverage_category": "Missing measured coverage; conservative zero fallback",
+                "maternal_coverage_source_type": "missing_conservative_zero",
+                "maternal_coverage_source": "No measured maternal pertussis coverage found in configured source.",
             }
         return {
             "maternal_coverage": 0.0,
@@ -365,7 +420,15 @@ def build_country_profile_inputs() -> pd.DataFrame:
         ].copy()
         schedule = _schedule_measurements(detailed, summary_row)
         maternal_row = _select_maternal_row(maternal_df, iso3=iso3)
-        maternal = _maternal_measurement(maternal_row, maternal_program=schedule["maternal_program"])
+        maternal = _maternal_measurement(
+            maternal_row,
+            maternal_program=schedule["maternal_program"],
+            fallback_coverage=meta.get("maternal_coverage", np.nan),
+            fallback_source=(
+                f"config/model_settings.yaml runtime.data_sources.countries.{country_code}.maternal_coverage "
+                "used because no measured maternal pertussis coverage row was available."
+            ),
+        )
         if not schedule["maternal_program"] and np.isnan(maternal["maternal_coverage_year"]):
             maternal["maternal_coverage_year"] = schedule.get("schedule_year", np.nan)
         dtp1 = _dtp_measurement(dtp_df, iso3=iso3, antigen="DTPCV1", source=dtp_source_name)

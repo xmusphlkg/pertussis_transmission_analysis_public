@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from src_python.model.compartments import StateIndex
-from src_python.model.outputs import initial_state, solve_model
+from src_python.model.outputs import GREGORIAN_YEAR_DAYS, initial_state, solve_model
 from src_python.model.parameters import PreparedParameters
 from src_python.simulation.common import load_configs, make_config, run_prepared_config, validate_run_metadata
 from src_python.utils.io import project_path, read_table
@@ -202,7 +202,10 @@ def _validate_summary_window(stem: str) -> None:
     configs = load_configs()
     baseline = configs["baseline"]
     expected_start = str(baseline.get("calendar", {}).get("analysis_start_date", ""))
-    expected_years = float(baseline["simulation"]["end_time"] - baseline["simulation"]["start_time"]) / 365.0
+    expected_years = (
+        float(baseline["simulation"]["end_time"] - baseline["simulation"]["start_time"])
+        / GREGORIAN_YEAR_DAYS
+    )
     summary_path = project_path("outputs", "summaries", f"{stem}_summary.csv")
     validate_run_metadata(stem)
     summary = read_table(summary_path)

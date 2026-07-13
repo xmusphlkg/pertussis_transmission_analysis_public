@@ -103,13 +103,14 @@ def rk4_solve_mcmc(
 
 class _RK4Result:
     """Minimal result object matching scipy solve_ivp interface."""
-    __slots__ = ("t", "y", "success", "message")
+    __slots__ = ("t", "y", "success", "message", "diagnostics")
 
     def __init__(self, t: np.ndarray, y: np.ndarray):
         self.t = t
         self.y = y
         self.success = True
         self.message = "RK4 fixed-step integration completed."
+        self.diagnostics = {}
 
 
 def solve_rk4(
@@ -139,11 +140,16 @@ def solve_rk4(
 # ---------------------------------------------------------------------------
 
 MCMC_SOLVER_OVERRIDES: dict[str, Any] = {
-    "burn_in_years": 3,        # short burn-in: equilibrium reached in ~2-3y
+    # Burn-in is a scientific initial-condition calculation, not an output
+    # resolution knob.  A previous 3-year shortcut changed Australian case
+    # exposure by orders of magnitude.  Production now uses a fixed calendar
+    # history origin; this value remains only for explicit fixed-duration
+    # compatibility configurations.
+    "burn_in_years": 15,
     "output_time_step": 30,    # monthly output during MCMC (annual cases only needed)
-    "solver_method": "RK45",   # scipy RK45 is faster than our Python RK4
-    "rtol": 1e-3,              # relaxed tolerance for MCMC (sufficient for likelihood)
-    "atol": 1e-5,
+    "solver_method": "RK45",
+    "rtol": 1e-4,
+    "atol": 1e-6,
 }
 
 

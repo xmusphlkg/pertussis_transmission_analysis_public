@@ -17,7 +17,7 @@ source(file.path(script_dir, "10_shared.R"))
 ## Section: extended-data figure setup.
 ## Purpose: data provenance and preprocessing audit.
 
-source_registry_path <- model_path("publication_inputs", "source_registry_table.parquet")
+source_registry_path <- model_path("manuscript_notes", "source_registry_table.parquet")
 source_registry <- if (file.exists(source_registry_path) && requireNamespace("arrow", quietly = TRUE)) {
   arrow::read_parquet(source_registry_path) %>%
     as_tibble()
@@ -57,7 +57,7 @@ file_inventory <- bind_rows(
   collect_files("Simulations", file.path("outputs", "simulations")),
   collect_files("Summaries", file.path("outputs", "summaries")),
   collect_files("Calibration/tables", file.path("outputs", "tables")),
-  collect_files("Manuscript notes", "publication_inputs")
+  collect_files("Manuscript notes", "manuscript_notes")
 ) %>%
   mutate(group = factor(group, levels = c(
     "Raw inputs", "Processed inputs", "Simulations", "Summaries",

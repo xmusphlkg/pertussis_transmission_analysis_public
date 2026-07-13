@@ -1,13 +1,18 @@
 from __future__ import annotations
 
-from src_python.simulation.common import load_configs, make_config, run_scenario_list
+from src_python.simulation.common import (
+    load_configs,
+    make_config,
+    publication_country_names,
+    run_scenario_list,
+)
 
 
 def main():
     configs = load_configs()
     resistance_name = configs["baseline"].get("baseline_resistance_scenario", "country_timeline")
     scenarios = []
-    for country in configs["countries"]:
+    for country in publication_country_names(configs):
         for name in configs["vaccines"]:
             scenarios.append(
                 {

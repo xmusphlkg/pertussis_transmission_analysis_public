@@ -1,0 +1,28 @@
+{
+  "absolute_burden_claims_allowed_for_all_countries": false,
+  "config_hash": "b106d90ead91ab3e4bb70d75528eae9a6fbe07163ccb1f1ad4f91639d790b8f8",
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "generated_at_utc": "2026-07-13T14:50:13.454772+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
+    "dirty": true
+  },
+  "row_counts": {
+    "annual_comparisons": 255,
+    "countries": 10
+  },
+  "schema_version": 1,
+  "scope": "source_reconciliation_not_model_validation",
+  "source_code_hash": "e8534ab05e79d6602892566cdce78b1e827ecf358d9314649a795e1e3b727ba6",
+  "stem": "observation_source_reconciliation"
+}

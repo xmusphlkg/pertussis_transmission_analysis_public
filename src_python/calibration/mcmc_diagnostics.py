@@ -19,6 +19,14 @@ import numpy as np
 import pandas as pd
 
 
+MAX_FATAL_RHAT = 1.05
+MIN_FATAL_BULK_ESS = 100.0
+MIN_FATAL_TAIL_ESS = 50.0
+MAX_RECOMMENDED_RHAT = 1.01
+MIN_RECOMMENDED_BULK_ESS = 400.0
+MIN_RECOMMENDED_TAIL_ESS = 400.0
+
+
 def split_chains(chains: list[np.ndarray]) -> list[np.ndarray]:
     """Split each chain in half to detect within-chain non-stationarity."""
     split = []
@@ -207,7 +215,8 @@ def compute_diagnostics(
     -------
     DataFrame with one row per non-constant (country, parameter) and columns:
         rhat, rhat_rank, bulk_ess, tail_ess, n_chains, total_draws,
-        converged (True if rhat < 1.05 and bulk_ess > 100)
+        converged (minimum validity floor) and recommended_converged (stricter
+        threshold used by final Figure 2c CrI audit)
 
     Fixed parameters are excluded by default. Including them makes R-hat and ESS
     either undefined or spuriously tiny, which obscures the diagnostics for
@@ -242,6 +251,7 @@ def compute_diagnostics(
                     "n_chains": len(values_by_chain),
                     "total_draws": sum(len(c) for c in values_by_chain),
                     "converged": False,
+                    "recommended_converged": False,
                     "mean": float("nan"),
                     "sd": float("nan"),
                 })
@@ -256,9 +266,19 @@ def compute_diagnostics(
 
             converged = (
                 np.isfinite(r_rank)
-                and r_rank < 1.05
+                and r_rank <= MAX_FATAL_RHAT
                 and np.isfinite(ess_bulk)
-                and ess_bulk > 100
+                and ess_bulk >= MIN_FATAL_BULK_ESS
+                and np.isfinite(ess_tail)
+                and ess_tail >= MIN_FATAL_TAIL_ESS
+            )
+            recommended_converged = (
+                np.isfinite(r_rank)
+                and r_rank <= MAX_RECOMMENDED_RHAT
+                and np.isfinite(ess_bulk)
+                and ess_bulk >= MIN_RECOMMENDED_BULK_ESS
+                and np.isfinite(ess_tail)
+                and ess_tail >= MIN_RECOMMENDED_TAIL_ESS
             )
 
             rows.append({
@@ -271,6 +291,7 @@ def compute_diagnostics(
                 "n_chains": len(values_by_chain),
                 "total_draws": total_draws,
                 "converged": bool(converged),
+                "recommended_converged": bool(recommended_converged),
                 "mean": float(np.mean(all_values)),
                 "sd": float(np.std(all_values, ddof=1)),
             })
@@ -283,30 +304,75 @@ def summarize_convergence(diagnostics: pd.DataFrame) -> dict[str, Any]:
     if diagnostics.empty:
         return {
             "all_converged": False,
+            "all_recommended_converged": False,
             "n_parameters_total": 0,
             "n_parameters_converged": 0,
+            "n_parameters_recommended_converged": 0,
             "worst_rhat": float("nan"),
             "min_bulk_ess": float("nan"),
             "min_tail_ess": float("nan"),
             "countries_with_issues": [],
+            "countries_with_recommended_issues": [],
+            "minimum_thresholds": {
+                "max_rhat": MAX_FATAL_RHAT,
+                "min_bulk_ess": MIN_FATAL_BULK_ESS,
+                "min_tail_ess": MIN_FATAL_TAIL_ESS,
+            },
+            "recommended_thresholds": {
+                "max_rhat": MAX_RECOMMENDED_RHAT,
+                "min_bulk_ess": MIN_RECOMMENDED_BULK_ESS,
+                "min_tail_ess": MIN_RECOMMENDED_TAIL_ESS,
+            },
         }
 
     n_total = len(diagnostics)
     n_converged = int(diagnostics["converged"].sum())
+    if "recommended_converged" in diagnostics.columns:
+        recommended = diagnostics["recommended_converged"].astype(bool)
+    else:
+        rhat = pd.to_numeric(diagnostics.get("rhat_rank"), errors="coerce")
+        bulk = pd.to_numeric(diagnostics.get("bulk_ess"), errors="coerce")
+        tail = pd.to_numeric(diagnostics.get("tail_ess"), errors="coerce")
+        recommended = (
+            rhat.le(MAX_RECOMMENDED_RHAT)
+            & bulk.ge(MIN_RECOMMENDED_BULK_ESS)
+            & tail.ge(MIN_RECOMMENDED_TAIL_ESS)
+        )
+    n_recommended = int(recommended.sum())
     worst_rhat = float(diagnostics["rhat_rank"].max()) if diagnostics["rhat_rank"].notna().any() else float("nan")
     min_bulk = float(diagnostics["bulk_ess"].min()) if diagnostics["bulk_ess"].notna().any() else float("nan")
     min_tail = float(diagnostics["tail_ess"].min()) if diagnostics["tail_ess"].notna().any() else float("nan")
 
     issues = diagnostics.loc[~diagnostics["converged"]]
     countries_with_issues = sorted(issues["country"].unique().tolist()) if not issues.empty else []
+    recommended_issues = diagnostics.loc[~recommended]
+    countries_with_recommended_issues = (
+        sorted(recommended_issues["country"].unique().tolist())
+        if not recommended_issues.empty
+        else []
+    )
 
     return {
         "all_converged": bool(n_converged == n_total),
+        "all_recommended_converged": bool(n_recommended == n_total),
         "n_parameters_total": n_total,
         "n_parameters_converged": n_converged,
+        "n_parameters_recommended_converged": n_recommended,
         "fraction_converged": n_converged / max(n_total, 1),
+        "fraction_recommended_converged": n_recommended / max(n_total, 1),
         "worst_rhat": worst_rhat,
         "min_bulk_ess": min_bulk,
         "min_tail_ess": min_tail,
         "countries_with_issues": countries_with_issues,
+        "countries_with_recommended_issues": countries_with_recommended_issues,
+        "minimum_thresholds": {
+            "max_rhat": MAX_FATAL_RHAT,
+            "min_bulk_ess": MIN_FATAL_BULK_ESS,
+            "min_tail_ess": MIN_FATAL_TAIL_ESS,
+        },
+        "recommended_thresholds": {
+            "max_rhat": MAX_RECOMMENDED_RHAT,
+            "min_bulk_ess": MIN_RECOMMENDED_BULK_ESS,
+            "min_tail_ess": MIN_RECOMMENDED_TAIL_ESS,
+        },
     }

@@ -1,0 +1,496 @@
+schema_version: 1
+
+# This registry describes epistemic uncertainty in model parameters.  A draw is
+# made once per simulation replicate and is held fixed for the entire ODE run.
+# It must not be confused with person-to-person variability or transmission
+# stochasticity.  The latter require process distributions (for example,
+# Erlang residence times or a negative-binomial offspring distribution).
+
+sampling_contract:
+  design: latin_hypercube_inverse_cdf
+  uncertainty_kind: epistemic
+  pairing: >
+    The same natural-history draw must be used for all strategies compared
+    within a replicate. Observation-only parameters must not be ranked against
+    true infection or symptomatic-case endpoints.
+  independence_caveat: >
+    Marginals are sampled independently only where no defensible joint
+    literature estimate is available. Country transmission and reporting
+    parameters remain a joint calibration/posterior problem, and contact
+    matrices require whole-matrix bootstrap or alternative-matrix scenarios.
+
+literature_sources:
+  eid_incubation_2026:
+    citation: Akhmetzhanov et al. Serial Interval and Intervention Efficiency in Pertussis Outbreak, South Korea, 2024.
+    url: https://doi.org/10.3201/eid3205.251304
+    evidence: >
+      Bayesian interval-censored fit favored a lognormal incubation period;
+      mean 7.3 days. The log-scale SD below represents uncertainty in the mean,
+      not the fitted person-level incubation distribution.
+  jid_incubation_2026:
+    citation: Achangwa et al. Incubation Period of Pertussis During a School-based Outbreak, South Korea, 2024.
+    url: https://doi.org/10.1093/infdis/jiag318
+    evidence: >
+      A later analysis of the outbreak estimated median incubation at 11 days
+      (95% credible interval 9-14) and a 95th percentile of 26 days, showing
+      material between-analysis uncertainty.
+  lavine_sirws_2013:
+    citation: Lavine et al. Immune Boosting Explains Regime-Shifts in Prevaccine-Era Pertussis Dynamics.
+    url: https://doi.org/10.1371/journal.pone.0072086
+    evidence: >
+      SIRWS fit estimated a 3.7-week infectious period (95% CI 2.8-4.2)
+      and natural-immunity duration 34 years (95% CI 17-66).
+  wearing_rohani_2009:
+    citation: Wearing and Rohani. Estimating the Duration of Pertussis Immunity Using Epidemiological Signatures.
+    url: https://doi.org/10.1371/journal.ppat.1000647
+    evidence: >
+      Supports staged rather than single-exponential residence times: Gamma
+      shape 4 for infectiousness and shape 2 in immunity-duration sensitivity.
+  ap_household_effectiveness:
+    citation: Schmitt et al. Efficacy of Acellular Pertussis Vaccine in Early Childhood After Household Exposure.
+    url: https://doi.org/10.1001/jama.1996.03530250041024
+    evidence: Household-exposure estimate of overall aP disease protection 88.7% (95% CI 76.6-94.6).
+  ap_waning_meta_analysis:
+    citation: McGirr and Fisman. Duration of pertussis immunity after DTaP immunization.
+    url: https://doi.org/10.1542/peds.2014-1729
+    evidence: >
+      Annual odds ratio 1.33 (95% CI 1.23-1.43) after the last DTaP dose;
+      conversion to a mean protection duration is explicitly a model mapping.
+  asymptomatic_household_review:
+    citation: Wiley et al. Asymptomatic Infection and Transmission of Pertussis in Households.
+    url: https://doi.org/10.1093/cid/ciz531
+    evidence: >
+      Confirms substantial asymptomatic infection but does not identify a
+      relative infectiousness parameter or an asymptomatic infectious period.
+  warfel_ap_transmission:
+    citation: Warfel et al. Acellular pertussis vaccines protect against disease but fail to prevent infection and transmission.
+    url: https://doi.org/10.1073/pnas.1314688110
+    evidence: >
+      Nonhuman-primate evidence supports residual colonization and transmission,
+      but does not identify separate human VE_sus, VE_inf, or VE_dur values.
+  early_pep_effectiveness:
+    citation: Alvarez et al. Effectiveness of Postexposure Prophylaxis against Pertussis.
+    url: https://doi.org/10.3201/eid2611.181418
+    evidence: >
+      PEP within 7 days was estimated 82.3% effective (95% CI 39.1-94.9);
+      later delivery was not clearly effective.
+  pep_guidance:
+    citation: CDC Postexposure Antimicrobial Prophylaxis guidance.
+    url: https://www.cdc.gov/pertussis/php/postexposure-prophylaxis/index.html
+    evidence: Guidance defines priority contacts, not a population coverage probability.
+  resistance_surveillance:
+    citation: Cai et al. China 2024 multicentre outbreak isolate study.
+    url: https://doi.org/10.1016/j.lanwpc.2025.101628
+    evidence: >
+      Rapid resistant-lineage expansion motivates a weak fitness prior near 1,
+      but the study does not estimate a relative transmission-fitness distribution.
+  reporting_capture_recapture:
+    citation: Crowcroft et al. Estimating the reporting of pertussis cases in Ontario.
+    url: https://doi.org/10.1371/journal.pone.0195984
+    evidence: >
+      Reporting is strongly age- and system-dependent. Country calibration is
+      primary; a broad multiplier is retained only as an observation-layer check.
+
+global_sensitivity:
+  sample_size: 128
+  random_seed: 20260430
+  description: >
+    Evidence-prior probabilistic sensitivity analysis for the baseline country
+    profile. Unit-cube Latin-hypercube draws are transformed through the
+    parameter-specific inverse CDFs below. Structural vaccine mechanisms,
+    asymptomatic infectiousness, boosting, treatment, and seasonality are kept
+    in their dedicated scenario analyses rather than assigned pseudo-empirical
+    probability distributions. Biological inputs are screened against the
+    primary under-18 symptomatic-case endpoint; the observation-only reporting
+    factor is screened against reported cases.
+  parameters:
+    latent_duration:
+      path: natural_history.latent_duration
+      distribution: truncated_lognormal
+      median: 9.0
+      log_sd: 0.30
+      low: 4.0
+      high: 21.0
+      unit: days
+      evidence_class: empirical_proxy_synthesis
+      source_ids: [eid_incubation_2026, jid_incubation_2026]
+      note: >
+        Two analyses give materially different incubation estimates (mean 7.3
+        days versus median 11 days). The broad synthesis is used only as a
+        proxy for the unobserved latent-period mean; incubation also includes
+        pre-symptomatic time and is not identical to latency.
+    vaccine_disease_efficacy:
+      apply: derive_VE_sym_from_overall_disease_efficacy
+      distribution: complement_truncated_lognormal
+      median: 0.887
+      log_sd: 0.374
+      low: 0.70
+      high: 0.97
+      unit: proportion
+      evidence_class: empirical_overall_effect
+      source_ids: [ap_household_effectiveness]
+      note: >
+        A lognormal relative-risk approximation reproduces the published
+        efficacy point estimate and confidence-limit asymmetry on the risk-ratio scale.
+        VE_sus remains the selected vaccine-mechanism scenario value. VE_sym is
+        derived so 1-(1-VE_sus)(1-VE_sym) equals this overall disease efficacy;
+        the two components are not sampled independently.
+    infectious_duration_symptomatic:
+      path: natural_history.infectious_duration_symptomatic
+      distribution: truncated_lognormal
+      median: 24.0
+      log_sd: 0.103
+      low: 14.0
+      high: 35.0
+      unit: days
+      evidence_class: model_fit_mean_uncertainty
+      source_ids: [lavine_sirws_2013]
+      process_distribution_note: Individual infectious periods are better approximated by Erlang shape 4.
+    asymptomatic_duration_ratio:
+      apply: scale_symptomatic_duration
+      target: natural_history.infectious_duration_asymptomatic
+      distribution: beta
+      mean: 0.667
+      sd: 0.178
+      low: 0.20
+      high: 0.999
+      unit: ratio
+      evidence_class: weak_model_prior
+      source_ids: [asymptomatic_household_review, warfel_ap_transmission]
+      note: >
+        Human data do not identify this ratio. Beta(4,2) is a transparent weak
+        prior used only because the ODE requires a mean duration; equality is
+        retained near the upper support.
+    natural_immunity_duration:
+      apply: split_sirws_immunity_duration
+      distribution: truncated_lognormal
+      median: 12227.5
+      log_sd: 0.346
+      low: 3650.0
+      high: 36500.0
+      unit: days
+      evidence_class: model_fit_mean_uncertainty
+      source_ids: [lavine_sirws_2013, wearing_rohani_2009]
+      note: >
+        The draw is split equally across R-to-W and W-to-S so the no-boosting
+        residence time is Gamma/Erlang shape 2 with the sampled total mean.
+    vaccine_protection_duration:
+      apply: split_vaccine_protection_duration
+      distribution: truncated_lognormal
+      median: 1596.0
+      log_sd: 0.30
+      low: 730.0
+      high: 4380.0
+      unit: days
+      evidence_class: literature_to_model_mapping
+      source_ids: [ap_waning_meta_analysis]
+      note: >
+        Approximate total-duration mapping from the meta-analysis estimate that
+        10% remain protected 8.5 years after the last dose. Under an equal
+        two-stage Erlang approximation this corresponds to about 4.4 years;
+        the draw is split equally between recent and waned vaccine-origin stages.
+        It is not a directly observed lognormal duration distribution.
+    PEP_effectiveness_sensitive:
+      path: PEP.effectiveness_sensitive
+      distribution: complement_truncated_lognormal
+      median: 0.823
+      log_sd: 0.633
+      low: 0.05
+      high: 0.99
+      unit: proportion
+      evidence_class: empirical_early_delivery_effect
+      source_ids: [early_pep_effectiveness]
+      note: >
+        A lognormal relative-risk approximation reproduces the published point
+        estimate and asymmetric interval. Applies to timely PEP; timing remains
+        a structural limitation of the reduced-form ODE.
+    PEP_coverage:
+      path: PEP.coverage_household_contacts
+      distribution: beta_pert
+      low: 0.05
+      mode: 0.30
+      high: 0.60
+      shape: 4.0
+      unit: proportion
+      evidence_class: implementation_prior
+      source_ids: [pep_guidance]
+      note: Guidance supports targeting but does not estimate coverage; this is explicitly an elicited implementation prior.
+    fitness_R:
+      path: transmission.fitness_R
+      distribution: truncated_lognormal
+      median: 1.0
+      log_sd: 0.15
+      low: 0.70
+      high: 1.25
+      unit: ratio
+      evidence_class: weak_model_prior
+      source_ids: [resistance_surveillance]
+      note: Centered at fitness neutrality; surveillance does not identify this distribution.
+    reporting_multiplier_factor:
+      path: reporting_multiplier
+      apply: multiply
+      distribution: truncated_lognormal
+      median: 1.0
+      log_sd: 0.35
+      low: 0.50
+      high: 1.50
+      unit: ratio
+      evidence_class: observation_model_transfer_prior
+      source_ids: [reporting_capture_recapture]
+      outcome: total_reported_cases
+      note: Observation-only factor; excluded from true infant-case sensitivity rankings.
+
+bayesian_joint:
+  description: >
+    Compatibility registry for the conditional state-space route and legacy
+    alternative targets. Transmission and reporting priors are specified
+    before country surveillance is used; calibrated values may initialize
+    numerical methods but must not replace these centres. In the publication
+    route, surveillance updates beta, reporting, and dated latent states only.
+    Parameters labelled weak_model_prior or vaccine_mechanism_scenario_prior
+    enter as an equal-mass external structural-prior design and are not updated
+    by the sparse country likelihood. Truncation bounds are part of each
+    normalized distribution, not separate proposal clipping rules. This block
+    must not be described as a nine-dimensional country posterior.
+  parameters:
+    beta_S:
+      path: transmission.beta_S
+      distribution: truncated_lognormal
+      median: 0.01
+      center_on_calibrated: false
+      log_sd: 1.25
+      low: 0.0005
+      high: 0.50
+      unit: transmission coefficient
+      evidence_class: weak_pre_surveillance_model_prior
+      source_ids: []
+      note: >
+        Weak pre-surveillance scale prior. Accepted country-calibrated beta_S
+        is an optimizer/state-reconstruction output, never a prior centre for
+        a likelihood that reuses the same surveillance observations.
+    reporting_multiplier:
+      path: reporting_multiplier
+      distribution: truncated_lognormal
+      median: 1.0
+      center_on_calibrated: false
+      log_sd: 0.35
+      low: 0.50
+      high: 1.50
+      unit: ratio
+      evidence_class: observation_model_transfer_prior
+      source_ids: [reporting_capture_recapture]
+      note: >
+        Pre-surveillance observation-layer multiplier centred at one.
+        Age-specific country reporting ranges are additionally enforced through
+        the reporting-rate prior penalty in the Bayesian target.
+    VE_sus:
+      path: vaccine.VE_sus
+      distribution: beta
+      mean: 0.15
+      sd: 0.10
+      low: 0.01
+      high: 0.60
+      unit: proportion
+      evidence_class: vaccine_mechanism_scenario_prior
+      source_ids: [ap_household_effectiveness, warfel_ap_transmission]
+      note: >
+        Centred on the selected symptom-protective baseline mechanism. Human
+        effectiveness studies identify overall disease protection, not this
+        acquisition component; the deliberately broad prior avoids treating
+        the decomposition as an empirical estimate.
+    VE_inf:
+      path: vaccine.VE_inf
+      distribution: beta
+      mean: 0.25
+      sd: 0.15
+      low: 0.05
+      high: 0.60
+      unit: proportion
+      evidence_class: vaccine_mechanism_scenario_prior
+      source_ids: [warfel_ap_transmission]
+      note: >
+        Residual transmission is supported qualitatively, but a human
+        infectiousness effect size is not identified. The prior is therefore
+        a broad model-mechanism prior centred on the baseline scenario.
+    VE_dur:
+      path: vaccine.VE_dur
+      distribution: beta
+      mean: 0.10
+      sd: 0.10
+      low: 0.001
+      high: 0.50
+      unit: proportion
+      evidence_class: weak_model_prior
+      source_ids: [warfel_ap_transmission]
+      note: >
+        No human study separately identifies an infectious-duration effect.
+        A small positive lower bound is required by the continuous logit
+        parameterization; the prior retains substantial mass near zero.
+    relative_infectiousness_asymptomatic:
+      path: transmission.relative_infectiousness_asymptomatic
+      distribution: beta
+      mean: 0.50
+      sd: 0.25
+      low: 0.05
+      high: 0.95
+      unit: ratio
+      evidence_class: weak_model_prior
+      source_ids: [asymptomatic_household_review]
+      note: >
+        Household evidence establishes asymptomatic infection but not its
+        relative infectiousness. This is intentionally a broad weak prior.
+    infectious_duration_symptomatic:
+      path: natural_history.infectious_duration_symptomatic
+      distribution: truncated_lognormal
+      median: 24.0
+      log_sd: 0.103
+      low: 14.0
+      high: 35.0
+      unit: days
+      evidence_class: model_fit_mean_uncertainty
+      source_ids: [lavine_sirws_2013]
+      process_distribution_note: Individual infectious periods are better approximated by Erlang shape 4.
+    infectious_duration_asymptomatic:
+      path: natural_history.infectious_duration_asymptomatic
+      distribution: truncated_lognormal
+      median: 17.3
+      log_sd: 0.30
+      low: 7.0
+      high: 28.0
+      unit: days
+      evidence_class: weak_model_prior
+      source_ids: [asymptomatic_household_review, warfel_ap_transmission]
+      note: >
+        Human data do not identify a mean asymptomatic infectious duration;
+        this broad prior is a transparent model requirement, not an empirical
+        individual-level duration distribution.
+    fitness_R:
+      path: transmission.fitness_R
+      distribution: truncated_lognormal
+      median: 1.0
+      log_sd: 0.15
+      low: 0.70
+      high: 1.25
+      unit: ratio
+      evidence_class: weak_model_prior
+      source_ids: [resistance_surveillance]
+      note: >
+        Centred on fitness neutrality. Surveillance supports successful spread
+        but does not identify a relative-fitness distribution.
+
+# These quantities are scientifically important but currently lack an
+# identifiable probability distribution in the available human literature.
+# They remain explicit structural scenarios/ranges and are not sampled by the
+# evidence-prior PSA above.
+structural_or_conditioned_parameters:
+  transmission.beta_S:
+    treatment: country_joint_posterior
+    reason: Must be inferred jointly with reporting and the contact matrix.
+  transmission.seasonal_amplitude:
+    treatment: country_calibration_or_temporal_scenario
+    reason: Country incidence determines the seasonal pattern.
+  transmission.multi_year_amplitude:
+    treatment: structural_scenario
+    reason: A zero-versus-enabled model choice is more defensible than a continuous literature prior.
+  vaccine.VE_sus:
+    treatment: fixed_mechanism_scenario
+    reason: Routine effectiveness studies do not separately identify acquisition and symptom effects.
+  vaccine.VE_inf:
+    treatment: fixed_mechanism_scenario_or_grid
+    reason: Human data establish residual transmission but not a relative infectiousness effect size.
+  vaccine.VE_dur:
+    treatment: fixed_mechanism_scenario_or_grid
+    reason: No human study identifies an independent infectious-duration effect.
+  transmission.relative_infectiousness_asymptomatic:
+    treatment: structural_scenario
+    reason: Household studies do not identify a relative infectiousness ratio.
+  immunity_model.boosting_efficiency:
+    treatment: structural_scenario
+    reason: Published boosting coefficients are not probabilities and cannot justify the configured 0-1 parameter directly.
+  treatment:
+    treatment: implementation_scenario
+    reason: Guidance specifies timing and five-day clearance, not the current reduced-form rate/effect scalars.
+  PEP.effectiveness_resistant:
+    treatment: resistance_management_scenario
+    reason: Standard macrolide PEP for confirmed high-level resistance should be treated as ineffective, not given a pseudo-empirical continuous prior.
+  contact_matrix.rows:
+    treatment: whole_matrix_bootstrap_or_alternative_matrix
+    reason: Cellwise-independent distributions destroy survey correlations and reciprocity.
+  age_groups.population:
+    treatment: fixed_data_input
+    reason: Population denominators are data inputs, not biological parameters.
+  age_groups.vaccine_coverage:
+    treatment: coherent_data_or_programme_scenario
+    reason: Coverage uncertainty should use a coherent WUENIC/data realization or an implementation scenario.
+  severity_model.age_hospitalization_probability:
+    treatment: country_conditioned_external_outcome_model
+    reason: Published hospitalization fractions condition on reported symptomatic cases and healthcare systems; they are not universal unvaccinated biological risks.
+  severity_model.age_death_given_hospitalization:
+    treatment: country_conditioned_or_structural_scenario
+    reason: Available deaths are too sparse to identify all eight age-specific conditional probabilities, and US hospital fatality cannot be transferred unchanged to ten countries.
+  severity_model.origin_VE_hospitalization:
+    treatment: refactor_before_sampling
+    reason: Only coarse case-conditional severity effects are identified; sampling every vaccine-origin state independently would be pseudo-precision.
+  severity_model.origin_VE_death:
+    treatment: refactor_before_sampling
+    reason: Published vaccine effectiveness against death is an overall pathway effect and would be double-counted if inserted again after VE_sus, VE_sym, and hospitalization protection.
+
+joint_rank_psa:
+  sample_size: 128
+  random_seed: 20260521
+  description: >
+    Non-uniform marginal priors for the selected-parameter rank-stability
+    diagnostic. Several are deliberately labelled implementation/model priors,
+    not literature-estimated posterior distributions. Observation-only
+    reporting parameters are excluded because the ranking endpoint is true
+    infant cases.
+  parameters:
+    infant_contact_multiplier:
+      distribution: truncated_lognormal
+      median: 1.0
+      log_sd: 0.18
+      low: 0.75
+      high: 1.50
+      evidence_class: contact_structure_scenario_prior
+    VE_inf_baseline:
+      distribution: beta_pert
+      low: 0.05
+      mode: 0.25
+      high: 0.60
+      shape: 4.0
+      evidence_class: vaccine_mechanism_scenario_prior
+    relative_infectiousness_asymptomatic:
+      distribution: beta
+      mean: 0.50
+      sd: 0.25
+      low: 0.05
+      high: 0.95
+      evidence_class: weak_model_prior
+    infectious_duration_asymptomatic:
+      distribution: truncated_lognormal
+      median: 17.3
+      log_sd: 0.30
+      low: 7.0
+      high: 28.0
+      evidence_class: weak_model_prior
+    fitness_R:
+      distribution: truncated_lognormal
+      median: 1.0
+      log_sd: 0.15
+      low: 0.70
+      high: 1.25
+      evidence_class: weak_model_prior
+    resistance_management_uptake:
+      distribution: beta_pert
+      low: 0.40
+      mode: 0.75
+      high: 1.00
+      shape: 4.0
+      evidence_class: implementation_prior
+    PEP_coverage_multiplier:
+      distribution: truncated_lognormal
+      median: 1.0
+      log_sd: 0.25
+      low: 0.50
+      high: 1.50
+      evidence_class: implementation_prior

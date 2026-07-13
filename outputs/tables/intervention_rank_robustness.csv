@@ -1,11 +1,11 @@
 scenario,median_rank,min_rank,max_rank,countries_ranked_first,countries_within_10_percent_of_best,median_infant_cases_per_100k,rank_basis
-combined_strategy,1.0,1.0,2.0,8,8,13.247371346923334,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
-next_generation_vaccine,2.0,1.0,2.0,2,2,31.571669671610053,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
-resistance_guided_treatment,3.0,3.0,4.0,0,0,298.0902986285401,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
-maternal_immunization,4.0,3.0,4.0,0,0,475.7083080685413,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
-cocooning_adjunct,5.0,5.0,6.0,0,0,536.6277988308507,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
-pregnancy_tdap_scaleup,6.0,5.0,7.0,0,0,581.196092558368,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
-targeted_pep_high_risk,7.0,7.0,8.0,0,0,603.9753448045275,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
-adolescent_booster,8.0,6.0,10.0,0,0,642.1021382358465,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
-current,9.0,8.0,10.0,0,0,643.4169379492055,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
-higher_child_coverage,10.0,7.0,10.0,0,0,646.6877814232105,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
+combined_strategy,1.0,1.0,1.0,9,9,494.544933708336,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
+next_generation_vaccine,2.0,2.0,2.0,0,1,1180.0514618632149,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
+resistance_guided_treatment,3.0,3.0,5.0,0,0,1765.4611013822894,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
+maternal_immunization,4.0,3.0,4.0,0,0,1970.2823656341568,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
+pregnancy_tdap_scaleup,5.0,5.0,7.0,0,0,2053.585464134855,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
+cocooning_adjunct,6.0,5.0,7.0,0,0,2189.624095056268,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
+targeted_pep_high_risk,7.0,4.0,10.0,0,0,2245.162454494325,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
+current,8.0,8.0,10.0,0,0,2323.781597753244,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
+adolescent_booster,9.0,7.0,9.0,0,0,2332.786912378127,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.
+higher_child_coverage,10.0,8.0,10.0,0,0,2430.323202998719,Empirical scenario-order distribution across 10 purposively selected country profiles; not a decision-ready policy comparison.

@@ -10,14 +10,14 @@ import pandas as pd
 from src_python.simulation.common import (
     load_configs,
     make_intervention_config,
+    publication_country_names,
     run_scenario_list,
+    set_analysis_horizon_years,
 )
 from src_python.simulation.run_routine_timeliness_sensitivity import _apply_timeliness
 from src_python.utils.io import project_path, write_dataframe
 
 
-NEAR_TERM_END_DATE = "2029-12-31"
-NEAR_TERM_END_DAYS = 365.0 * 5.0
 ROUTINE_DELIVERY_DELAY_REDUCTION = 0.25
 REFERENCE_SCENARIO = "no_shock_current_delivery"
 
@@ -64,7 +64,7 @@ SCENARIO_DEFINITIONS = (
         "contact_assumption": "mean",
         "routine_delay_reduction": ROUTINE_DELIVERY_DELAY_REDUCTION,
         "timeliness_recovery": True,
-        "note": "Combined COVID-19 shock with post-shock routine-timeliness recovery from 2025 onward.",
+        "note": "Combined historical COVID-19 shock with routine-timeliness recovery carried into prospective policy t0.",
     },
     {
         "scenario": "baseline_screened_contact_shock",
@@ -78,8 +78,7 @@ SCENARIO_DEFINITIONS = (
 
 def _set_near_term_runtime(config: dict[str, Any]) -> dict[str, Any]:
     out = deepcopy(config)
-    out.setdefault("calendar", {})["analysis_end_date"] = NEAR_TERM_END_DATE
-    out.setdefault("simulation", {})["end_time"] = NEAR_TERM_END_DAYS
+    set_analysis_horizon_years(out, 5)
     out["simulation"]["output_time_step"] = 30.0
     out["simulation"]["rtol"] = max(float(out["simulation"].get("rtol", 1e-5)), 1e-4)
     out["simulation"]["atol"] = max(float(out["simulation"].get("atol", 1e-7)), 1e-6)
@@ -141,7 +140,7 @@ def _build_country_config(
 def _build_scenarios(configs: dict[str, Any]) -> list[dict[str, Any]]:
     scenarios: list[dict[str, Any]] = []
     resistance_name = configs["baseline"].get("baseline_resistance_scenario", "country_timeline")
-    for country in configs["countries"]:
+    for country in publication_country_names(configs):
         for definition in SCENARIO_DEFINITIONS:
             config, vaccine_name = _build_country_config(country, definition)
             contact_assumption = str(definition["contact_assumption"])
@@ -162,7 +161,7 @@ def _build_scenarios(configs: dict[str, Any]) -> list[dict[str, Any]]:
                         "routine_delivery_delay_applied": bool(routine_delay > 0.0),
                         "routine_delivery_delay_reduction": routine_delay if routine_delay > 0.0 else np.nan,
                         "timeliness_recovery_applied": bool(definition["timeliness_recovery"]),
-                        "shock_recovery_window": "COVID-19 burn-in shock with 2025-2029 recovery readout",
+                        "shock_recovery_window": "historical COVID-19 shock with 2027-2031 prospective recovery readout",
                         "implementation_note": str(definition["note"]),
                     },
                 }

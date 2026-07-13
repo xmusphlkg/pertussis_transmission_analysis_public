@@ -7,15 +7,23 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from scipy.stats import qmc
 
 from src_python.simulation.common import (
+    config_fingerprint,
     current_run_metadata,
     execute_scenario_list,
     load_configs,
     make_config,
     make_intervention_config,
+    publication_country_names,
+    read_run_metadata,
+    source_code_fingerprint,
+    uncertainty_config_fingerprint,
     write_run_metadata,
+)
+from src_python.simulation.parameter_distributions import (
+    latin_hypercube_draw_table,
+    validate_distribution_spec,
 )
 from src_python.simulation.run_routine_timeliness_sensitivity import _apply_timeliness
 from src_python.utils.io import project_path, write_dataframe
@@ -46,12 +54,60 @@ HOUSEHOLD_LIKE_SOURCES = (
 GUIDED_MANAGEMENT_STRATEGIES = {"resistance_guided_treatment", "combined_strategy"}
 
 STEM = "joint_psa_rank_acceptability"
+UNCERTAINTY_SCHEMA_VERSION = 1
+SAMPLE_DESIGN = "latin_hypercube_inverse_cdf"
+EXPECTED_PARAMETER_NAMES = (
+    "infant_contact_multiplier",
+    "VE_inf_baseline",
+    "relative_infectiousness_asymptomatic",
+    "infectious_duration_asymptomatic",
+    "fitness_R",
+    "resistance_management_uptake",
+    "PEP_coverage_multiplier",
+)
 SAMPLE_PATH = project_path("outputs", "tables", "joint_psa_parameter_samples.csv")
 RANK_SAMPLE_PATH = project_path("outputs", "tables", "joint_psa_infant_rank_samples.csv")
 ACCEPTABILITY_PATH = project_path("outputs", "tables", "joint_psa_rank_acceptability.csv")
 RUN_SUMMARY_PATH = project_path("outputs", "summaries", "joint_psa_rank_acceptability_summary.csv")
 SIMULATION_SUMMARY_PATH = project_path("outputs", "summaries", "joint_psa_scenario_summary.csv")
 SIMULATION_TS_PATH = project_path("outputs", "simulations", "joint_psa_rank_acceptability.parquet")
+
+
+def _resume_metadata_compatibility(
+    metadata: dict[str, Any],
+    *,
+    expected_config_hash: str,
+    expected_uncertainty_hash: str,
+    expected_source_code_hash: str,
+) -> tuple[bool, str]:
+    """Require exact provenance before accepting cached PSA outcomes."""
+
+    expected = {
+        "config_hash": expected_config_hash,
+        "uncertainty_config_hash": expected_uncertainty_hash,
+        "source_code_hash": expected_source_code_hash,
+    }
+    mismatches = [
+        f"{key}={metadata.get(key, 'missing')} (expected {value})"
+        for key, value in expected.items()
+        if str(metadata.get(key, "")) != str(value)
+    ]
+    if mismatches:
+        return False, "; ".join(mismatches)
+    return True, "configuration, uncertainty registry, and source code hashes match"
+
+
+def _resume_is_current(configs: dict[str, Any], source_code_hash: str) -> tuple[bool, str]:
+    try:
+        metadata = read_run_metadata(STEM)
+    except (FileNotFoundError, ValueError) as exc:
+        return False, f"run metadata unavailable: {exc}"
+    return _resume_metadata_compatibility(
+        metadata,
+        expected_config_hash=config_fingerprint(configs),
+        expected_uncertainty_hash=uncertainty_config_fingerprint(configs),
+        expected_source_code_hash=source_code_hash,
+    )
 
 
 def _write_incremental(df: pd.DataFrame, path: Path) -> None:
@@ -165,7 +221,6 @@ def _apply_psa_sample(
     sample: dict[str, float],
 ) -> dict[str, Any]:
     out = deepcopy(config)
-    out["reporting_multiplier"] = float(sample["reporting_multiplier"])
     _scale_ve_inf(out, sample)
     _apply_infant_contact_multiplier(out, float(sample["infant_contact_multiplier"]))
     out["transmission"]["relative_infectiousness_asymptomatic"] = float(
@@ -188,49 +243,52 @@ def _apply_psa_sample(
     return out
 
 
-def _sample_table(sample_size: int, seed: int) -> pd.DataFrame:
-    names = [
-        "reporting_multiplier_unit",
-        "infant_contact_multiplier",
-        "VE_inf_baseline",
-        "relative_infectiousness_asymptomatic",
-        "infectious_duration_asymptomatic",
-        "fitness_R",
-        "resistance_management_uptake",
-        "PEP_coverage_multiplier",
-    ]
-    bounds = np.array(
-        [
-            [0.0, 1.0],
-            [0.75, 1.50],
-            [0.05, 0.60],
-            [0.25, 0.85],
-            [7.0, 21.0],
-            [0.70, 1.25],
-            [0.40, 1.00],
-            [0.50, 1.50],
-        ],
-        dtype=float,
-    )
-    sampler = qmc.LatinHypercube(d=len(names), seed=seed)
-    matrix = qmc.scale(sampler.random(sample_size), bounds[:, 0], bounds[:, 1])
-    df = pd.DataFrame(matrix, columns=names)
-    log_low, log_high = np.log(0.50), np.log(1.50)
-    df["reporting_multiplier"] = np.exp(log_low + df.pop("reporting_multiplier_unit") * (log_high - log_low))
+def _default_parameter_specs() -> dict[str, dict[str, Any]]:
+    registry = load_configs().get("parameter_distributions", {})
+    settings = registry.get("joint_rank_psa", {}) if isinstance(registry, dict) else {}
+    specs = settings.get("parameters", {}) if isinstance(settings, dict) else {}
+    if specs:
+        return specs
+    # Backward-compatible fallback for installations without the registry.
+    return {
+        "infant_contact_multiplier": {"min": 0.75, "max": 1.50},
+        "VE_inf_baseline": {"min": 0.05, "max": 0.60},
+        "relative_infectiousness_asymptomatic": {"min": 0.25, "max": 0.85},
+        "infectious_duration_asymptomatic": {"min": 7.0, "max": 21.0},
+        "fitness_R": {"min": 0.70, "max": 1.25},
+        "resistance_management_uptake": {"min": 0.40, "max": 1.00},
+        "PEP_coverage_multiplier": {"min": 0.50, "max": 1.50},
+    }
+
+
+def _sample_table(
+    sample_size: int,
+    seed: int,
+    parameter_specs: dict[str, dict[str, Any]] | None = None,
+    *,
+    schema_version: int = UNCERTAINTY_SCHEMA_VERSION,
+) -> pd.DataFrame:
+    specs = parameter_specs or _default_parameter_specs()
+    if set(specs) != set(EXPECTED_PARAMETER_NAMES):
+        raise ValueError(
+            "Joint rank PSA parameter registry must match the implemented semantic contract; "
+            f"expected={list(EXPECTED_PARAMETER_NAMES)}, actual={list(specs)}"
+        )
+    df = latin_hypercube_draw_table(specs, sample_size, seed=seed)
+    if int(schema_version) != UNCERTAINTY_SCHEMA_VERSION:
+        raise ValueError(
+            f"Unsupported uncertainty schema version {schema_version}; "
+            f"this runner implements version {UNCERTAINTY_SCHEMA_VERSION}"
+        )
+    df.insert(0, "uncertainty_schema_version", int(schema_version))
     df["psa_sample_id"] = np.arange(1, sample_size + 1, dtype=int)
-    df["sample_design"] = "latin_hypercube_joint"
+    df["sample_design"] = SAMPLE_DESIGN
     return df[
         [
             "psa_sample_id",
             "sample_design",
-            "reporting_multiplier",
-            "infant_contact_multiplier",
-            "VE_inf_baseline",
-            "relative_infectiousness_asymptomatic",
-            "infectious_duration_asymptomatic",
-            "fitness_R",
-            "resistance_management_uptake",
-            "PEP_coverage_multiplier",
+            "uncertainty_schema_version",
+            *EXPECTED_PARAMETER_NAMES,
         ]
     ]
 
@@ -280,7 +338,7 @@ def _build_scenarios_for_sample(
                     "metadata": {
                         "country": country,
                         "strategy": strategy,
-                        **{key: value for key, value in sample.items() if key != "sample_design"},
+                        **sample,
                     },
                 }
             )
@@ -325,15 +383,11 @@ def _rank_sample_summary(summary: pd.DataFrame) -> pd.DataFrame:
         "annualized_infant_cases_per_100k",
         "relative_reduction_infant_cases_vs_current",
         "within_10_percent_of_best",
-        "reporting_multiplier",
-        "infant_contact_multiplier",
-        "VE_inf_baseline",
-        "relative_infectiousness_asymptomatic",
-        "infectious_duration_asymptomatic",
-        "fitness_R",
-        "resistance_management_uptake",
-        "PEP_coverage_multiplier",
+        *EXPECTED_PARAMETER_NAMES,
     ]
+    for optional in ("sample_design", "uncertainty_schema_version"):
+        if optional in out.columns:
+            keep.append(optional)
     return out.loc[:, keep].sort_values(["psa_sample_id", "country", "rank", "strategy"]).reset_index(drop=True)
 
 
@@ -429,6 +483,50 @@ def _completed_rank_samples(
     return completed, existing
 
 
+def _retain_matching_completed_draws(
+    completed: set[int],
+    existing: pd.DataFrame,
+    samples: pd.DataFrame,
+) -> tuple[set[int], pd.DataFrame]:
+    """Reject resumed cells generated under a different parameter design."""
+
+    if not completed or existing.empty:
+        return set(), pd.DataFrame()
+    parameter_columns = [
+        column
+        for column in samples.columns
+        if column not in {"psa_sample_id", "sample_design", "uncertainty_schema_version"}
+    ]
+    expected = samples.set_index("psa_sample_id")
+    matching: set[int] = set()
+    for sample_id in sorted(completed):
+        rows = existing.loc[existing["psa_sample_id"].eq(sample_id)]
+        if rows.empty or sample_id not in expected.index:
+            continue
+        first = rows.iloc[0]
+        if any(column not in first.index for column in parameter_columns):
+            continue
+        if "sample_design" not in first.index or str(first["sample_design"]) != str(
+            expected.loc[sample_id, "sample_design"]
+        ):
+            continue
+        if "uncertainty_schema_version" not in first.index:
+            continue
+        try:
+            actual_schema = int(first["uncertainty_schema_version"])
+            target_schema = int(expected.loc[sample_id, "uncertainty_schema_version"])
+        except (TypeError, ValueError):
+            continue
+        if actual_schema != target_schema:
+            continue
+        actual = pd.to_numeric(first[parameter_columns], errors="coerce").to_numpy(dtype=float)
+        target = expected.loc[sample_id, parameter_columns].to_numpy(dtype=float)
+        if np.isfinite(actual).all() and np.allclose(actual, target, rtol=1e-10, atol=1e-12):
+            matching.add(int(sample_id))
+    retained = existing.loc[existing["psa_sample_id"].isin(matching)].copy()
+    return matching, retained
+
+
 def _complete_outcome_rows(
     outcomes: pd.DataFrame,
     *,
@@ -475,11 +573,41 @@ def run_joint_psa(
     keep_timeseries: bool,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     configs = load_configs()
-    samples = _sample_table(sample_size, seed)
+    registry = configs.get("parameter_distributions", {})
+    schema_version = int(registry.get("schema_version", UNCERTAINTY_SCHEMA_VERSION))
+    if schema_version != UNCERTAINTY_SCHEMA_VERSION:
+        raise ValueError(
+            f"Unsupported uncertainty schema version {schema_version}; "
+            f"this runner implements version {UNCERTAINTY_SCHEMA_VERSION}"
+        )
+    joint_settings = registry.get("joint_rank_psa", {}) if isinstance(registry, dict) else {}
+    parameter_specs = joint_settings.get("parameters", {}) if isinstance(joint_settings, dict) else {}
+    parameter_specs = parameter_specs or _default_parameter_specs()
+    source_code_hash = source_code_fingerprint()
+    samples = _sample_table(
+        sample_size,
+        seed,
+        parameter_specs,
+        schema_version=schema_version,
+    )
     write_dataframe(samples, SAMPLE_PATH)
 
     if resume:
-        completed, completed_rank = _completed_rank_samples(RANK_SAMPLE_PATH, countries=countries, strategies=strategies)
+        resume_current, resume_reason = _resume_is_current(configs, source_code_hash)
+        if resume_current:
+            completed, completed_rank = _completed_rank_samples(
+                RANK_SAMPLE_PATH,
+                countries=countries,
+                strategies=strategies,
+            )
+            completed, completed_rank = _retain_matching_completed_draws(
+                completed,
+                completed_rank,
+                samples,
+            )
+        else:
+            print(f"Ignoring cached joint-PSA outcomes: {resume_reason}")
+            completed, completed_rank = set(), pd.DataFrame()
     else:
         completed, completed_rank = set(), pd.DataFrame()
     outcome_frames = [completed_rank] if not completed_rank.empty else []
@@ -570,15 +698,13 @@ def run_joint_psa(
             "sample_batch_size": int(batch_size),
             "smoke_runtime": bool(smoke_runtime),
             "keep_timeseries": bool(keep_timeseries),
-            "parameter_ranges": {
-                "reporting_multiplier": [0.50, 1.50],
-                "infant_contact_multiplier": [0.75, 1.50],
-                "VE_inf_baseline": [0.05, 0.60],
-                "relative_infectiousness_asymptomatic": [0.25, 0.85],
-                "infectious_duration_asymptomatic": [7.0, 21.0],
-                "fitness_R": [0.70, 1.25],
-                "resistance_management_uptake": [0.40, 1.00],
-                "PEP_coverage_multiplier": [0.50, 1.50],
+            "uncertainty_schema_version": schema_version,
+            "uncertainty_config_hash": uncertainty_config_fingerprint(configs),
+            "source_code_hash": source_code_hash,
+            "sample_design": SAMPLE_DESIGN,
+            "parameter_distributions": {
+                name: validate_distribution_spec(spec, context=f"joint PSA parameter {name!r}")
+                for name, spec in parameter_specs.items()
             },
         }
     )
@@ -594,11 +720,21 @@ def _parse_csv_tuple(value: str | None, default: tuple[str, ...]) -> tuple[str, 
 
 def main() -> tuple[pd.DataFrame, pd.DataFrame]:
     configs = load_configs()
+    registry = configs.get("parameter_distributions", {})
+    joint_settings = registry.get("joint_rank_psa", {}) if isinstance(registry, dict) else {}
     parser = argparse.ArgumentParser(
         description="Run selected-parameter joint PSA rank-stability diagnostics for infant-case interventions."
     )
-    parser.add_argument("--samples", type=int, default=int(configs["sensitivity"].get("sample_size", 48)))
-    parser.add_argument("--seed", type=int, default=20260521)
+    parser.add_argument(
+        "--samples",
+        type=int,
+        default=int(joint_settings.get("sample_size", 128)),
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=int(joint_settings.get("random_seed", 20260521)),
+    )
     parser.add_argument("--countries", type=str, default="")
     parser.add_argument("--strategies", type=str, default=",".join(SELECTED_STRATEGIES))
     parser.add_argument("--n-jobs", type=int, default=None)
@@ -613,7 +749,14 @@ def main() -> tuple[pd.DataFrame, pd.DataFrame]:
     parser.add_argument("--keep-timeseries", action="store_true", help="Persist PSA time series; off by default to avoid huge files.")
     args = parser.parse_args()
 
-    countries = _parse_csv_tuple(args.countries, tuple(configs["countries"].keys()))
+    publication_countries = tuple(publication_country_names(configs))
+    countries = _parse_csv_tuple(args.countries, publication_countries)
+    outside_publication_scope = sorted(set(countries) - set(publication_countries))
+    if outside_publication_scope:
+        raise ValueError(
+            "Joint PSA publication outputs exclude countries outside the prespecified "
+            "publication set: " + ", ".join(outside_publication_scope)
+        )
     strategies = _parse_csv_tuple(args.strategies, SELECTED_STRATEGIES)
     return run_joint_psa(
         sample_size=int(args.samples),

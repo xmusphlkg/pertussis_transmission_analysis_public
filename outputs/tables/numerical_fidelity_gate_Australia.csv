@@ -1,0 +1,2 @@
+country,case_event_definition,coarse_rtol,coarse_atol,refined_rtol,refined_atol,prediction_l1_relative_difference,prediction_max_interval_relative_difference,nll_per_interval_absolute_difference,coarse_nfev,refined_nfev,coarse_min_state,refined_min_state,numerical_fidelity_passed
+Australia,symptomatic_onset,0.0001,1e-06,1e-05,1e-07,5.39692704734913e-06,1.5012688812166393e-05,0.03397835737875236,970,1258,0.0,0.0,True

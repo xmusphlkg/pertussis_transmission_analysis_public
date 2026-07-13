@@ -10,6 +10,7 @@ from src_python.simulation.common import (
     apply_intervention_definition,
     load_configs,
     make_config,
+    publication_country_names,
     run_scenario_list,
 )
 from src_python.simulation.run_routine_timeliness_sensitivity import _apply_timeliness, _set_summary_runtime
@@ -126,7 +127,7 @@ def _build_scenarios(configs: dict[str, Any]) -> list[dict[str, Any]]:
     scenarios: list[dict[str, Any]] = []
     resistance_name = configs["baseline"].get("baseline_resistance_scenario", "country_timeline")
     vaccine_name = configs["baseline"].get("baseline_vaccine_scenario", "symptom_protective")
-    for country in configs["countries"]:
+    for country in publication_country_names(configs):
         for definition in PORTFOLIO_DEFINITIONS:
             portfolio = definition["portfolio"]
             layers = ";".join(definition["layers"])

@@ -184,8 +184,8 @@ prepare_figure_3_data <- function(inputs = load_figure_3_inputs()) {
       ),
       effect_label = if_else(
         is.na(interval_label),
-        lancet_percent(median_relative_case_reduction, accuracy = 1),
-        paste0(lancet_percent(median_relative_case_reduction, accuracy = 1), "\n", interval_label)
+        lancet_percent(median_relative_case_reduction, accuracy = 0.1),
+        paste0(lancet_percent(median_relative_case_reduction, accuracy = 0.1), "\n", interval_label)
       ),
       effect_text_colour = if_else(median_relative_case_reduction >= 0.30, "white", lancet_text_colour)
     )

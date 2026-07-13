@@ -291,8 +291,8 @@ def _routine_delivery_multiplier_at(t: float, params: PreparedParameters) -> flo
     if not periods:
         return 1.0
 
-    calendar_date = params.calendar_date_at(t)
-    if calendar_date is None:
+    calendar_ordinal = params.calendar_ordinal_at(t)
+    if calendar_ordinal is None:
         return 1.0
 
     from datetime import date as date_type
@@ -328,13 +328,16 @@ def _routine_delivery_multiplier_at(t: float, params: PreparedParameters) -> flo
     parsed.sort(key=lambda item: item[0])
     multiplier = 1.0
     for start, end, reduction, _ramp_days in parsed:
-        if start <= calendar_date <= end:
+        start_ordinal = float(start.toordinal())
+        end_exclusive = float(end.toordinal() + 1)
+        if start_ordinal <= calendar_ordinal < end_exclusive:
             multiplier = min(multiplier, 1.0 - reduction)
 
     for _start, end, reduction, ramp_days in parsed:
-        days_after = (calendar_date - end).days
-        if 0 < days_after <= ramp_days:
-            progress = 1.0 if ramp_days <= 0.0 else days_after / ramp_days
+        ramp_start = float(end.toordinal() + 1)
+        days_after = calendar_ordinal - ramp_start
+        if ramp_days > 0.0 and 0.0 <= days_after < ramp_days:
+            progress = days_after / ramp_days
             multiplier = min(multiplier, (1.0 - reduction) + reduction * progress)
 
     return float(np.clip(multiplier, 0.0, 1.0))
@@ -381,8 +384,14 @@ def _add_importation(
             where=susceptible_pool > 0,
         )
         from_origin = imported * share
-        dy[:, c[compartment]] -= np.minimum(from_origin, comp[compartment])
-        imported_by_origin[origin] = from_origin
+        # Importation is represented as an S -> E transfer, not as an external
+        # population birth.  When a requested flow exceeds the susceptible
+        # source pool, both the removal and the exposed-state addition must use
+        # the same supply-limited amount.  Using the uncapped request on the
+        # destination side silently creates population mass.
+        moved = np.minimum(from_origin, np.maximum(comp[compartment], 0.0))
+        dy[:, c[compartment]] -= moved
+        imported_by_origin[origin] = moved
     for origin, imported_origin in imported_by_origin.items():
         dy[:, c[exposed_name("R", origin)]] += imported_origin * resistant_fraction
         dy[:, c[exposed_name("S", origin)]] += imported_origin * (1.0 - resistant_fraction)

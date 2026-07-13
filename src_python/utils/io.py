@@ -49,7 +49,7 @@ def ensure_output_dirs() -> None:
         "outputs/figures",
         "outputs/tables",
         "outputs/metadata",
-        "publication_inputs",
+        "manuscript_notes",
     ]:
         project_path(relative).mkdir(parents=True, exist_ok=True)
 
@@ -59,7 +59,7 @@ def write_dataframe(df: pd.DataFrame, path: str | Path) -> None:
 
     By default, large simulation outputs (outputs/simulations/) are written
     as parquet only to avoid multi-GB CSV files.  All other paths (summaries,
-    tables, publication_inputs, etc.) still receive both formats so that
+    tables, manuscript_notes, etc.) still receive both formats so that
     downstream R scripts and spreadsheet tools can read them directly.
 
     Set the environment variable PERTUSSIS_WRITE_CSV=1 to force CSV output

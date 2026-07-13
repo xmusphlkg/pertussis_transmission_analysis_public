@@ -249,23 +249,38 @@ runtime:
       time_step: 1
       output_time_step: 7
       burn_in_years: 15
+      # A fixed calendar origin removes the arbitrary epidemic-phase changes
+      # caused by asking for 15 versus 30 versus 50 years of non-autonomous
+      # burn-in.  Alternative origins are evaluated as structural sensitivity.
+      initial_state_strategy: fixed_calendar_origin
+      history_start_date: "2005-01-01"
       solver_method: RK45
+      # Full compiled RHS is the production backend.  The independently
+      # maintained Python equations remain available as the parity reference.
+      rhs_backend: numba
+      strict_likelihood_errors: true
       rtol: 1.0e-5
       atol: 1.0e-7
       n_jobs: -1
     calendar:
       enabled: true
-      analysis_start_date: "2025-01-01"
+      # Forecasting begins after the latest partial 2026 surveillance window;
+      # no observed case interval is allowed to occur after policy t0.
+      analysis_start_date: "2027-01-01"
+      # WPP 2024 age-specific population and birth trajectories embedded in
+      # every country profile end in 2050.  Do not silently freeze demography
+      # beyond the source support.
       analysis_end_date: "2050-12-31"
       note: >
         Simulation time is stored as days since analysis_start_date; end_time is
-        derived from (analysis_end_date - analysis_start_date). Output rows
+        the half-open solver boundary immediately after the inclusive
+        analysis_end_date. Output rows
         include calendar_date/calendar_year. Calibration overrides these dates
         to the observed surveillance window so modelled and observed annual
         cases align by real calendar year, with reporting intervals split across
-        calendar-year boundaries. Start date set to 2025-01-01 to allow
-        short-term out-of-sample validation against 2025 surveillance data
-        before the forward projection period.
+        calendar-year boundaries. Rolling-origin validation withholds each
+        eligible historical final year; the prospective policy horizon begins
+        on 2027-01-01, after the latest partial 2026 surveillance interval.
     age_groups:
       - label: infant_0_2m
         population: 206666.667
@@ -332,13 +347,14 @@ runtime:
       multi_year_phase: 0
       npi_contact_reduction:
         enabled: true
-        reduction_column: baseline_contact_reduction
+        reduction_column: contact_reduction_mean
         note: >
           Loads country-specific COVID-19/NPI effective contact-reduction
           periods from data/raw/covid_npi_contact_reduction_timeline.csv. The
-          baseline uses the calibration-screened baseline_contact_reduction
-          column; mean/lower/upper proxy values are reserved for temporal
-          sensitivity analyses because nonzero shocks can distort
+          baseline uses the external-evidence mean. Lower/upper proxy values
+          are reserved for temporal sensitivity analyses; the historical
+          calibration-screened column is retained only for audit because it can
+          encode outcome-informed model selection and must not drive forecasts.
           country-specific post-pandemic peak timing. Contact shocks must not be
           encoded in diagnostic/reporting multipliers.
     importation:
@@ -355,20 +371,25 @@ runtime:
         middle_adult_40_64y: 0.16
         elderly_65plus: 0.09
     natural_history:
-      latent_duration: 8.0
-      infectious_duration_symptomatic: 21.0
-      infectious_duration_asymptomatic: 14.0
+      # Reference values are the medians of the retained epistemic
+      # distributions in parameter_distributions.yaml. They describe
+      # population-level mean durations, not individual residence-time shapes.
+      latent_duration: 9.0
+      infectious_duration_symptomatic: 24.0
+      infectious_duration_asymptomatic: 17.3
       maternal_protection_duration: 90.0
-      recovered_immunity_duration: 3285.0
-      vaccine_protection_duration: 1825.0
-      # SIRWS boosting model parameters (Lavine et al. 2011 PNAS)
+      recovered_immunity_duration: 12227.5
+      vaccine_protection_duration: 798.0
+      # SIRWS boosting model parameters (Lavine et al. 2013 PLoS ONE;
+      # Wearing & Rohani 2009). Equal R and W stages give a shape-2
+      # no-boosting residence-time approximation with total mean 33.5 years.
       # R_to_W_duration: time for fully immune (R) to transition to waned-but-boostable (W)
       # W_to_S_duration: time for waned (W) to lose all immunity and become susceptible (S)
       # If boosting is active, the effective immunity duration depends on pathogen circulation:
       #   - High circulation: W is continuously boosted back to R → long effective immunity
       #   - Zero circulation (e.g., COVID NPIs): W → S at rate 1/W_to_S_duration → immunity debt
-      R_to_W_duration: 1825.0  # 5 years: R → W (initial waning of sterilizing immunity)
-      W_to_S_duration: 3650.0  # 10 years: W → S (complete loss if not boosted)
+      R_to_W_duration: 6113.75
+      W_to_S_duration: 6113.75
     immunity_model:
       mode: maternal_dose_history
       # SIRWS boosting control
@@ -388,7 +409,9 @@ runtime:
       maternal_relative_effect: 0.75
       dose1_relative_effect: 0.45
       dose2_relative_effect: 0.75
-      waned_vaccine_duration: 3650.0
+      # Equal recent/waned stages give total mean protection of 1596 days,
+      # the literature-to-model median retained in the uncertainty registry.
+      waned_vaccine_duration: 798.0
       initial_recent_fraction: 0.35
       initial_recent_fraction_by_age:
         infant_0_2m: 1.00
@@ -402,6 +425,10 @@ runtime:
     observation_model:
       enabled: true
       structure: symptomatic_to_care_to_test_to_report
+      # Surveillance cases are attached to progression into symptomatic
+      # infection, not to the earlier infection event.  This includes imported
+      # exposures and W_natural breakthrough infections by construction.
+      case_event_definition: symptomatic_onset
       diagnostic_standards:
         enabled: true
         multiplier_column: relative_detection_prior_mean
@@ -424,12 +451,62 @@ runtime:
         selection pressure through the treatment pathway.
     severity_model:
       residual_maternal_protection_for_unvaccinated_origin: false
+      # P(hospitalization | symptomatic disease) for the unvaccinated baseline.
+      # The 0-2 month value sits within the documented 41-67% hospitalized range;
+      # these reduced-form risks can also reflect healthcare ascertainment.
+      age_hospitalization_probability:
+        infant_0_2m: 0.60
+        infant_3_11m: 0.25
+        child_1_4y: 0.02
+        child_5_9y: 0.003
+        adolescent_10_17y: 0.001
+        young_adult_18_39y: 0.0008
+        middle_adult_40_64y: 0.002
+        elderly_65plus: 0.008
+      # P(death | hospitalization); 0.020 for 0-2 months is within the
+      # documented 0.015-0.025 range, with a lower 0.005 value at 3-11 months.
+      age_death_given_hospitalization:
+        infant_0_2m: 0.020
+        infant_3_11m: 0.005
+        child_1_4y: 0.0003
+        child_5_9y: 0.0001
+        adolescent_10_17y: 0.00005
+        young_adult_18_39y: 0.00005
+        middle_adult_40_64y: 0.0003
+        elderly_65plus: 0.002
+      # Conditional severity effects are cascade mappings by origin, not eight
+      # independently estimated vaccine-effectiveness parameters.
+      origin_conditional_ve_hospitalization:
+        unvaccinated: 0.0
+        maternal: 0.50
+        dose1_recent: 0.50
+        dose1_waned: 0.20
+        dose2_recent: 0.65
+        dose2_waned: 0.30
+        recent: 0.75
+        waned: 0.35
+      origin_conditional_ve_death:
+        unvaccinated: 0.0
+        maternal: 0.80
+        dose1_recent: 0.60
+        dose1_waned: 0.25
+        dose2_recent: 0.70
+        dose2_waned: 0.35
+        recent: 0.80
+        waned: 0.40
       note: >
         Maternal protection against hospitalization/death is applied to the
         explicit maternal-origin compartment. Population-average maternal
         coverage is not applied to all unvaccinated-origin infants in the
         baseline, because that would assign protection to infants whose mothers
-        were not vaccinated.
+        were not vaccinated. The maternal 0.50 VE against hospitalization given
+        symptomatic disease is a structural cascade mapping, not a directly
+        estimated conditional effect: with maternal_relative_effect=0.75,
+        maternal_VE_sus=0.55, and maternal_VE_sym=0.92, it gives approximately
+        91% overall effectiveness against hospitalization
+        [1-(1-0.75*0.55)(1-0.75*0.92)(1-0.50)]. Other origin-specific
+        conditional effects are structural severity assumptions rather than
+        direct estimates at every dose/waning state.
     resistance:
       target_prevalence_at_analysis_start: 0.30
       importation_fraction: 0.30
@@ -459,19 +536,52 @@ runtime:
       enabled: false
       allow_stale_parameter_overlay: false
       default_country_profile: Australia
-      method: staged_fast
+      method: state_space_map
       objective: negative_binomial_reporting_interval_cases
+      # Deterministic transmission does not represent notification-delay and
+      # short-range surveillance autocorrelation; fit annual totals and retain
+      # native intervals for posterior-predictive validation.
+      likelihood_observation_frequency: annual
       dispersion: 50.0
       maxiter: 12
       n_starts: 1
+      beta_grid_points: 11
+      beta_grid_refinements: 2
+      initial_phase_grid_points: 9
       recent_years: 6
       mean_fit_penalty_weight: 50000.0
+      process_model:
+        type: latent_log_beta_ar1_map
+        ar1_rho: 0.50
+        log_beta_innovation_sd: 0.60
+        log_beta_prior_sd: 1.00
+        log_reporting_prior_sd: 0.50
+        beta_S_bounds: [0.0005, 0.50]
+        reporting_multiplier_bounds: [0.50, 1.50]
+        max_abs_log_beta_deviation: 2.50
+        max_posterior_condition_number: 1.0e8
+        # The New Zealand profile can require more than 96 evaluations even
+        # when its data-fit, shape, and identifiability checks are already
+        # satisfactory.  Keep the scientific acceptance gates unchanged and
+        # give the bounded MAP optimizer enough budget to demonstrate actual
+        # numerical convergence instead of accepting a budget-exhausted fit.
+        max_nfev: 256
+        xtol: 1.0e-4
+        ftol: 1.0e-4
+        gtol: 1.0e-4
+        note: >
+          Regularized MAP bridge to a full POMP analysis. Annual latent
+          transmission deviations separate process variation from NB2
+          measurement error and condition the forecast initial state. Final
+          publication inference must retain sensitivity to innovation SD and
+          should be upgraded to iterated filtering/particle methods when a
+          tractable stochastic transition implementation is available.
       acceptance:
         min_overlap_intervals: 5
-        max_interval_smape: 1.30
-        min_log1p_correlation: -0.30
-        peak_ratio_min: 0.25
-        peak_ratio_max: 4.00
+        max_interval_smape: 0.50
+        min_log1p_correlation: 0.50
+        peak_ratio_min: 0.50
+        peak_ratio_max: 2.00
       simulation_overrides:
         burn_in_years: 15
         output_time_step: 30
@@ -479,12 +589,12 @@ runtime:
         rtol: 1.0e-4
         atol: 1.0e-6
       relative_incidence_tolerance: 0.25
+      # staged_fast estimates only beta_S and the observation multiplier.
+      # Seasonal and importation inputs remain fixed scenario assumptions.
       fit_parameters:
         - transmission.beta_S
+        - transmission.multi_year_phase
         - reporting_multiplier
-        - transmission.seasonal_amplitude
-        - importation.rate_per_100k_per_year
-        - resistance.importation_fraction
     demography:
       enabled: true
       fixed_population_profile: true
@@ -544,7 +654,7 @@ runtime:
         infectiousness_reduction: 0.05
     PEP:
       coverage_household_contacts: 0.30
-      effectiveness_sensitive: 0.70
+      effectiveness_sensitive: 0.823
       effectiveness_resistant: 0.10
       activation_prevalence: 0.00002
     reporting_rate_sensitivity:
@@ -580,7 +690,7 @@ runtime:
           increased awareness, better diagnostics, or expanded testing).
       # --- Literature-anchored age-specific scenarios ---
       # These scenarios are derived from the quantitative evidence in
-      # publication_inputs/reporting_evidence_summary.md and the new
+      # manuscript_notes/reporting_evidence_summary.md and the new
       # age-specific reporting literature review.
       infant_high_adult_very_low:
         age_multipliers:
@@ -672,7 +782,9 @@ runtime:
       description: No vaccine protection.
     symptom_protective:
       VE_sus: 0.15
-      VE_sym: 0.85
+      # Derived so 1-(1-VE_sus)(1-VE_sym)=0.887, the household-exposure
+      # overall disease-efficacy reference in parameter_distributions.yaml.
+      VE_sym: 0.8670588235
       VE_inf: 0.25
       VE_dur: 0.00
       description: >
@@ -961,6 +1073,9 @@ runtime:
         target_ages: [infant_0_2m, infant_3_11m]
         reduction_fraction: 0.15
 
+  # Legacy compatibility fallback only. The production sensitivity runner
+  # prefers config/parameter_distributions.yaml whenever that registry exists;
+  # edits to this block do not affect the evidence-prior design.
   sensitivity_parameters:
     sample_size: 48
     random_seed: 20260430
@@ -1055,34 +1170,141 @@ runtime:
 
   bayesian_uncertainty:
     random_seed: 20260510
+    publication_country_exclusions:
+      South_Africa: >
+        Only three recent non-overlapping observation intervals are available,
+        below the prespecified five-interval calibration/validation floor.
+        Retain as an exploratory deterministic scenario, but exclude it from
+        calibrated policy uncertainty until additional surveillance data or a
+        separately justified external calibration model is supplied.
+    # Sparse country surveillance is allowed to update country transmission
+    # and reporting only. Vaccine/natural-history/fitness uncertainty is drawn
+    # once from the shared external-evidence priors and propagated with a
+    # modular cut, preventing six annual counts from spuriously identifying a
+    # nine-dimensional country-specific mechanism vector.
+    inference_structure: reference_structure_state_space_exact_importance_cut
+    shared_structural_seed: 20260712
     n_chains: 4
-    warmup: 2000
-    draws: 2000
-    thin: 3
+    warmup: 0
+    # Four synthetic batches x 128 draws give 512 output rows: exactly four
+    # complete passes through the 128-point equal-mass structural design.
+    # Increasing this only duplicates the finite importance/design support.
+    draws: 128
+    thin: 1
     proposal_scale: 1.0
+    smc_particles: 1024
+    smc_ess_fraction: 0.65
+    smc_move_steps: 4
+    smc_max_stages: 100
     posterior_predictive_draws_per_country: 100
     dispersion: 50.0
     enable_time_varying_reporting: false
-    likelihood_observation_frequency: monthly
+    # Use annual aggregation for posterior calibration: the deterministic ODE
+    # does not represent within-year reporting autocorrelation, delays, or
+    # seasonal surveillance artefacts, so monthly points should not be treated as
+    # independent likelihood contributions for the Figure 2c conditional interval.
+    likelihood_observation_frequency: annual
     require_calibrated_start: true
+    state_space_importance:
+      adaptation_candidate_count: 512
+      adaptation_round_candidate_count: 512
+      candidate_count: 1024
+      max_adaptive_rounds: 2
+      require_recommended_quality: true
+      localized_mixture_enabled: true
+      localized_candidate_count: 2048
+      localized_component_count: 8
+      localized_covariance_scale: 0.25
+      adaptation_target_ess: 96
+      adaptation_covariance_regularization: 0.10
+      # Stage 1 spans the original Gauss-Newton geometry and learns a tempered,
+      # stable exact-target centre/covariance. Stage 2 draws fresh candidates
+      # from a defensive mixture around that adapted geometry; only its
+      # untempered exact weights enter the reported distribution.
+      initial_proposal_covariance_scales: [0.0625, 0.25, 1.0, 4.0]
+      proposal_covariance_scales: [0.25, 0.5, 1.0, 2.0, 4.0]
+      note: >
+        The multi-scale Gauss-Newton Gaussian mixture is only a normalized
+        proposal. Candidate states are reweighted by the exact NB2 plus AR(1)
+        plus beta/reporting-prior target before stratified resampling. Final
+        acceptance requires adequate exact-target importance ESS, maximum
+        normalized weight, Pareto-tail shape, coordinate-wise 2.5%/97.5% tail
+        effective support, and bounded-proposal support. Failure writes a full
+        candidate audit but no posterior sample or publication interval.
+    figure2c_conditional_uncertainty:
+      posterior_draws_per_country: 512
+      note: >
+        Figure 2c uses paired conditional uncertainty draws. Surveillance is
+        used once in the annual latent-log-beta state reconstruction; beta,
+        reporting, and historical states are proposed by a bounded multi-scale
+        Gauss-Newton mixture and corrected against the exact NB2 plus AR(1)
+        target before resampling. Future AR(1) innovations, shared external
+        structural-prior draws, and intervention implementation/effect draws
+        are then paired across current practice and interventions. These are
+        conditional intervals, not full joint Bayesian credible intervals.
+      intervention_priors:
+        adolescent_coverage_floor:
+          low: 0.75
+          mode: 0.90
+          high: 0.98
+          distribution: triangular
+          note: Plausible achieved adolescent Tdap coverage floor under scale-up.
+        maternal_coverage_floor:
+          low: 0.55
+          mode: 0.75
+          high: 0.90
+          distribution: triangular
+          note: Plausible achieved pregnancy Tdap coverage floor under scale-up.
+        young_adult_coverage_floor:
+          low: 0.35
+          mode: 0.55
+          high: 0.75
+          distribution: triangular
+          note: Plausible achieved close-contact/reproductive-age adult Tdap coverage floor.
+        contact_reduction_fraction:
+          low: 0.05
+          mode: 0.15
+          high: 0.30
+          distribution: triangular
+          note: Directional reduction in young-adult to infant effective contacts for adjunct exposure reduction.
+        targeted_pep_coverage:
+          low: 0.05
+          mode: 0.45
+          high: 0.60
+          distribution: triangular
+          note: Plausible household-contact PEP reach among guideline-prioritized contacts.
+        maternal_protection_duration_days:
+          low: 90.0
+          mode: 180.0
+          high: 270.0
+          distribution: triangular
+          note: Duration of passive maternal protection in early infancy.
     note: >
-      The production uncertainty path is conditional unless an explicit
-      multi-parameter MCMC sampler is requested. The default beta_grid workflow
-      integrates over beta_S after fixing reporting, VE, asymptomatic
-      infectiousness, duration, and resistance-fitness nuisance parameters;
-      outputs are conditional beta-uncertainty summaries. A full structural
-      posterior would require sampling the additional reporting, vaccine-effect,
-      duration, asymptomatic-infectiousness, and resistance-fitness dimensions.
-      Adaptive Metropolis remains available for pilot and sensitivity analyses
-      when those additional dimensions are meant to be sampled.
+      The default route is
+      reference_structure_state_space_exact_importance_cut. The canonical CLI
+      sampler is state_space_exact_importance_cut; state_space_laplace_cut is
+      accepted only as a legacy input alias and is never written to new outputs.
+      Externally informed vaccine, duration, asymptomatic-infectiousness, and
+      resistance-fitness uncertainty is shared across countries and propagated,
+      but sparse surveillance is not allowed to update those structural priors.
+      Legacy grid, Adaptive Metropolis, importance, and SMC engines target a
+      separate deterministic no-process likelihood from pre-surveillance priors
+      and must be labelled as alternative sensitivity analyses.
     convergence_criteria:
       rhat_threshold: 1.05
       min_bulk_ess: 100
       min_tail_ess: 50
+      recommended_rhat_threshold: 1.01
+      recommended_min_bulk_ess: 400
+      recommended_min_tail_ess: 400
       note: >
-        Convergence is assessed per-parameter per-country. Parameters with
-        rank-normalized split-R-hat > 1.05 or bulk ESS < 100 are flagged.
-        Reference: Vehtari et al. (2021) Bayesian Analysis 16(2):667-718.
+        R-hat/ESS thresholds apply only to genuine MCMC/SMC alternatives. The
+        default state-space route instead gates Hessian rank/conditioning,
+        bounded-mixture rejection mass, exact-target importance ESS, maximum
+        weight, Pareto-tail shape and coordinate-tail support, state-draw count,
+        structural design size, complete annual process paths, cross-country
+        structural pairing, and rolling-origin predictive checks. Synthetic
+        chain labels are output batching, not Markov chains.
     adaptive_metropolis:
       adaptation_start: 50
       mixing_fraction: 0.95
@@ -1094,61 +1316,61 @@ runtime:
         for ergodicity. The adapted covariance captures correlations such as
         the strong negative correlation between beta_S and reporting_multiplier.
     priors:
-      log_beta_S_sd: 0.80
-      log_reporting_multiplier_sd: 0.80
+      # Compatibility mirrors for reporting and pilot CLI defaults. Production
+      # Bayesian runs resolve normalized priors from
+      # config/parameter_distributions.yaml::bayesian_joint.
+      log_beta_S_sd: 1.25
+      log_reporting_multiplier_sd: 0.35
       VE_sus:
-        mean: 0.45
-        sd: 0.05
+        mean: 0.15
+        sd: 0.10
         note: >
-          Literature-informed decomposition parameter for reduced susceptibility
-          after aP vaccination. Aggregate studies support high disease
-          protection and waning protection; the posterior is constrained to
-          [0.30, 0.60] as a modelling range.
+          Weak vaccine-mechanism prior for reduced susceptibility, centred on
+          the selected symptom-protective baseline. Aggregate studies do not
+          identify this acquisition component separately; see
+          parameter_distributions.yaml for support and provenance.
       VE_inf:
         mean: 0.25
-        sd: 0.05
+        sd: 0.15
         note: >
-          Literature-informed decomposition parameter for reduced onward
-          infectiousness among vaccinated infections. It is motivated by aP
-          transmission-blocking evidence and waning studies; range [0.12, 0.38]
-          spans weak-to-moderate residual transmission blocking.
+          Broad vaccine-mechanism prior for reduced onward infectiousness among
+          vaccinated infections. Human data support residual transmission but
+          do not identify this component separately.
       VE_dur:
         mean: 0.10
         sd: 0.10
         note: >
-          Mechanistic duration-shortening proxy fixed at the prior mean during
-          the primary conditional transmission analysis; treated as a vaccine-scenario
-          assumption for sensitivity and pilot context.
+          Mechanistic duration-shortening proxy for reduced infectious
+          duration among vaccinated infections. It is sampled jointly in the
+          shared external-prior structural design for Figure 2c and remains a
+          vaccine-mechanism sensitivity parameter in deterministic diagnostics.
       relative_infectiousness_asymptomatic:
-        mean: 0.45
-        sd: 0.10
+        mean: 0.50
+        sd: 0.25
         note: >
           Relative infectiousness of asymptomatic/subclinical infections
-          compared to symptomatic cases. The exact ratio is weakly identified;
-          range [0.20, 0.70] spans minimal subclinical transmission to
-          near-equal infectiousness.
+          compared to symptomatic cases. The exact ratio is not identified;
+          the central registry assigns a broad weak-model prior.
       infectious_duration_symptomatic:
-        log_sd: 0.15
+        log_sd: 0.103
         note: >
-          Clinical natural-history nuisance parameter centered on the
-          CDC-aligned 21-day symptomatic infectious window; uncertainty range
-          captures plausible variation around the clinical anchor.
+          Compatibility width only. The normalized Bayesian prior is centred
+          at the literature model-fit median of 24 days and truncated to
+          [14, 35] days in parameter_distributions.yaml.
       infectious_duration_asymptomatic:
-        log_sd: 0.20
+        log_sd: 0.30
         note: >
-          Modelling assumption centred on a shorter mild/asymptomatic
-          infectious window than symptomatic pertussis; uncertainty range
-          captures plausible mild-infection duration.
+          Weak modelling assumption; the central registry uses median 17.3
+          days and support [7, 28] because human data do not identify it.
       fitness_R:
         min: 0.70
         max: 1.25
         mean: 1.00
-        sd: 0.12
+        sd: 0.15
         note: >
-          Epidemiologically motivated prior centred on fitness-neutral (1.0),
-          because MRBP reached near-fixation in China within 8 years and spread
-          internationally without clear transmission disadvantage. SD of 0.12
-          allows modest fitness costs or advantages.
+          Compatibility width alias. Production uses the central truncated
+          lognormal weak-model prior (median 1.0, log-SD 0.15, support
+          [0.70, 1.25]).
       resistance_prevalence:
         floor_sd: 0.03
         note: >
@@ -1213,7 +1435,7 @@ runtime:
 parameter_sources:
   simulation.end_time:
     source: Analysis design
-    note: "Calendar-defined 2025-01-01 to 2050-12-31 horizon (26 years); this is an analysis-design choice, not a literature-estimated parameter."
+    note: "Calendar-defined 2027-01-01 to 2050-12-31 horizon, bounded by the embedded WPP 2024 demographic support; this is an analysis-design choice, not a literature-estimated parameter."
   simulation.burn_in_years:
     source: Analysis design
     note: "Initialization choice used to reduce dependence on arbitrary starting infections and immunity; not a directly cited biological parameter."

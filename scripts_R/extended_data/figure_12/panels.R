@@ -18,17 +18,14 @@ extended_data_figure_12_surface_axes <- function(data) {
 
 extended_data_figure_12_diagnostic_parameter_labels <- function() {
   c(
-    beta_S = "beta[S]",
     reporting_multiplier = "'Rpt.'",
-    reporting_trend_end_multiplier = "atop('Rpt.','trend')",
-    resistance_prevalence = "atop('R','prev.')",
-    VE_sus = "VE[sus]",
+    infant_contact_multiplier = "atop('Infant','contact')",
     VE_inf = "VE[inf]",
-    VE_dur = "VE[dur]",
     fitness_R = "italic(f)[R]",
     relative_infectiousness_asymptomatic = "atop('Asympt.','rel.')",
     infectious_duration_asymptomatic = "atop('Asympt.','dur.')",
-    infectious_duration_symptomatic = "atop('Sympt.','dur.')"
+    resistance_management_uptake = "atop('Resistance','uptake')",
+    PEP_coverage_multiplier = "atop('PEP','reach')"
   )
 }
 
@@ -90,9 +87,9 @@ plot_extended_data_figure_12_panel_b <- function(data) {
 
 plot_extended_data_figure_12_panel_c <- function(data) {
   diagnostic_status_labels <- c(
-    "Posterior varied" = "Varied",
+    "PSA varied" = "PSA varied",
     "Grid override" = "Grid override",
-    "Fixed in selected posterior" = "Fixed"
+    "Excluded or fixed" = "Excluded/fixed"
   )
 
   ggplot(data$diagnostic_status, aes(parameter, country_burden_order, fill = parameter_status)) +
@@ -192,7 +189,7 @@ plot_extended_data_figure_12_panel_f <- function(data) {
     geom_vline(xintercept = 1.0, linewidth = 0.32, linetype = "dashed", colour = "white", alpha = 0.65) +
     extended_data_figure_12_surface_axes(data) +
     scale_fill_infant_burden(
-      limits = c(3, 4000),
+      limits = data$all_infection_limits,
       breaks = data$all_infection_colourbar_breaks,
       labels = label_lancet_comma(accuracy = 1),
       trans = "log10",

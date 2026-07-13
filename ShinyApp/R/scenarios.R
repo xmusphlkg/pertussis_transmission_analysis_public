@@ -200,7 +200,7 @@ apply_timeliness_r <- function(config) {
 }
 
 set_interactive_runtime_r <- function(config,
-                                      analysis_start_date = "2025-01-01",
+                                      analysis_start_date = "2027-01-01",
                                       analysis_end_date = "2035-12-31",
                                       burn_in_years = 3,
                                       output_time_step = 90,

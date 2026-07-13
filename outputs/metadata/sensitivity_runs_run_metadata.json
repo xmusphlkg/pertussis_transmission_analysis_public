@@ -1,5 +1,6 @@
 {
-  "config_hash": "6e926907320a8d929f5e700e87f528c158d870d2137c2f1a259302a95f37705c",
+  "baseline_country_profile": "China",
+  "config_hash": "e07d2d9623bba63452e5939f83db5c87901a902d0a71c99df08b4ecdc3550c54",
   "dependency_versions": {
     "joblib": "1.5.3",
     "numba": "0.65.1",
@@ -10,16 +11,205 @@
     "pyyaml": "6.0.3",
     "scipy": "1.17.1"
   },
-  "generated_at_utc": "2026-07-07T08:09:44.984248+00:00",
+  "generated_at_utc": "2026-07-13T20:01:57.729633+00:00",
   "git": {
     "branch": "main",
-    "commit": "6249860760ed7b7d58501c5f6b233d3c55368123",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
     "dirty": true
   },
-  "row_counts": {
-    "summary": 48,
-    "timeseries": 1042944
+  "parameter_distributions": {
+    "PEP_coverage": {
+      "_alpha": 2.8181818181818183,
+      "_beta": 3.1818181818181817,
+      "distribution": "beta_pert",
+      "evidence_class": "implementation_prior",
+      "high": 0.6,
+      "low": 0.05,
+      "mode": 0.3,
+      "note": "Guidance supports targeting but does not estimate coverage; this is explicitly an elicited implementation prior.",
+      "path": "PEP.coverage_household_contacts",
+      "shape": 4.0,
+      "source_ids": [
+        "pep_guidance"
+      ],
+      "unit": "proportion"
+    },
+    "PEP_effectiveness_sensitive": {
+      "_log_failure_location": -1.72840983503061,
+      "_log_probability_width": -0.004041776579819408,
+      "distribution": "complement_truncated_lognormal",
+      "evidence_class": "empirical_early_delivery_effect",
+      "high": 0.99,
+      "log_sd": 0.633,
+      "low": 0.05,
+      "median": 0.823,
+      "note": "A lognormal relative-risk approximation reproduces the published point estimate and asymmetric interval. Applies to timely PEP; timing remains a structural limitation of the reduced-form ODE.\n",
+      "path": "PEP.effectiveness_sensitive",
+      "source_ids": [
+        "early_pep_effectiveness"
+      ],
+      "unit": "proportion"
+    },
+    "asymptomatic_duration_ratio": {
+      "_alpha": 4.008799678070951,
+      "_beta": 2.0013947418255267,
+      "_log_probability_width": -0.006679084503137953,
+      "apply": "scale_symptomatic_duration",
+      "distribution": "beta",
+      "evidence_class": "weak_model_prior",
+      "high": 0.999,
+      "low": 0.2,
+      "mean": 0.667,
+      "note": "Human data do not identify this ratio. Beta(4,2) is a transparent weak prior used only because the ODE requires a mean duration; equality is retained near the upper support.\n",
+      "sd": 0.178,
+      "source_ids": [
+        "asymptomatic_household_review",
+        "warfel_ap_transmission"
+      ],
+      "target": "natural_history.infectious_duration_asymptomatic",
+      "unit": "ratio"
+    },
+    "fitness_R": {
+      "_log_location": 0.014124903622077427,
+      "_log_probability_width": -0.09261839374541132,
+      "distribution": "truncated_lognormal",
+      "evidence_class": "weak_model_prior",
+      "high": 1.25,
+      "log_sd": 0.15,
+      "low": 0.7,
+      "median": 1.0,
+      "note": "Centered at fitness neutrality; surveillance does not identify this distribution.",
+      "path": "transmission.fitness_R",
+      "source_ids": [
+        "resistance_surveillance"
+      ],
+      "unit": "ratio"
+    },
+    "infectious_duration_symptomatic": {
+      "_log_location": 3.178069916066395,
+      "_log_probability_width": -0.00012478169272357048,
+      "distribution": "truncated_lognormal",
+      "evidence_class": "model_fit_mean_uncertainty",
+      "high": 35.0,
+      "log_sd": 0.103,
+      "low": 14.0,
+      "median": 24.0,
+      "path": "natural_history.infectious_duration_symptomatic",
+      "process_distribution_note": "Individual infectious periods are better approximated by Erlang shape 4.",
+      "source_ids": [
+        "lavine_sirws_2013"
+      ],
+      "unit": "days"
+    },
+    "latent_duration": {
+      "_log_location": 2.196814738891312,
+      "_log_probability_width": -0.0058247990299455715,
+      "distribution": "truncated_lognormal",
+      "evidence_class": "empirical_proxy_synthesis",
+      "high": 21.0,
+      "log_sd": 0.3,
+      "low": 4.0,
+      "median": 9.0,
+      "note": "Two analyses give materially different incubation estimates (mean 7.3 days versus median 11 days). The broad synthesis is used only as a proxy for the unobserved latent-period mean; incubation also includes pre-symptomatic time and is not identical to latency.\n",
+      "path": "natural_history.latent_duration",
+      "source_ids": [
+        "eid_incubation_2026",
+        "jid_incubation_2026"
+      ],
+      "unit": "days"
+    },
+    "natural_immunity_duration": {
+      "_log_location": 9.411681919648682,
+      "_log_probability_width": -0.0010263837552363538,
+      "apply": "split_sirws_immunity_duration",
+      "distribution": "truncated_lognormal",
+      "evidence_class": "model_fit_mean_uncertainty",
+      "high": 36500.0,
+      "log_sd": 0.346,
+      "low": 3650.0,
+      "median": 12227.5,
+      "note": "The draw is split equally across R-to-W and W-to-S so the no-boosting residence time is Gamma/Erlang shape 2 with the sampled total mean.\n",
+      "source_ids": [
+        "lavine_sirws_2013",
+        "wearing_rohani_2009"
+      ],
+      "unit": "days"
+    },
+    "reporting_multiplier_factor": {
+      "_log_location": 0.06701238453236427,
+      "_log_probability_width": -0.20052902426037586,
+      "apply": "multiply",
+      "distribution": "truncated_lognormal",
+      "evidence_class": "observation_model_transfer_prior",
+      "high": 1.5,
+      "log_sd": 0.35,
+      "low": 0.5,
+      "median": 1.0,
+      "note": "Observation-only factor; excluded from true infant-case sensitivity rankings.",
+      "outcome": "total_reported_cases",
+      "path": "reporting_multiplier",
+      "source_ids": [
+        "reporting_capture_recapture"
+      ],
+      "unit": "ratio"
+    },
+    "vaccine_disease_efficacy": {
+      "_log_failure_location": -2.1783050212494794,
+      "_log_probability_width": -0.004794495143562115,
+      "apply": "derive_VE_sym_from_overall_disease_efficacy",
+      "distribution": "complement_truncated_lognormal",
+      "evidence_class": "empirical_overall_effect",
+      "high": 0.97,
+      "log_sd": 0.374,
+      "low": 0.7,
+      "median": 0.887,
+      "note": "A lognormal relative-risk approximation reproduces the published efficacy point estimate and confidence-limit asymmetry on the risk-ratio scale. VE_sus remains the selected vaccine-mechanism scenario value. VE_sym is derived so 1-(1-VE_sus)(1-VE_sym) equals this overall disease efficacy; the two components are not sampled independently.\n",
+      "source_ids": [
+        "ap_household_effectiveness"
+      ],
+      "unit": "proportion"
+    },
+    "vaccine_protection_duration": {
+      "_log_location": 7.373654607719189,
+      "_log_probability_width": -0.00502138726451615,
+      "apply": "split_vaccine_protection_duration",
+      "distribution": "truncated_lognormal",
+      "evidence_class": "literature_to_model_mapping",
+      "high": 4380.0,
+      "log_sd": 0.3,
+      "low": 730.0,
+      "median": 1596.0,
+      "note": "Approximate total-duration mapping from the meta-analysis estimate that 10% remain protected 8.5 years after the last dose. Under an equal two-stage Erlang approximation this corresponds to about 4.4 years; the draw is split equally between recent and waned vaccine-origin stages. It is not a directly observed lognormal duration distribution.\n",
+      "source_ids": [
+        "ap_waning_meta_analysis"
+      ],
+      "unit": "days"
+    }
   },
+  "parameter_names": [
+    "latent_duration",
+    "vaccine_disease_efficacy",
+    "infectious_duration_symptomatic",
+    "asymptomatic_duration_ratio",
+    "natural_immunity_duration",
+    "vaccine_protection_duration",
+    "PEP_effectiveness_sensitive",
+    "PEP_coverage",
+    "fitness_R",
+    "reporting_multiplier_factor"
+  ],
+  "parameter_sample_path": "/home/ctm/pertussis_transmission_analysis/outputs/tables/sensitivity_parameter_samples.csv",
+  "row_counts": {
+    "summary": 128,
+    "timeseries": 2568192
+  },
+  "sample_design": "latin_hypercube_inverse_cdf",
+  "sample_seed": 20260430,
+  "sample_size": 128,
   "schema_version": 1,
-  "stem": "sensitivity_runs"
+  "source_code_hash": "5099510352e2b46ef0d2c3446081a1ae5478a09870b5800d9b98ca23adb6952d",
+  "stem": "sensitivity_runs",
+  "uncertainty_config_hash": "335ce4e2c3abf688d9af8e6d639567e9ca1648149e93ba3fac993225416dedd3",
+  "uncertainty_schema_version": 1,
+  "uncertainty_scope": "epistemic_parameter_means_single_calibrated_baseline_profile_conditional_on_fixed_calibrated_transmission_reporting_and_contact_matrix"
 }

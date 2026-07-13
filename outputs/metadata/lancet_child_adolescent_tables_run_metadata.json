@@ -1,5 +1,5 @@
 {
-  "config_hash": "5779ecba13c8e29fbdbad5d8e4c270e43e13a77bfa17775fea486089c010b766",
+  "config_hash": "e07d2d9623bba63452e5939f83db5c87901a902d0a71c99df08b4ecdc3550c54",
   "dependency_versions": {
     "joblib": "1.5.3",
     "numba": "0.65.1",
@@ -10,26 +10,27 @@
     "pyyaml": "6.0.3",
     "scipy": "1.17.1"
   },
-  "generated_at_utc": "2026-07-08T02:18:06.280556+00:00",
+  "generated_at_utc": "2026-07-13T22:07:43.429752+00:00",
   "git": {
     "branch": "main",
-    "commit": "5a60f0e4af24bed71602339a61ac78ba0e945039",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
     "dirty": true
   },
   "row_counts": {
     "outputs/tables/lancet_age_case_data_inventory.csv": 10,
     "outputs/tables/lancet_age_pattern_fit_current.csv": 4,
     "outputs/tables/lancet_age_pattern_weighted_strategy_summary.csv": 48,
-    "outputs/tables/lancet_baseline_pediatric_burden.csv": 10,
-    "outputs/tables/lancet_child_adolescent_decision_frontier.csv": 290,
+    "outputs/tables/lancet_baseline_pediatric_burden.csv": 9,
+    "outputs/tables/lancet_child_adolescent_decision_frontier.csv": 261,
     "outputs/tables/lancet_child_adolescent_logic_blueprint.csv": 6,
     "outputs/tables/lancet_child_adolescent_metric_availability.csv": 27,
-    "outputs/tables/lancet_child_adolescent_preferred_strategies.csv": 30,
-    "outputs/tables/lancet_child_adolescent_strategy_burden.csv": 120,
+    "outputs/tables/lancet_child_adolescent_preferred_strategies.csv": 27,
+    "outputs/tables/lancet_child_adolescent_strategy_burden.csv": 108,
     "outputs/tables/lancet_child_adolescent_strategy_summary.csv": 29,
-    "outputs/tables/lancet_endpoint_shift_summary.csv": 120,
-    "outputs/tables/table1_profile_programme_priorities.csv": 10
+    "outputs/tables/lancet_endpoint_shift_summary.csv": 108,
+    "outputs/tables/table1_profile_programme_priorities.csv": 9
   },
   "schema_version": 1,
+  "source_code_hash": "5099510352e2b46ef0d2c3446081a1ae5478a09870b5800d9b98ca23adb6952d",
   "stem": "lancet_child_adolescent_tables"
 }

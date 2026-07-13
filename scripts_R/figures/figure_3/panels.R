@@ -86,7 +86,7 @@ plot_figure_3_panel_b <- function(data) {
     scale_linetype_iqr() +
     coord_cartesian(xlim = c(-12, 30), clip = "off") +
     labs(
-      x = "Infant-case reduction minus\nall <18-case reduction (percentage points)",
+      x = "Infant-case reduction minus\nall-<18-case reduction (percentage points)",
       y = NULL,
       tag = "b"
     ) +
@@ -95,11 +95,11 @@ plot_figure_3_panel_b <- function(data) {
       panel.grid.major.x = element_line(linewidth = 0.16, colour = lancet_grid_light_colour)
     ) +
     theme_lancet_inside_legend(
-      key_height = unit(0.46, "cm"),
+      key_height = unit(0.34, "cm"),
       title_lineheight = 0.90,
       text_lineheight = 1.16,
-      text_margin = margin(t = 3, b = 3),
-      spacing_y = unit(8, "pt"),
+      text_margin = margin(t = 0, b = 0),
+      spacing_y = unit(0, "pt"),
       box_margin = margin(0, 0, 1, 0),
       legend_margin = margin(3, 0, 3, 0)
     )

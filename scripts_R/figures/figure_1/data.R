@@ -7,14 +7,14 @@ figure_1_selected_regions <- function() {
   )
 }
 
-figure_1_region_short_labels <- function() {
+figure_1_region_display_labels <- function() {
   c(
     "Global" = "Global",
-    "Western Pacific Region" = "WPR",
-    "European Region" = "EUR",
-    "Region of the Americas" = "AMR",
-    "African Region" = "AFR",
-    "South-East Asia Region" = "SEAR"
+    "Western Pacific Region" = "Western\nPacific",
+    "European Region" = "Europe",
+    "Region of the Americas" = "Americas",
+    "African Region" = "Africa",
+    "South-East Asia Region" = "South-East\nAsia"
   )
 }
 
@@ -49,7 +49,7 @@ load_figure_1_inputs <- function() {
 
 prepare_figure_1_data <- function(inputs = load_figure_1_inputs()) {
   selected_regions <- figure_1_selected_regions()
-  region_short <- figure_1_region_short_labels()
+  region_labels <- figure_1_region_display_labels()
 
   regional_incidence <- inputs$regional_incidence %>%
     required_columns(
@@ -67,7 +67,7 @@ prepare_figure_1_data <- function(inputs = load_figure_1_inputs()) {
     filter(positive_rate(reported_incidence_per_100k)) %>%
     slice_max(year, n = 1, with_ties = FALSE) %>%
     ungroup() %>%
-    mutate(region_label = region_short[as.character(region)])
+    mutate(region_label = region_labels[as.character(region)])
 
   pediatric_burden <- inputs$pediatric_burden %>%
     required_columns(
@@ -242,7 +242,7 @@ prepare_figure_1_data <- function(inputs = load_figure_1_inputs()) {
 
   list(
     selected_regions = selected_regions,
-    region_short = region_short,
+    region_labels = region_labels,
     regional_focus = regional_focus,
     regional_focus_latest = regional_focus_latest,
     pediatric_burden = pediatric_burden,

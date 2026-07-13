@@ -84,23 +84,47 @@ prepare_extended_data_figure_2_data <- function(inputs = load_extended_data_figu
     calibration,
     c(
       "country",
-      "posterior_interval_low",
-      "posterior_interval_high",
-      "total_reported_cases",
-      "analysis_years",
+      "fitted_temporal_mean_reported_cases",
+      "fitted_temporal_range_low",
+      "fitted_temporal_range_high",
+      "fitted_temporal_range_method",
       "calibration_success"
     ),
     "calibration_all_countries.csv"
   )
   calibration_diagnostic <- calibration %>%
     filter(.data$calibration_success == TRUE) %>%
-    select(country, posterior_interval_low, posterior_interval_high, total_reported_cases, analysis_years, calibration_success) %>%
-    mutate(analysis_years = as.numeric(analysis_years)) %>%
-    filter(is.finite(.data$analysis_years), .data$analysis_years > 0) %>%
-    mutate(model_annual_reported_cases = total_reported_cases / analysis_years)
+    transmute(
+      country = stringr::str_replace_all(country, " ", "_"),
+      country_code = factor(country_codes[country], levels = country_codes[country_levels]),
+      fitted_temporal_mean_reported_cases = as.numeric(fitted_temporal_mean_reported_cases),
+      fitted_temporal_range_low = as.numeric(fitted_temporal_range_low),
+      fitted_temporal_range_high = as.numeric(fitted_temporal_range_high),
+      fitted_temporal_range_method = as.character(fitted_temporal_range_method),
+      calibration_success
+    )
+  invalid_calibration_diagnostic <- calibration_diagnostic %>%
+    filter(
+      is.na(.data$country_code) |
+        !is.finite(.data$fitted_temporal_mean_reported_cases) |
+        !is.finite(.data$fitted_temporal_range_low) |
+        !is.finite(.data$fitted_temporal_range_high) |
+        .data$fitted_temporal_range_low > .data$fitted_temporal_mean_reported_cases |
+        .data$fitted_temporal_mean_reported_cases > .data$fitted_temporal_range_high |
+        is.na(.data$fitted_temporal_range_method) |
+        .data$fitted_temporal_range_method !=
+          "minimum_and_maximum_fitted_reported_cases_across_likelihood_intervals"
+    )
+  if (nrow(invalid_calibration_diagnostic) > 0) {
+    stop(
+      "eFigure 2 panel B received invalid fitted temporal ranges for: ",
+      paste(invalid_calibration_diagnostic$country, collapse = ", "),
+      call. = FALSE
+    )
+  }
   if (nrow(calibration_diagnostic) == 0) {
     stop(
-      "eFigure 2 panel B requires accepted calibration diagnostics with posterior intervals.",
+      "eFigure 2 panel B requires accepted calibration diagnostics with fitted temporal ranges.",
       call. = FALSE
     )
   }

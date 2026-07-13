@@ -46,6 +46,7 @@ from src_python.simulation.common import (
     execute_scenario_list,
     load_configs,
     make_config,
+    publication_country_names,
     write_outputs,
 )
 from src_python.utils.io import project_path, write_dataframe
@@ -102,7 +103,7 @@ def _build_lhs_scenarios(
     )
     scenarios = []
 
-    for country in configs["countries"]:
+    for country in publication_country_names(configs):
         for run_idx, row in enumerate(sample_matrix, start=1):
             rates = {AGE_GROUPS[i]: float(row[i]) for i in range(n_params)}
             config = make_config(

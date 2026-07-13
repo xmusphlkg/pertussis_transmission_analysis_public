@@ -11,18 +11,15 @@ from src_python.simulation.common import (
     execute_scenario_list,
     load_configs,
     make_intervention_config,
+    publication_country_names,
+    set_analysis_horizon_years,
     write_outputs,
 )
 from src_python.utils.io import project_path, write_dataframe
 
 
-NEAR_TERM_END_DATE = "2029-12-31"
-NEAR_TERM_END_DAYS = 365.0 * 5.0
-
-
 def _set_near_term_runtime(config: dict[str, Any]) -> None:
-    config.setdefault("calendar", {})["analysis_end_date"] = NEAR_TERM_END_DATE
-    config.setdefault("simulation", {})["end_time"] = NEAR_TERM_END_DAYS
+    set_analysis_horizon_years(config, 5)
     config["simulation"]["output_time_step"] = 30.0
     config["simulation"]["rtol"] = max(float(config["simulation"].get("rtol", 1e-5)), 1e-4)
     config["simulation"]["atol"] = max(float(config["simulation"].get("atol", 1e-7)), 1e-6)
@@ -133,7 +130,7 @@ def _scenario_specs() -> list[dict[str, Any]]:
 
 def _build_scenarios(configs: dict[str, Any]) -> list[dict[str, Any]]:
     scenarios: list[dict[str, Any]] = []
-    for country in configs["countries"]:
+    for country in publication_country_names(configs):
         for spec in _scenario_specs():
             if spec["scenario"] == "current_near_term":
                 config, vaccine_name = make_intervention_config("current", country_profile=country)

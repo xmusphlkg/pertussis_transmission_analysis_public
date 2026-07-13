@@ -43,21 +43,26 @@ plot_extended_data_figure_2_panel_b <- function(data) {
     geom_line(linewidth = 0.35, colour = manuscript_colour("grey")) +
     geom_rect(
       data = data$calibration_diagnostic,
-      aes(xmin = -Inf, xmax = Inf, ymin = posterior_interval_low, ymax = posterior_interval_high),
+      aes(
+        xmin = -Inf,
+        xmax = Inf,
+        ymin = fitted_temporal_range_low,
+        ymax = fitted_temporal_range_high
+      ),
       fill = manuscript_colour("vermillion"),
       alpha = 0.12,
       inherit.aes = FALSE
     ) +
     geom_hline(
       data = data$calibration_diagnostic,
-      aes(yintercept = model_annual_reported_cases),
+      aes(yintercept = fitted_temporal_mean_reported_cases),
       linewidth = 0.4,
       colour = manuscript_colour("vermillion"),
       inherit.aes = FALSE
     ) +
     facet_wrap(~country_code, scales = "free_y", nrow = 2) +
     scale_x_continuous(breaks = pretty_breaks(n = 2)) +
-    labs(x = NULL, y = "Annual reported cases", tag = "B") +
+    labs(x = NULL, y = "Annual reported cases\n(fitted range shaded)", tag = "B") +
     theme_lancet() +
     theme(axis.text.x = element_text(size = 5.2))
 }

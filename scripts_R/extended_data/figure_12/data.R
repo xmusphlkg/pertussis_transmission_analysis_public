@@ -29,25 +29,41 @@ load_extended_data_figure_12_inputs <- function() {
       extended_data_figure_12_with_burden_order(baseline)
   }
 
-  fitness_benefit_parameter_diagnostics <- read_model_table_optional(
-    model_path("outputs", "summaries", "fitness_resistance_grid_posterior_sample_diagnostics")
+  fitness_benefit_psa_parameters <- read_model_table_optional(
+    model_path("outputs", "tables", "fitness_resistance_grid_psa_benefit_parameter_samples_used"),
+    metadata_stem = "fitness_resistance_grid_psa_benefit"
   )
-  if (nrow(fitness_benefit_parameter_diagnostics) > 0) {
-    fitness_benefit_parameter_diagnostics <- fitness_benefit_parameter_diagnostics %>%
+  fitness_benefit_parameter_diagnostics <- tibble()
+  if (nrow(fitness_benefit_psa_parameters) > 0) {
+    required_psa_columns <- c(
+      "infant_contact_multiplier",
+      "relative_infectiousness_asymptomatic",
+      "infectious_duration_asymptomatic",
+      "PEP_coverage_multiplier"
+    )
+    missing_psa_columns <- setdiff(required_psa_columns, names(fitness_benefit_psa_parameters))
+    if (length(missing_psa_columns) > 0) {
+      stop(
+        "eFigure 12 PSA parameter audit is missing column(s): ",
+        paste(missing_psa_columns, collapse = ", "),
+        call. = FALSE
+      )
+    }
+    parameter_roles <- tribble(
+      ~parameter, ~parameter_status,
+      "reporting_multiplier", "Excluded or fixed",
+      "infant_contact_multiplier", "PSA varied",
+      "VE_inf", "Grid override",
+      "relative_infectiousness_asymptomatic", "PSA varied",
+      "infectious_duration_asymptomatic", "PSA varied",
+      "fitness_R", "Grid override",
+      "resistance_management_uptake", "Excluded or fixed",
+      "PEP_coverage_multiplier", "PSA varied"
+    )
+    fitness_benefit_parameter_diagnostics <- baseline %>%
+      distinct(country) %>%
+      tidyr::crossing(parameter_roles) %>%
       add_country_label() %>%
-      mutate(
-        posterior_draws = as.integer(posterior_draws),
-        unique_values = as.integer(unique_values),
-        mean = as.numeric(mean),
-        sd = as.numeric(sd),
-        coefficient_of_variation = as.numeric(coefficient_of_variation),
-        q025 = as.numeric(q025),
-        median = as.numeric(median),
-        q975 = as.numeric(q975),
-        varies_within_country = as.logical(varies_within_country),
-        grid_override_in_fig3d = as.logical(grid_override_in_fig3d),
-        uncertainty_source = as.character(uncertainty_source)
-      ) %>%
       extended_data_figure_12_with_burden_order(baseline)
   }
 
@@ -93,8 +109,8 @@ require_extended_data_figure_12_inputs <- function(inputs) {
   }
   if (nrow(inputs$fitness_benefit_parameter_diagnostics) == 0) {
     stop(
-      "eFigure 12 requires outputs/summaries/fitness_resistance_grid_posterior_sample_diagnostics. ",
-      "Run src_python.simulation.run_fitness_grid with posterior benefit diagnostics first.",
+      "eFigure 12 requires outputs/tables/fitness_resistance_grid_psa_benefit_parameter_samples_used. ",
+      "Run src_python.simulation.run_fitness_grid with --psa-benefit-samples before plotting.",
       call. = FALSE
     )
   }
@@ -198,31 +214,35 @@ prepare_extended_data_figure_12_data <- function(inputs = load_extended_data_fig
   surface_all <- smooth_extended_data_figure_12_surface(fitness_surface, "median_all_infections", "log10") %>%
     mutate(median_all_infections = pmax(smoothed_value, 1e-6))
 
+  all_infection_limits <- range(surface_all$median_all_infections, na.rm = TRUE)
+  all_infection_colourbar_breaks <- pretty(all_infection_limits, n = 4)
+  all_infection_colourbar_breaks <- all_infection_colourbar_breaks[
+    all_infection_colourbar_breaks >= all_infection_limits[[1]] &
+      all_infection_colourbar_breaks <= all_infection_limits[[2]]
+  ]
+  all_infection_contour_breaks <- pretty(all_infection_limits, n = 7)
+  all_infection_contour_breaks <- all_infection_contour_breaks[
+    all_infection_contour_breaks > all_infection_limits[[1]] &
+      all_infection_contour_breaks < all_infection_limits[[2]]
+  ]
+
   diagnostic_parameter_order <- c(
-    "beta_S",
     "reporting_multiplier",
-    "reporting_trend_end_multiplier",
-    "resistance_prevalence",
-    "VE_sus",
+    "infant_contact_multiplier",
     "VE_inf",
-    "VE_dur",
     "fitness_R",
     "relative_infectiousness_asymptomatic",
     "infectious_duration_asymptomatic",
-    "infectious_duration_symptomatic"
+    "resistance_management_uptake",
+    "PEP_coverage_multiplier"
   )
 
   diagnostic_status <- fitness_benefit_parameter_diagnostics %>%
     mutate(
       parameter = factor(parameter, levels = diagnostic_parameter_order),
-      parameter_status = case_when(
-        grid_override_in_fig3d ~ "Grid override",
-        varies_within_country ~ "Posterior varied",
-        TRUE ~ "Fixed in selected posterior"
-      ),
       parameter_status = factor(
         parameter_status,
-        levels = c("Posterior varied", "Grid override", "Fixed in selected posterior")
+        levels = c("PSA varied", "Grid override", "Excluded or fixed")
       )
     )
 
@@ -273,8 +293,9 @@ prepare_extended_data_figure_12_data <- function(inputs = load_extended_data_fig
     ve_inf_breaks = ve_inf_breaks,
     infant_case_colourbar_breaks = c(1, 10, 100, 1000, 4000),
     infant_case_contour_breaks = c(1, 10, 30, 100, 300, 1000, 3000, 4000),
-    all_infection_colourbar_breaks = c(3, 30, 300, 1000, 3000),
-    all_infection_contour_breaks = c(3, 10, 30, 100, 300, 1000, 3000, 4000),
+    all_infection_limits = all_infection_limits,
+    all_infection_colourbar_breaks = all_infection_colourbar_breaks,
+    all_infection_contour_breaks = all_infection_contour_breaks,
     surface_resistant = surface_resistant,
     surface_infant = surface_infant,
     surface_all = surface_all,

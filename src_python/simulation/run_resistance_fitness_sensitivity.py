@@ -40,6 +40,7 @@ from src_python.simulation.common import (
     execute_scenario_list,
     load_configs,
     make_config,
+    publication_country_names,
     write_outputs,
 )
 from src_python.utils.io import project_path, write_dataframe
@@ -63,7 +64,7 @@ def _build_scenarios(configs: dict[str, Any]) -> list[dict[str, Any]]:
     scenarios = []
     resistance_name = configs["baseline"].get("baseline_resistance_scenario", "country_timeline")
 
-    for country in configs["countries"]:
+    for country in publication_country_names(configs):
         for fitness_r in FITNESS_SENSITIVITY_VALUES:
             label = FITNESS_LABELS.get(fitness_r, f"fitness_{fitness_r:.2f}")
             scenario_name = f"{label}_f{fitness_r:.2f}"

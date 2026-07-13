@@ -326,7 +326,7 @@ ui <- page_sidebar(
       div(class = "control-section-title", icon("sliders"), span("Runtime")),
       div(
         class = "compact-grid two-col",
-        selectInput("horizon", "Horizon", choices = c("2025-2035 fast" = "fast", "2025-2050 publication" = "publication"), selected = "fast"),
+        selectInput("horizon", "Horizon", choices = c("2027-2035 fast" = "fast", "2027-2050 publication" = "publication"), selected = "fast"),
         selectInput(
           "solver_method",
           "Solver",
@@ -446,7 +446,7 @@ server <- function(input, output, session) {
       end_date <- if (identical(input$horizon, "publication")) "2050-12-31" else "2035-12-31"
       base_config <- set_interactive_runtime_r(
         base_config,
-        analysis_start_date = "2025-01-01",
+        analysis_start_date = "2027-01-01",
         analysis_end_date = end_date,
         burn_in_years = input$burn_in_years,
         output_time_step = if (identical(input$solver_method, "rk4")) 90 else 30,

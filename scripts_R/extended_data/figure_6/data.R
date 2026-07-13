@@ -3,7 +3,7 @@
 extended_data_figure_6_input_paths <- function() {
   list(
     resistance_summary = model_path("outputs", "summaries", "resistance_scenarios_summary"),
-    resistance_targets = model_path("publication_inputs", "resistance_scenario_table.csv"),
+    resistance_targets = model_path("manuscript_notes", "resistance_scenario_table.csv"),
     resistance_sim = model_path("outputs", "simulations", "resistance_scenarios")
   )
 }

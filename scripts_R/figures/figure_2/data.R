@@ -3,20 +3,16 @@
 figure_2_strategy_order <- function() {
   c(
     "maternal_immunization",
-    "timeliness_only",
+    "adolescent_booster",
     "cocooning_adjunct",
     "targeted_pep_high_risk",
     "pregnancy_tdap_scaleup",
-    "adolescent_booster"
+    "timeliness_only"
   )
 }
 
 figure_2_winning_strategy_group_order <- function() {
-  c(
-    "timeliness_only",
-    "maternal_immunization",
-    "targeted_pep_high_risk"
-  )
+  c("timeliness_only", "maternal_immunization", "targeted_pep_high_risk")
 }
 
 figure_2_strategy_labels <- function() {
@@ -55,33 +51,103 @@ figure_2_strategy_heatmap_labels <- function() {
   )
 }
 
-figure_2_selected_strategy_labels <- function() {
-  c(
-    higher_child_coverage = "Coverage",
-    timeliness_only = "Routine schedule\ntimeliness",
-    maternal_immunization = "Infant-exposure\npackage",
-    cocooning_adjunct = "Close-contact\nadult adjuncts",
-    targeted_pep_high_risk = "Targeted high-risk\nPEP",
-    adolescent_booster = "Adolescent booster\nscale-up",
-    pregnancy_tdap_scaleup = "Pregnancy Tdap\nscale-up"
+figure_2_selected_strategy_labels <- figure_2_strategy_overview_labels
+
+figure_2_publication_country_contract <- function() {
+  settings_path <- model_path("config", "model_settings.yaml")
+  profiles_path <- model_path("config", "country_profiles.yaml")
+  if (!file.exists(settings_path) || !file.exists(profiles_path)) {
+    stop("Figure 2 requires current model settings and country profiles.", call. = FALSE)
+  }
+  settings <- yaml::read_yaml(settings_path)
+  exclusions <- settings$runtime$bayesian_uncertainty$publication_country_exclusions
+  exclusions <- if (is.null(exclusions)) character() else names(exclusions)
+  profiles <- names(yaml::read_yaml(profiles_path))
+  unknown <- setdiff(exclusions, profiles)
+  if (length(unknown) > 0L) {
+    stop("Unknown publication-country exclusions: ", paste(unknown, collapse = ", "), call. = FALSE)
+  }
+  list(
+    profiles = profiles,
+    exclusions = exclusions,
+    publication_countries = setdiff(profiles, exclusions)
   )
 }
 
+validate_figure_2_country_contract <- function(
+  frontier_countries,
+  configured_profiles,
+  publication_country_exclusions,
+  publication_countries
+) {
+  normalize <- function(x) stringr::str_replace_all(as.character(x), " ", "_")
+  frontier_countries <- unique(normalize(frontier_countries))
+  configured_profiles <- normalize(configured_profiles)
+  publication_country_exclusions <- normalize(publication_country_exclusions)
+  publication_countries <- normalize(publication_countries)
+  expected <- setdiff(configured_profiles, publication_country_exclusions)
+  if (!setequal(publication_countries, expected)) {
+    stop("Figure 2 publication-country configuration is inconsistent.", call. = FALSE)
+  }
+  missing <- setdiff(publication_countries, frontier_countries)
+  unknown <- setdiff(frontier_countries, configured_profiles)
+  if (length(missing) > 0L || length(unknown) > 0L) {
+    stop(
+      "Figure 2 frontier country mismatch; missing: ", paste(missing, collapse = ", "),
+      "; unknown: ", paste(unknown, collapse = ", "), call. = FALSE
+    )
+  }
+  publication_countries
+}
+
+require_current_figure_2_python_gate <- function() {
+  configured <- Sys.getenv("PERTUSSIS_PYTHON", unset = "")
+  candidates <- unique(c(
+    configured,
+    model_path(".venv", "bin", "python"),
+    Sys.which("python3"),
+    Sys.which("python")
+  ))
+  candidates <- candidates[nzchar(candidates) & file.exists(candidates)]
+  if (length(candidates) == 0L) {
+    stop("Figure 2 requires a project Python interpreter.", call. = FALSE)
+  }
+  output <- suppressWarnings(system2(
+    candidates[[1]],
+    c("-m", "src_python.validation.publication_gate"),
+    stdout = TRUE,
+    stderr = TRUE
+  ))
+  status <- attr(output, "status") %||% 0L
+  if (!identical(as.integer(status), 0L)) {
+    stop("Figure 2 predictive publication gate failed: ", paste(output, collapse = "\n"), call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
+# Backward-compatible spelling used by the lightweight R contract test.
+require_current_figure2_python_gate <- require_current_figure_2_python_gate
+
 load_figure_2_inputs <- function() {
+  require_current_figure_2_python_gate()
+  contract <- figure_2_publication_country_contract()
   list(
     frontier = read_table("lancet_child_adolescent_decision_frontier.csv"),
-    primary_interval_audit = read_table("figure2c_programme_primary_predictive_interval_audit.csv")
+    configured_country_profiles = contract$profiles,
+    publication_country_exclusions = contract$exclusions,
+    publication_countries = contract$publication_countries
   )
 }
 
 prepare_figure_2_data <- function(inputs = load_figure_2_inputs()) {
   strategy_order <- figure_2_strategy_order()
-  winning_strategy_group_order <- figure_2_winning_strategy_group_order()
   strategy_labels <- figure_2_strategy_labels()
   strategy_overview_labels <- figure_2_strategy_overview_labels()
   strategy_heatmap_labels <- figure_2_strategy_heatmap_labels()
   selected_strategy_labels <- figure_2_selected_strategy_labels()
-
+  winning_strategy_group_order <- unique(c(
+    figure_2_winning_strategy_group_order(), strategy_order
+  ))
   rank_levels <- 1:6
   rank_labels <- c("1st", "2nd", "3rd", "4th", "5th", "6th")
   rank_colours <- setNames(
@@ -89,6 +155,15 @@ prepare_figure_2_data <- function(inputs = load_figure_2_inputs()) {
     rank_labels
   )
 
+  require_columns(
+    inputs$frontier,
+    c(
+      "country", "strategy", "optimization_constraint", "primary_case_reduction",
+      "primary_cases_per_100k", "current_primary_cases_per_100k",
+      "implementation_intensity", "non_dominated_lancet_outcome"
+    ),
+    "lancet_child_adolescent_decision_frontier.csv"
+  )
   frontier_raw <- inputs$frontier %>%
     mutate(
       country = stringr::str_replace_all(country, " ", "_"),
@@ -99,44 +174,32 @@ prepare_figure_2_data <- function(inputs = load_figure_2_inputs()) {
       primary_cases_per_100k = as.numeric(primary_cases_per_100k),
       current_primary_cases_per_100k = as.numeric(current_primary_cases_per_100k),
       implementation_intensity = as.numeric(implementation_intensity),
-      non_dominated_lancet_outcome = as.logical(non_dominated_lancet_outcome),
-      primary_case_rank_within_constraint = as.numeric(primary_case_rank_within_constraint)
+      non_dominated_lancet_outcome = as.logical(non_dominated_lancet_outcome)
     )
-
-  primary_interval_audit <- inputs$primary_interval_audit %>%
-    mutate(
-      country = stringr::str_replace_all(country, " ", "_"),
-      strategy = as.character(scenario_key),
-      primary_reduction_interval_q025 = as.numeric(reduction_q025),
-      primary_reduction_interval_q975 = as.numeric(reduction_q975),
-      current_rate_interval_q025 = as.numeric(current_rate_q025),
-      current_rate_interval_q975 = as.numeric(current_rate_q975),
-      intervention_rate_interval_q025 = as.numeric(intervention_rate_q025),
-      intervention_rate_interval_q975 = as.numeric(intervention_rate_q975)
-    ) %>%
-    select(
-      country,
-      strategy,
-      primary_reduction_interval_q025,
-      primary_reduction_interval_q975,
-      current_rate_interval_q025,
-      current_rate_interval_q975,
-      intervention_rate_interval_q025,
-      intervention_rate_interval_q975,
-      interval_basis
-    )
-
-  country_order <- frontier_raw %>%
-    filter(strategy == "current", optimization_constraint == "program_only") %>%
-    arrange(desc(current_primary_cases_per_100k)) %>%
-    pull(country_label_text)
-
+  publication_countries <- validate_figure_2_country_contract(
+    unique(frontier_raw$country),
+    inputs$configured_country_profiles,
+    inputs$publication_country_exclusions,
+    inputs$publication_countries
+  )
   program_frontier <- frontier_raw %>%
-    filter(optimization_constraint == "program_only", strategy %in% strategy_order) %>%
+    filter(
+      optimization_constraint == "program_only",
+      country %in% publication_countries,
+      strategy %in% strategy_order
+    )
+  expected_rows <- length(publication_countries) * length(strategy_order)
+  if (nrow(program_frontier) != expected_rows ||
+      anyDuplicated(program_frontier[c("country", "strategy")]) > 0L) {
+    stop("Figure 2 requires one deterministic row per publication country and programme strategy.", call. = FALSE)
+  }
+  if (any(!is.finite(program_frontier$primary_case_reduction)) ||
+      any(!is.finite(program_frontier$primary_cases_per_100k))) {
+    stop("Figure 2 received non-finite deterministic scenario effects.", call. = FALSE)
+  }
+
+  program_frontier <- program_frontier %>%
     mutate(
-      country_label = factor(country_label_text, levels = rev(country_order)),
-      strategy_factor = factor(strategy, levels = strategy_order),
-      strategy_label_plot = factor(strategy_labels[strategy], levels = rev(strategy_labels[strategy_order])),
       strategy_overview_plot = factor(
         strategy,
         levels = rev(strategy_order),
@@ -172,6 +235,8 @@ prepare_figure_2_data <- function(inputs = load_figure_2_inputs()) {
       runner_up_cases_per_100k = nth(primary_cases_per_100k, 2),
       winner_margin_reduction = winning_reduction - runner_up_reduction,
       winner_margin_cases_per_100k = runner_up_cases_per_100k - winning_cases_per_100k,
+      uncertainty_interval_type = "none; conditional scenario point estimate",
+      uncertainty_interval_basis = "deterministic within-profile contrast",
       .groups = "drop"
     ) %>%
     mutate(
@@ -180,70 +245,47 @@ prepare_figure_2_data <- function(inputs = load_figure_2_inputs()) {
       runner_up_excess_label = paste0("+", format_lancet_fixed(winner_margin_cases_per_100k, digits = 1)),
       winning_strategy_group = factor(winning_strategy, levels = winning_strategy_group_order)
     )
-
   heatmap_country_order <- selected_program %>%
     arrange(winning_strategy_group, desc(winner_margin_cases_per_100k), country_label_text) %>%
     pull(country_label_text)
-
   heatmap_group_sizes <- selected_program %>%
     count(winning_strategy_group, name = "profiles") %>%
     filter(!is.na(winning_strategy_group)) %>%
     arrange(winning_strategy_group)
-
-  heatmap_group_separators <- length(heatmap_country_order) -
-    cumsum(heatmap_group_sizes$profiles)[-nrow(heatmap_group_sizes)] + 0.5
-
+  heatmap_group_separators <- if (nrow(heatmap_group_sizes) > 1L) {
+    length(heatmap_country_order) -
+      cumsum(heatmap_group_sizes$profiles)[-nrow(heatmap_group_sizes)] + 0.5
+  } else {
+    numeric()
+  }
   selected_program <- selected_program %>%
-    mutate(
-      country_label_heatmap = factor(country_label_text, levels = rev(heatmap_country_order)),
-      country_label_margin = factor(country_label_text, levels = rev(heatmap_country_order))
-    )
-
+    mutate(country_label_margin = factor(country_label_text, levels = rev(heatmap_country_order)))
   selected_strategy_order <- strategy_order[strategy_order %in% selected_program$winning_strategy]
   selected_strategy_legend_labels <- stringr::str_replace_all(
-    selected_strategy_labels[selected_strategy_order],
-    "\n",
-    " "
+    selected_strategy_labels[selected_strategy_order], "\n", " "
   )
 
   strategy_distribution <- program_frontier %>%
     group_by(strategy, strategy_label, strategy_overview_plot) %>%
     summarise(
-      median_reduction = median(primary_case_reduction, na.rm = TRUE),
+      median_reduction = median(primary_case_reduction),
       q25_reduction = interval_quantile(primary_case_reduction, 0.25),
       q75_reduction = interval_quantile(primary_case_reduction, 0.75),
-      min_reduction = min(primary_case_reduction, na.rm = TRUE),
-      max_reduction = max(primary_case_reduction, na.rm = TRUE),
-      countries_ranked_first = sum(decision_rank == 1, na.rm = TRUE),
-      countries_non_dominated = sum(non_dominated_lancet_outcome, na.rm = TRUE),
+      min_reduction = min(primary_case_reduction),
+      max_reduction = max(primary_case_reduction),
+      countries_ranked_first = sum(decision_rank == 1),
+      countries_non_dominated = sum(non_dominated_lancet_outcome),
       .groups = "drop"
     )
-
   program_heatmap <- program_frontier %>%
-    left_join(primary_interval_audit, by = c("country", "strategy")) %>%
     mutate(
       country_label = factor(country_label_text, levels = rev(heatmap_country_order)),
       strategy_axis = factor(strategy, levels = strategy_order),
-      interval_label = if_else(
-        is.finite(primary_reduction_interval_q025) & is.finite(primary_reduction_interval_q975),
-        paste0(
-          "[",
-          lancet_percent(primary_reduction_interval_q025, accuracy = 0.1),
-          ", ",
-          lancet_percent(primary_reduction_interval_q975, accuracy = 0.1),
-          "]"
-        ),
-        NA_character_
-      ),
-      effect_label = if_else(
-        is.na(interval_label),
-        lancet_percent(primary_case_reduction, accuracy = 1),
-        paste0(lancet_percent(primary_case_reduction, accuracy = 1), "\n", interval_label)
-      ),
-      effect_text_colour = if_else(primary_case_reduction >= 0.28, "white", lancet_text_colour),
+      primary_case_reduction_display = primary_case_reduction,
+      effect_label = lancet_percent(primary_case_reduction, accuracy = 0.1),
+      effect_text_colour = if_else(primary_case_reduction_display >= 0.28, "white", lancet_text_colour),
       preferred_in_program_only = decision_rank == 1
     )
-
   rank_distribution <- program_frontier %>%
     count(strategy, decision_rank, name = "profile_count") %>%
     tidyr::complete(strategy = strategy_order, decision_rank = rank_levels, fill = list(profile_count = 0L)) %>%
@@ -266,17 +308,14 @@ prepare_figure_2_data <- function(inputs = load_figure_2_inputs()) {
 
   list(
     strategy_order = strategy_order,
-    winning_strategy_group_order = winning_strategy_group_order,
     strategy_labels = strategy_labels,
     strategy_overview_labels = strategy_overview_labels,
     strategy_heatmap_labels = strategy_heatmap_labels,
-    selected_strategy_labels = selected_strategy_labels,
-    rank_levels = rank_levels,
     rank_labels = rank_labels,
     rank_colours = rank_colours,
-    frontier_raw = frontier_raw,
-    primary_interval_audit = primary_interval_audit,
-    country_order = country_order,
+    publication_countries = publication_countries,
+    publication_country_exclusions = inputs$publication_country_exclusions,
+    primary_interval_legend_title = "Conditional scenario\nreduction (%)",
     program_frontier = program_frontier,
     selected_program = selected_program,
     heatmap_country_order = heatmap_country_order,

@@ -281,10 +281,11 @@ def summarize_overlay_intervals(
     overlay: StochasticOverlayConfig,
     outcomes: Iterable[str] | None = None,
 ) -> pd.DataFrame:
-    """Pool parameter-uncertainty draws with stochastic replicates into a 95% PI.
+    """Pool propagated-uncertainty draws with stochastic replicates into a 95% PI.
 
-    Also emits a parameter-only 95% interval for comparison so the stochastic overlay's
-    contribution is explicit.
+    Also emits a propagated-uncertainty-only 95% interval for comparison so the
+    stochastic overlay's contribution is explicit. These names deliberately do
+    not imply that every input draw comes from a joint posterior.
     """
     outcomes = tuple(outcomes) if outcomes is not None else (
         *COUNT_OUTCOME_DENOMINATORS.keys(),
@@ -322,20 +323,23 @@ def summarize_overlay_intervals(
                 {
                     "country": country,
                     "outcome": outcome,
-                    "posterior_median": float(param_median),
-                    "parameter_credible_interval_low": float(param_low),
-                    "parameter_credible_interval_high": float(param_high),
-                    "combined_median": float(combined_median),
-                    "combined_credible_interval_low": float(combined_low),
-                    "combined_credible_interval_high": float(combined_high),
-                    "posterior_draws": int(parameter_only.size),
+                    "propagated_uncertainty_median": float(param_median),
+                    "propagated_uncertainty_interval_low": float(param_low),
+                    "propagated_uncertainty_interval_high": float(param_high),
+                    "combined_prediction_interval_median": float(combined_median),
+                    "combined_prediction_interval_low": float(combined_low),
+                    "combined_prediction_interval_high": float(combined_high),
+                    "uncertainty_draws": int(parameter_only.size),
+                    "interval_type": (
+                        "conditional parameter/process plus stochastic prediction interval"
+                    ),
                     "stochastic_replicates_per_draw": int(overlay.replicates_per_draw) if has_overlay else 0,
                     "stochastic_overlay_applied": bool(has_overlay),
                     "superspreading_k": float(overlay.superspreading_k),
                     "aggregate_over_analysis_years": bool(overlay.aggregate_over_analysis_years),
                     "household_design_effect": float(deff_value),
-                    "credible_interval_low_percentile": float(low_q),
-                    "credible_interval_high_percentile": float(high_q),
+                    "interval_low_percentile": float(low_q),
+                    "interval_high_percentile": float(high_q),
                 }
             )
     return pd.DataFrame(rows)

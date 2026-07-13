@@ -19,7 +19,7 @@ make_figure_2_source_data <- function(data) {
         primary_cases_per_100k,
         implementation_intensity,
         primary_case_rank_within_programme_only = decision_rank,
-        not_clearly_surpassed = non_dominated_lancet_outcome,
+        deterministic_not_clearly_surpassed = non_dominated_lancet_outcome,
         lowest_burden_in_programme_only = decision_rank == 1
       ),
     country_strategy_matrix = data$program_heatmap %>%
@@ -36,14 +36,8 @@ make_figure_2_source_data <- function(data) {
         margin_to_best_percentage_points,
         near_best_5_cases,
         lowest_burden_in_programme_only = preferred_in_program_only,
-        not_clearly_surpassed = non_dominated_lancet_outcome,
-        primary_reduction_interval_q025,
-        primary_reduction_interval_q975,
-        current_rate_interval_q025,
-        current_rate_interval_q975,
-        intervention_rate_interval_q025,
-        intervention_rate_interval_q975,
-        interval_basis
+        deterministic_not_clearly_surpassed = non_dominated_lancet_outcome,
+        uncertainty_scope = "conditional scenario point estimate; no posterior interval"
       ),
     selected_burden = data$selected_program %>%
       transmute(
@@ -60,7 +54,9 @@ make_figure_2_source_data <- function(data) {
         runner_up_cases_per_100k,
         runner_up_excess_reduction = winner_margin_reduction,
         runner_up_excess_percentage_points = 100 * winner_margin_reduction,
-        runner_up_excess_cases_per_100k = winner_margin_cases_per_100k
+        runner_up_excess_cases_per_100k = winner_margin_cases_per_100k,
+        uncertainty_interval_type,
+        uncertainty_interval_basis
       ),
     rank_distribution = data$rank_distribution %>%
       transmute(
@@ -82,7 +78,9 @@ make_figure_2_source_data <- function(data) {
         runner_up_cases_per_100k,
         runner_up_excess_cases_per_100k = winner_margin_cases_per_100k,
         runner_up_excess_reduction = winner_margin_reduction,
-        runner_up_excess_percentage_points = 100 * winner_margin_reduction
+        runner_up_excess_percentage_points = 100 * winner_margin_reduction,
+        uncertainty_interval_type,
+        uncertainty_interval_basis
       )
   )
 }

@@ -30,15 +30,13 @@ calibration <- if (file.exists(calibration_path)) {
     map_dfr(readr::read_csv, show_col_types = FALSE)
 }
 
-analysis_year_col <- if ("calibration_data_overlap_years" %in% names(calibration)) {
-  "calibration_data_overlap_years"
-} else if ("analysis_years" %in% names(calibration)) {
-  "analysis_years"
-} else {
-  NULL
-}
+fitted_temporal_columns <- c(
+  "fitted_temporal_mean_reported_cases",
+  "fitted_temporal_range_low",
+  "fitted_temporal_range_high"
+)
 
-if (is.null(analysis_year_col) || !("total_reported_cases" %in% names(calibration))) {
+if (!all(fitted_temporal_columns %in% names(calibration))) {
   # Minimal calibration table: generate a simplified diagnostic figure
   calibration <- calibration %>%
     mutate(
@@ -63,10 +61,10 @@ if (is.null(analysis_year_col) || !("total_reported_cases" %in% names(calibratio
       } else {
         normalise_bool(calibration_success)
       },
-      analysis_years_for_fit = as.numeric(.data[[analysis_year_col]]),
-      model_annual_reported_cases = total_reported_cases / pmax(analysis_years_for_fit, 1e-9),
-      interval_width = posterior_interval_high - posterior_interval_low,
-      relative_interval_width = interval_width / pmax(model_annual_reported_cases, 1e-9)
+      fitted_temporal_mean_reported_cases = as.numeric(fitted_temporal_mean_reported_cases),
+      fitted_temporal_range_width = fitted_temporal_range_high - fitted_temporal_range_low,
+      relative_fitted_temporal_range_width = fitted_temporal_range_width /
+        pmax(fitted_temporal_mean_reported_cases, 1e-9)
     )
 }
 
@@ -90,22 +88,31 @@ observed_annual <- readr::read_csv(model_path("data", "processed", "pertussis_in
   )
 
 p_ed4b <- tryCatch({
-  has_intervals <- all(c("posterior_interval_low", "posterior_interval_high", "model_annual_reported_cases") %in% names(calibration))
-  if (has_intervals) {
+  has_fitted_temporal_range <- all(c(
+    "fitted_temporal_range_low",
+    "fitted_temporal_range_high",
+    "fitted_temporal_mean_reported_cases"
+  ) %in% names(calibration))
+  if (has_fitted_temporal_range) {
     observed_annual %>%
       filter(country %in% calibration$country) %>%
       ggplot(aes(Year, observed_cases)) +
       geom_line(linewidth = 0.28, colour = manuscript_colour("grey")) +
       geom_rect(
         data = calibration,
-        aes(xmin = -Inf, xmax = Inf, ymin = posterior_interval_low, ymax = posterior_interval_high),
+        aes(
+          xmin = -Inf,
+          xmax = Inf,
+          ymin = fitted_temporal_range_low,
+          ymax = fitted_temporal_range_high
+        ),
         fill = manuscript_colour("vermillion"),
         alpha = 0.12,
         inherit.aes = FALSE
       ) +
       geom_hline(
         data = calibration,
-        aes(yintercept = model_annual_reported_cases),
+        aes(yintercept = fitted_temporal_mean_reported_cases),
         colour = manuscript_colour("vermillion"),
         linewidth = 0.35,
         inherit.aes = FALSE
@@ -113,7 +120,7 @@ p_ed4b <- tryCatch({
       facet_wrap(~country_code, scales = "free_y", ncol = 4) +
       scale_x_continuous(breaks = pretty_breaks(n = 3)) +
       scale_y_continuous(labels = label_number(accuracy = 1)) +
-      labs(x = NULL, y = "Annual reported cases") +
+      labs(x = NULL, y = "Annual reported cases\n(fitted range shaded)") +
       theme_lancet()
   } else {
     observed_annual %>%
@@ -153,16 +160,16 @@ if (!is.null(reporting_long)) {
 }
 
 p_ed4d <- tryCatch({
-  req_cols <- c("calibrated_beta", "relative_interval_width", "data_fit_score")
+  req_cols <- c("calibrated_beta", "relative_fitted_temporal_range_width", "data_fit_score")
   if (!all(req_cols %in% names(calibration))) stop("Required columns not available")
   calibration %>%
-    ggplot(aes(calibrated_beta, relative_interval_width)) +
+    ggplot(aes(calibrated_beta, relative_fitted_temporal_range_width)) +
     geom_point(aes(fill = data_fit_score), shape = 21, size = 2.4, stroke = 0.25, colour = "black") +
     geom_text(aes(label = country_code), nudge_y = 0.15, size = 2, check_overlap = TRUE) +
     scale_x_continuous(labels = label_number(accuracy = 0.001)) +
     scale_y_continuous(labels = label_number(accuracy = 0.1)) +
     scale_fill_infant_burden(labels = label_number(accuracy = 1)) +
-    labs(x = expression("Calibrated " * beta), y = "Prediction interval width / model mean", fill = "Data fit\nscore") +
+    labs(x = expression("Calibrated " * beta), y = "Fitted temporal range / fitted mean", fill = "Data fit\nscore") +
     theme_lancet()
 }, error = function(e) {
   # Fallback: show calibrated beta vs fit score
@@ -175,7 +182,7 @@ p_ed4d <- tryCatch({
       labs(x = expression("Calibrated " * beta), y = "Data fit score") +
       theme_lancet()
   }, error = function(e2) {
-    ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Interval data\nnot available", size = 3) + theme_void()
+    ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Fitted temporal range\nnot available", size = 3) + theme_void()
   })
 })
 

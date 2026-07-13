@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from copy import deepcopy
@@ -14,7 +15,18 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from src_python.model.compartments import StateIndex
-from src_python.model.outputs import compute_timeseries, infer_output_dt, solve_model, summarize_timeseries
+from src_python.model.observables import (
+    CaseExposure,
+    build_observation_plan,
+    solve_case_exposure,
+)
+from src_python.model.outputs import (
+    compute_timeseries,
+    infer_output_dt,
+    prepare_history_state,
+    solve_model,
+    summarize_timeseries,
+)
 from src_python.model.parameters import PreparedParameters
 from src_python.utils.io import (
     deep_update,
@@ -72,6 +84,14 @@ NPI_CONTACT_REDUCTION_TIMELINE_COLUMNS = {
     "notes",
 }
 
+DTP_COVERAGE_COLUMNS = {
+    "CODE",
+    "YEAR",
+    "ANTIGEN",
+    "COVERAGE_CATEGORY",
+    "COVERAGE",
+}
+
 RUNTIME_DATA_HASH_COLUMNS = {
     "country_resistance_timeline_csv": (
         "country",
@@ -117,7 +137,22 @@ REQUIRED_RUNTIME_BLOCKS = (
 )
 
 METADATA_SCHEMA_VERSION = 1
+UNCERTAINTY_REGISTRY_METADATA_STEMS = frozenset(
+    {
+        "sensitivity_runs",
+        "joint_psa_rank_acceptability",
+        "bayesian_uncertainty",
+        "bayesian_uncertainty_figure2c_conditional",
+    }
+)
 DEPENDENCY_VERSION_PACKAGES = ("numpy", "pandas", "scipy", "pyyaml", "joblib", "numba", "pyarrow")
+# Fingerprint only code that can change generated numerical artifacts. Validation
+# code checks those artifacts but does not create them; including it made a
+# validator-only fix falsely mark every simulation output as stale.
+SOURCE_CODE_DIRECTORIES = ("model", "calibration", "simulation", "utils")
+CALIBRATION_SOURCE_CODE_DIRECTORIES = ("model", "calibration", "utils")
+PROSPECTIVE_POLICY_KEY = "_prospective_policy"
+PROSPECTIVE_POLICY_SCHEMA_VERSION = 1
 
 
 @lru_cache(maxsize=1)
@@ -135,6 +170,8 @@ def _load_configs_cached() -> dict[str, dict[str, Any]]:
     for optional_block in ("fitness_grid", "bayesian_uncertainty"):
         if optional_block in runtime:
             baseline[optional_block] = deepcopy(runtime[optional_block])
+    distribution_path = project_path("config/parameter_distributions.yaml")
+    parameter_distributions = load_yaml(distribution_path) if distribution_path.exists() else {}
     return {
         "settings": settings,
         "baseline": baseline,
@@ -142,6 +179,7 @@ def _load_configs_cached() -> dict[str, dict[str, Any]]:
         "resistance": runtime["resistance_scenarios"],
         "interventions": runtime["intervention_scenarios"],
         "sensitivity": runtime["sensitivity_parameters"],
+        "parameter_distributions": parameter_distributions,
         "data_sources": runtime["data_sources"],
         "countries": load_yaml(project_path("config/country_profiles.yaml")),
     }
@@ -157,11 +195,35 @@ def load_configs() -> dict[str, dict[str, Any]]:
     return deepcopy(_load_configs_cached())
 
 
+def publication_country_names(
+    configs: dict[str, Any] | None = None,
+) -> list[str]:
+    """Return the prespecified calibrated/publication country set."""
+
+    resolved = configs or load_configs()
+    profiles = resolved.get("countries", {})
+    exclusions = (
+        resolved.get("baseline", {})
+        .get("bayesian_uncertainty", {})
+        .get("publication_country_exclusions", {})
+    )
+    unknown = sorted(set(exclusions).difference(profiles))
+    if unknown:
+        raise ValueError(f"Publication country exclusions reference unknown profiles: {unknown}")
+    selected = [str(country) for country in profiles if country not in exclusions]
+    if not selected:
+        raise ValueError("The calibrated publication country set is empty")
+    return selected
+
+
 def _resolve_calendar_horizon(baseline: dict[str, Any]) -> None:
     """Derive simulation.end_time from calendar dates when available.
 
     The yaml keeps `calendar.analysis_start_date` / `calendar.analysis_end_date`
-    as the single source of truth for the production analysis window. Tests and
+    as the single source of truth for the production analysis window. Both
+    dates are user-facing *inclusive* dates; the continuous solver therefore
+    integrates to midnight after ``analysis_end_date`` so that the internal
+    interval is half-open and contains every requested calendar day. Tests and
     the calibration runtime still override `simulation.end_time` directly and
     are respected here.
     """
@@ -190,7 +252,7 @@ def _resolve_calendar_horizon(baseline: dict[str, Any]) -> None:
             raise ValueError(
                 f"calendar.analysis_end_date ({end_date}) must be after analysis_start_date ({start_date})."
             )
-        derived_end_time = float((end - start).days)
+        derived_end_time = float((end - start).days + 1)
         if explicit_end_time is None:
             simulation["end_time"] = derived_end_time
         else:
@@ -206,6 +268,29 @@ def _resolve_calendar_horizon(baseline: dict[str, Any]) -> None:
         )
 
     simulation.setdefault("start_time", 0)
+
+
+def set_analysis_horizon_years(
+    config: dict[str, Any],
+    years: int,
+) -> str:
+    """Set a calendar-consistent N-year window from the configured policy t0."""
+
+    if int(years) < 1:
+        raise ValueError("Analysis horizon years must be positive")
+    calendar = config.setdefault("calendar", {})
+    if not calendar.get("analysis_start_date"):
+        raise ValueError("A calendar analysis_start_date is required")
+    start = pd.Timestamp(calendar["analysis_start_date"])
+    end = start + pd.DateOffset(years=int(years)) - pd.Timedelta(days=1)
+    calendar["analysis_end_date"] = end.date().isoformat()
+    # ``end`` is the last included calendar date; the ODE endpoint is midnight
+    # immediately after it. This makes an N-year window exactly
+    # [start, start + N years) even when it contains leap days.
+    config.setdefault("simulation", {})["end_time"] = float(
+        ((end + pd.Timedelta(days=1)) - start).days
+    )
+    return calendar["analysis_end_date"]
 
 
 def _config_fingerprint_from_configs(configs: dict[str, Any]) -> str:
@@ -269,6 +354,25 @@ def config_fingerprint(configs: dict[str, Any] | None = None) -> str:
     return _config_fingerprint_from_configs(configs)
 
 
+def _uncertainty_config_fingerprint_from_configs(configs: dict[str, Any]) -> str:
+    payload = configs.get("parameter_distributions", {})
+    encoded = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+@lru_cache(maxsize=1)
+def _uncertainty_config_fingerprint_cached() -> str:
+    return _uncertainty_config_fingerprint_from_configs(_load_configs_cached())
+
+
+def uncertainty_config_fingerprint(configs: dict[str, Any] | None = None) -> str:
+    """Hash only the parameter-distribution registry used by uncertainty runners."""
+
+    if configs is None:
+        return _uncertainty_config_fingerprint_cached()
+    return _uncertainty_config_fingerprint_from_configs(configs)
+
+
 def _calibration_config_fingerprint_from_configs(configs: dict[str, Any]) -> str:
     runtime = configs["settings"].get("runtime", {})
     payload = {
@@ -299,6 +403,83 @@ def calibration_config_fingerprint(configs: dict[str, Any] | None = None) -> str
     if configs is None:
         return _calibration_config_fingerprint_cached()
     return _calibration_config_fingerprint_from_configs(configs)
+
+
+def _fingerprint_source_paths(project_root: Path, paths: set[Path]) -> str:
+    """Return a traversal-order-independent digest of project-relative files."""
+
+    digest = hashlib.sha256()
+    for path in sorted(paths, key=lambda item: item.relative_to(project_root).as_posix()):
+        relative = path.relative_to(project_root).as_posix().encode("utf-8")
+        content = path.read_bytes()
+        digest.update(len(relative).to_bytes(4, "big"))
+        digest.update(relative)
+        digest.update(len(content).to_bytes(8, "big"))
+        digest.update(content)
+    return digest.hexdigest()
+
+
+def file_sha256(path: str | Path) -> str:
+    """Return the SHA-256 digest of one artifact without normalizing content."""
+
+    artifact = Path(path)
+    digest = hashlib.sha256()
+    with artifact.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _python_source_paths(
+    project_root: Path,
+    directories: tuple[str, ...],
+    *,
+    extra_paths: tuple[Path, ...] = (),
+) -> set[Path]:
+    paths = {
+        path
+        for directory in directories
+        for path in project_root.joinpath("src_python", directory).rglob("*.py")
+        if path.is_file() and "__pycache__" not in path.parts
+    }
+    paths.update(path for path in extra_paths if path.is_file())
+    return paths
+
+
+@lru_cache(maxsize=1)
+def source_code_fingerprint() -> str:
+    """Hash all Python source that can materially affect pipeline outputs.
+
+    Paths and contents are length-delimited and processed in project-relative
+    lexical order, so the digest is independent of filesystem traversal order.
+    Bytecode caches are deliberately excluded.  The result is cached because
+    model configuration is assembled many times within one immutable process;
+    a new pipeline invocation computes a fresh digest of its working tree.
+    """
+
+    project_root = project_path()
+    paths = _python_source_paths(
+        project_root,
+        SOURCE_CODE_DIRECTORIES,
+        extra_paths=(project_root.joinpath("src_python", "__init__.py"),),
+    )
+    return _fingerprint_source_paths(project_root, paths)
+
+
+@lru_cache(maxsize=1)
+def calibration_source_code_fingerprint() -> str:
+    """Hash only source files on the country-calibration dependency path."""
+
+    project_root = project_path()
+    paths = _python_source_paths(
+        project_root,
+        CALIBRATION_SOURCE_CODE_DIRECTORIES,
+        extra_paths=(
+            project_root.joinpath("src_python", "__init__.py"),
+            project_root.joinpath("src_python", "simulation", "common.py"),
+        ),
+    )
+    return _fingerprint_source_paths(project_root, paths)
 
 
 def _git_metadata() -> dict[str, Any]:
@@ -336,6 +517,7 @@ def current_run_metadata(stem: str, *, row_counts: dict[str, int] | None = None)
         "stem": stem,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "config_hash": config_fingerprint(configs),
+        "source_code_hash": source_code_fingerprint(),
         "git": _git_metadata(),
         "dependency_versions": _dependency_versions(),
         "row_counts": row_counts or {},
@@ -404,6 +586,30 @@ def validate_run_metadata(stem: str, *, require_dependency_versions: bool = True
             f"Output {stem} was generated from a stale configuration "
             f"({metadata.get('config_hash')}); current config hash is {expected_hash}."
         )
+    recorded_source_hash = str(metadata.get("source_code_hash", ""))
+    if not recorded_source_hash:
+        raise ValueError(
+            f"Output {stem} predates the source-code fingerprint and must be rerun."
+        )
+    expected_source_hash = source_code_fingerprint()
+    if recorded_source_hash != expected_source_hash:
+        raise ValueError(
+            f"Output {stem} was generated from stale source code "
+            f"({recorded_source_hash}); current source-code hash is {expected_source_hash}."
+        )
+    recorded_uncertainty_hash = metadata.get("uncertainty_config_hash")
+    if stem in UNCERTAINTY_REGISTRY_METADATA_STEMS and not recorded_uncertainty_hash:
+        raise ValueError(
+            f"Output {stem} predates the parameter-distribution registry fingerprint and must be rerun."
+        )
+    if recorded_uncertainty_hash:
+        expected_uncertainty_hash = uncertainty_config_fingerprint()
+        if recorded_uncertainty_hash != expected_uncertainty_hash:
+            raise ValueError(
+                f"Output {stem} was generated from a stale parameter-distribution registry "
+                f"({recorded_uncertainty_hash}); current uncertainty hash is "
+                f"{expected_uncertainty_hash}."
+            )
     if require_dependency_versions:
         dependency_failures = dependency_version_failures_for_metadata(stem, metadata)
         if dependency_failures:
@@ -422,6 +628,7 @@ def _load_calibrated_country_artifact_cached(
     allow_stale: bool = False,
     current_hash: str = "",
     current_calibration_hash: str = "",
+    current_calibration_source_hash: str = "",
 ) -> dict[str, Any] | None:
     path = calibrated_country_artifact_path(country)
     if not path.exists():
@@ -433,6 +640,16 @@ def _load_calibrated_country_artifact_cached(
 
     metadata = artifact.get("metadata", {}) if isinstance(artifact.get("metadata", {}), dict) else {}
     if not bool(metadata.get("accepted", False)):
+        return None
+
+    calibration_source_code_hash = str(metadata.get("calibration_source_code_hash", ""))
+    if (
+        not calibration_source_code_hash
+        or calibration_source_code_hash != current_calibration_source_hash
+    ):
+        # Source compatibility is a hard requirement. ``allow_stale`` only
+        # permits a narrowly extracted parameter overlay from an older config;
+        # it must never permit reuse across different model implementations.
         return None
 
     source_hash = str(metadata.get("config_hash", ""))
@@ -460,6 +677,7 @@ def load_calibrated_country_artifact(
         bool(allow_stale),
         config_fingerprint(),
         calibration_config_fingerprint(),
+        calibration_source_code_fingerprint(),
     )
     return deepcopy(artifact) if artifact is not None else None
 
@@ -479,6 +697,7 @@ def _calibration_parameter_overlay(calibrated_config: dict[str, Any]) -> dict[st
     for path in (
         "transmission.beta_S",
         "transmission.seasonal_amplitude",
+        "transmission.log_beta_time_variation",
         "reporting_multiplier",
         "importation.rate_per_100k_per_year",
         "importation.resistant_fraction",
@@ -790,14 +1009,59 @@ def _apply_country_resistance_timeline(
     country: str,
     country_profile: dict[str, Any],
     data_sources: dict[str, Any],
+    evidence_cutoff_year: int | None = None,
 ) -> dict[str, Any]:
     out = deepcopy(config)
-    anchor_year = int(data_sources.get("resistance_anchor_year", data_sources.get("analysis_year", 2023)))
+    configured_anchor_year = int(
+        data_sources.get(
+            "resistance_anchor_year",
+            data_sources.get("analysis_year", 2023),
+        )
+    )
+    anchor_year = configured_anchor_year
+    if evidence_cutoff_year is not None:
+        anchor_year = min(anchor_year, int(evidence_cutoff_year))
     allow_future = bool(data_sources.get("allow_future_resistance_evidence", False))
     iso3 = country_profile.get("iso3")
     timeline = _load_country_resistance_timeline(data_sources)
     rows = _timeline_rows_for_country(timeline, country, iso3)
-    estimate = _country_resistance_estimate(rows, anchor_year, allow_future=allow_future)
+    try:
+        estimate = _country_resistance_estimate(
+            rows,
+            anchor_year,
+            allow_future=allow_future,
+        )
+    except ValueError:
+        if evidence_cutoff_year is None:
+            raise
+        # Historical validation must never borrow the first resistance datum
+        # from the future.  If no country evidence existed at the forecast
+        # origin, retain the prespecified generic resistance scenario instead
+        # of silently back-casting a later measured prevalence.
+        resistance = out.setdefault("resistance", {})
+        resistance["country_timeline"] = {
+            "country": country,
+            "iso3": iso3,
+            "resistance_anchor_year": int(anchor_year),
+            "applied": False,
+            "method": "no_evidence_at_or_before_cutoff",
+            "evidence_years": "",
+        }
+        metadata = out.setdefault("metadata", {})
+        metadata["resistance_timeline_country"] = country
+        metadata["resistance_timeline_iso3"] = iso3 or ""
+        metadata["resistance_timeline_anchor_year"] = int(anchor_year)
+        metadata["resistance_timeline_configured_anchor_year"] = int(
+            configured_anchor_year
+        )
+        metadata["resistance_timeline_evidence_cutoff_year"] = int(
+            evidence_cutoff_year
+        )
+        metadata["resistance_timeline_applied"] = False
+        metadata["resistance_timeline_method"] = (
+            "no_evidence_at_or_before_cutoff"
+        )
+        return out
     target = estimate["resistant_fraction"]
 
     out["initial_conditions"]["initial_resistance_prevalence"] = target
@@ -817,6 +1081,13 @@ def _apply_country_resistance_timeline(
     metadata["resistance_timeline_country"] = country
     metadata["resistance_timeline_iso3"] = iso3 or ""
     metadata["resistance_timeline_anchor_year"] = anchor_year
+    metadata["resistance_timeline_configured_anchor_year"] = int(
+        configured_anchor_year
+    )
+    metadata["resistance_timeline_evidence_cutoff_year"] = (
+        int(evidence_cutoff_year) if evidence_cutoff_year is not None else None
+    )
+    metadata["resistance_timeline_applied"] = True
     metadata["resistance_timeline_allows_future_evidence"] = allow_future
     metadata["resistance_timeline_method"] = estimate["method"]
     metadata["resistance_timeline_evidence_years"] = estimate["evidence_years"]
@@ -832,6 +1103,7 @@ def _apply_diagnostic_standard_timeline(
     country: str,
     country_profile: dict[str, Any],
     data_sources: dict[str, Any],
+    evidence_cutoff_date: pd.Timestamp | None = None,
 ) -> dict[str, Any]:
     out = deepcopy(config)
     observation_model = out.setdefault("observation_model", {})
@@ -858,6 +1130,32 @@ def _apply_diagnostic_standard_timeline(
     iso3 = str(country_profile.get("iso3", "")).upper()
     timeline = _load_diagnostic_standard_timeline(data_sources)
     rows = _diagnostic_rows_for_country(timeline, country, iso3)
+    if evidence_cutoff_date is not None:
+        # A reporting regime that begins on or after the forecast origin is
+        # unknown to a genuine prospective hindcast.  Periods already active
+        # at the origin may persist according to their prespecified interval.
+        rows = rows.loc[
+            pd.to_datetime(rows["period_start"], errors="raise")
+            < evidence_cutoff_date
+        ].copy()
+    if rows.empty:
+        out.pop("diagnostic_reporting_time_variation", None)
+        observation_model["diagnostic_standards"] = {
+            **settings,
+            "enabled": False,
+            "periods_loaded": 0,
+            "disabled_reason": "no_regime_known_before_evidence_cutoff",
+        }
+        metadata = out.setdefault("metadata", {})
+        metadata["diagnostic_standard_country"] = country
+        metadata["diagnostic_standard_iso3"] = iso3
+        metadata["diagnostic_standard_periods_loaded"] = 0
+        metadata["diagnostic_standard_evidence_cutoff_date"] = (
+            evidence_cutoff_date.date().isoformat()
+            if evidence_cutoff_date is not None
+            else None
+        )
+        return out
 
     periods: list[dict[str, Any]] = []
     for row in rows.itertuples(index=False):
@@ -898,6 +1196,11 @@ def _apply_diagnostic_standard_timeline(
     metadata["diagnostic_standard_iso3"] = iso3
     metadata["diagnostic_standard_periods_loaded"] = len(periods)
     metadata["diagnostic_standard_multiplier_column"] = multiplier_column
+    metadata["diagnostic_standard_evidence_cutoff_date"] = (
+        evidence_cutoff_date.date().isoformat()
+        if evidence_cutoff_date is not None
+        else None
+    )
     return out
 
 
@@ -907,6 +1210,7 @@ def _apply_npi_contact_reduction_timeline(
     country: str,
     country_profile: dict[str, Any],
     data_sources: dict[str, Any],
+    evidence_cutoff_date: pd.Timestamp | None = None,
 ) -> dict[str, Any]:
     out = deepcopy(config)
     transmission = out.setdefault("transmission", {})
@@ -934,6 +1238,11 @@ def _apply_npi_contact_reduction_timeline(
     iso3 = str(country_profile.get("iso3", "")).upper()
     timeline = _load_npi_contact_reduction_timeline(data_sources)
     rows = _npi_rows_for_country(timeline, country, iso3)
+    if evidence_cutoff_date is not None:
+        rows = rows.loc[
+            pd.to_datetime(rows["period_start"], errors="raise")
+            < evidence_cutoff_date
+        ].copy()
 
     periods: list[dict[str, Any]] = []
     ramp_days_values: list[float] = []
@@ -969,6 +1278,152 @@ def _apply_npi_contact_reduction_timeline(
     metadata["npi_contact_reduction_iso3"] = iso3
     metadata["npi_contact_reduction_periods_loaded"] = len(periods)
     metadata["npi_contact_reduction_reduction_column"] = multiplier_column
+    metadata["npi_contact_reduction_evidence_cutoff_date"] = (
+        evidence_cutoff_date.date().isoformat()
+        if evidence_cutoff_date is not None
+        else None
+    )
+    return out
+
+
+@lru_cache(maxsize=4)
+def _load_dtp_coverage_panel(relative_path: str) -> pd.DataFrame:
+    """Load annual DTP evidence used by forecast-origin-safe profiles."""
+
+    path = project_path(relative_path)
+    if not path.exists():
+        raise FileNotFoundError(f"DTP coverage workbook not found: {path}")
+    panel = pd.read_excel(path, sheet_name="Sheet1")
+    missing = DTP_COVERAGE_COLUMNS.difference(panel.columns)
+    if missing:
+        raise ValueError(f"DTP coverage workbook is missing columns: {sorted(missing)}")
+    panel = panel.loc[:, sorted(DTP_COVERAGE_COLUMNS)].copy()
+    panel["CODE"] = panel["CODE"].astype(str).str.upper().str.strip()
+    panel["ANTIGEN"] = panel["ANTIGEN"].astype(str).str.upper().str.strip()
+    panel["COVERAGE_CATEGORY"] = (
+        panel["COVERAGE_CATEGORY"].astype(str).str.upper().str.strip()
+    )
+    panel["YEAR"] = pd.to_numeric(panel["YEAR"], errors="coerce")
+    panel["COVERAGE"] = pd.to_numeric(panel["COVERAGE"], errors="coerce")
+    panel = panel.dropna(subset=["YEAR", "COVERAGE"]).copy()
+    panel["YEAR"] = panel["YEAR"].astype(int)
+    return panel.loc[
+        panel["ANTIGEN"].isin({"DTPCV1", "DTPCV3"})
+        & panel["COVERAGE"].between(0.0, 100.0)
+    ].copy()
+
+
+def _historical_dtp_pair(
+    data_sources: dict[str, Any],
+    *,
+    iso3: str,
+    evidence_cutoff_date: pd.Timestamp,
+) -> tuple[int, float, float, str, str]:
+    """Return the latest DTP1/DTP3 pair available at a forecast origin."""
+
+    relative_path = str(data_sources.get("dtp_coverage_xlsx", "")).strip()
+    if not relative_path:
+        raise ValueError("runtime.data_sources.dtp_coverage_xlsx is required")
+    # At 1 January the immediately preceding year's final coverage is not yet
+    # generally available. Use only a fully elapsed reporting year.
+    maximum_year = int(evidence_cutoff_date.year) - 2
+    panel = _load_dtp_coverage_panel(relative_path)
+    rows = panel.loc[
+        panel["CODE"].eq(str(iso3).upper()) & panel["YEAR"].le(maximum_year)
+    ].copy()
+    category_rank = {"WUENIC": 0, "OFFICIAL": 1, "ADMIN": 2}
+    rows["_rank"] = rows["COVERAGE_CATEGORY"].map(category_rank).fillna(99)
+    rows = rows.sort_values(
+        ["YEAR", "ANTIGEN", "_rank"], ascending=[False, True, True]
+    )
+    for year in sorted(rows["YEAR"].unique(), reverse=True):
+        year_rows = rows.loc[rows["YEAR"].eq(int(year))]
+        selected: dict[str, pd.Series] = {}
+        for antigen in ("DTPCV1", "DTPCV3"):
+            antigen_rows = year_rows.loc[year_rows["ANTIGEN"].eq(antigen)]
+            if not antigen_rows.empty:
+                selected[antigen] = antigen_rows.iloc[0]
+        if len(selected) == 2:
+            return (
+                int(year),
+                float(selected["DTPCV1"]["COVERAGE"]) / 100.0,
+                float(selected["DTPCV3"]["COVERAGE"]) / 100.0,
+                str(selected["DTPCV1"]["COVERAGE_CATEGORY"]),
+                str(selected["DTPCV3"]["COVERAGE_CATEGORY"]),
+            )
+    raise ValueError(
+        f"No complete DTP1/DTP3 evidence pair for {iso3} at or before {maximum_year}"
+    )
+
+
+def _apply_historical_profile_cutoff(
+    config: dict[str, Any],
+    *,
+    country: str,
+    country_profile: dict[str, Any],
+    data_sources: dict[str, Any],
+    evidence_cutoff_date: pd.Timestamp,
+) -> dict[str, Any]:
+    """Remove outcome-derived profile terms and backdate vaccine evidence."""
+
+    out = deepcopy(config)
+    transmission = out.setdefault("transmission", {})
+    for key in (
+        "seasonal_amplitude",
+        "seasonal_phase",
+        "multi_year_amplitude",
+        "multi_year_phase",
+    ):
+        transmission[key] = 0.0
+
+    iso3 = str(country_profile.get("iso3", "")).upper()
+    coverage_year, dtp1, dtp3, dtp1_category, dtp3_category = _historical_dtp_pair(
+        data_sources,
+        iso3=iso3,
+        evidence_cutoff_date=evidence_cutoff_date,
+    )
+    country_source = next(
+        (
+            value
+            for value in data_sources.get("countries", {}).values()
+            if str(value.get("config_key", "")) == country
+        ),
+        {},
+    )
+    coverage_meta = dict(country_source)
+    # Maternal estimates currently lack source-availability dates. Excluding
+    # them is conservative and avoids retrospective backcasting.
+    coverage_meta.update(
+        {
+            "config_key": country,
+            "maternal_coverage": 0.0,
+            "maternal_program": False,
+        }
+    )
+    from src_python.data.build_country_inputs import coverage_by_age
+
+    coverage = coverage_by_age(dtp1, dtp3, coverage_meta)
+    for record in out.get("age_groups", []):
+        label = str(record.get("label", ""))
+        if label in coverage:
+            record["vaccine_coverage"] = float(coverage[label])
+    infant_coverage = float(coverage.get("infant_0_2m", 0.0))
+    out.setdefault("demography", {})["birth_entry"] = {
+        "S": 1.0 - infant_coverage,
+        "V": infant_coverage,
+    }
+    out.setdefault("metadata", {}).update(
+        {
+            "outcome_derived_profile_terms_disabled": True,
+            "historical_dtp_coverage_year": int(coverage_year),
+            "historical_dtp1_coverage": float(dtp1),
+            "historical_dtp3_coverage": float(dtp3),
+            "historical_dtp1_category": dtp1_category,
+            "historical_dtp3_category": dtp3_category,
+            "historical_dtp_publication_lag_years": 1,
+            "historical_maternal_coverage_excluded": True,
+        }
+    )
     return out
 
 
@@ -1020,14 +1475,37 @@ def make_config(
     resistance_overrides: dict[str, Any] | None = None,
     config_overrides: dict[str, Any] | None = None,
     load_calibration: bool = True,
+    evidence_cutoff_date: str | datetime | pd.Timestamp | None = None,
 ) -> dict[str, Any]:
     configs = load_configs()
     base = deepcopy(configs["baseline"])
     country_name = country_profile or base.get("baseline_country_profile")
 
+    resolved_evidence_cutoff: pd.Timestamp | None = None
+    if evidence_cutoff_date is not None:
+        resolved_evidence_cutoff = pd.Timestamp(evidence_cutoff_date)
+        if pd.isna(resolved_evidence_cutoff):
+            raise ValueError("evidence_cutoff_date must be a valid date")
+        if resolved_evidence_cutoff.tzinfo is not None:
+            resolved_evidence_cutoff = resolved_evidence_cutoff.tz_localize(None)
+        resolved_evidence_cutoff = resolved_evidence_cutoff.normalize()
+        if load_calibration:
+            raise ValueError(
+                "Historical evidence cutoffs cannot load a calibration artifact "
+                "that may have used later observations; set load_calibration=False."
+            )
+
     out = deepcopy(base)
     if country_name and country_name in configs["countries"]:
         out = _apply_country_profile_from_profile(out, country_name, configs["countries"][country_name])
+        if resolved_evidence_cutoff is not None:
+            out = _apply_historical_profile_cutoff(
+                out,
+                country=country_name,
+                country_profile=configs["countries"][country_name],
+                data_sources=configs["data_sources"],
+                evidence_cutoff_date=resolved_evidence_cutoff,
+            )
 
     calibration_settings = base.get("calibration", {})
     allow_stale_calibration = bool(calibration_settings.get("allow_stale_parameter_overlay", False))
@@ -1048,12 +1526,16 @@ def make_config(
             production_calendar = deepcopy(out.get("calendar", {}))
             artifact_metadata = calibrated_artifact.get("metadata", {})
             hash_status = str(artifact_metadata.get("calibration_hash_status", "current"))
-            if hash_status == "stale_parameter_overlay":
-                calibration_overlay_only = True
-                calibration_parameter_overlay = _calibration_parameter_overlay(calibrated_config)
-                out = deep_update(out, calibration_parameter_overlay)
-            else:
-                out = deep_update(out, calibrated_config)
+            # A calibration artifact is not a second production configuration.
+            # Copy only explicitly fitted quantities, even when its fingerprint
+            # is current.  This prevents a short calibration calendar, solver
+            # tolerances, observation settings, or stale scenario inputs from
+            # leaking into forecast runs.  The latent process path is itself a
+            # fitted state estimate and is therefore part of this narrow
+            # overlay.
+            calibration_overlay_only = True
+            calibration_parameter_overlay = _calibration_parameter_overlay(calibrated_config)
+            out = deep_update(out, calibration_parameter_overlay)
             # Calibration artifacts are produced with a shortened, calendar-aligned
             # runtime. Reuse fitted country parameters, but keep production scenario
             # runs on the configured analysis horizon.
@@ -1064,6 +1546,7 @@ def make_config(
             metadata["calibration_country"] = country_name
             metadata["calibration_artifact_path"] = str(calibrated_country_artifact_path(country_name))
             metadata["calibration_hash_status"] = hash_status
+            metadata["calibration_overlay_mode"] = "fitted_parameters_and_state_only"
             for key in (
                 "config_hash",
                 "calibration_config_hash",
@@ -1121,6 +1604,7 @@ def make_config(
             country=country_name,
             country_profile=configs["countries"][country_name],
             data_sources=configs["data_sources"],
+            evidence_cutoff_date=resolved_evidence_cutoff,
         )
 
     if country_name and country_name in configs["countries"]:
@@ -1135,6 +1619,16 @@ def make_config(
                 country=country_name,
                 country_profile=configs["countries"][country_name],
                 data_sources=configs["data_sources"],
+                evidence_cutoff_year=(
+                    int(
+                        (
+                            resolved_evidence_cutoff
+                            - pd.Timedelta(nanoseconds=1)
+                        ).year
+                    )
+                    if resolved_evidence_cutoff is not None
+                    else None
+                ),
             )
     if calibration_overlay_only and calibration_parameter_overlay:
         post_overlay = deepcopy(calibration_parameter_overlay)
@@ -1152,22 +1646,104 @@ def make_config(
             country=country_name,
             country_profile=configs["countries"][country_name],
             data_sources=configs["data_sources"],
+            evidence_cutoff_date=resolved_evidence_cutoff,
+        )
+
+    if resolved_evidence_cutoff is not None:
+        out.setdefault("metadata", {})["evidence_cutoff_date"] = (
+            resolved_evidence_cutoff.date().isoformat()
         )
 
     if sum(float(value) for key, value in out.get("vaccine", {}).items() if key.startswith("VE_")) == 0.0:
         for record in out["age_groups"]:
             record["vaccine_coverage"] = 0.0
         out.setdefault("demography", {})["birth_entry"] = {"S": 1.0, "V": 0.0}
+    # Materialize the transmission-layer diagnosis probabilities before any
+    # downstream reporting-only scenario mutates age-specific reporting rates.
+    # PreparedParameters historically defaulted diagnosis to the *current*
+    # reporting_rate values, which made observation-layer sensitivity analyses
+    # silently alter treatment and resistance dynamics.
+    if "diagnosis_probability" not in out:
+        out["diagnosis_probability"] = {
+            str(record["label"]): float(record.get("reporting_rate", 0.0))
+            for record in out["age_groups"]
+        }
+    out.setdefault("reporting_multiplier", 1.0)
     return out
 
 
-def apply_intervention_definition(config: dict[str, Any], intervention: dict[str, Any]) -> dict[str, Any]:
+def _without_prospective_policy(config: dict[str, Any]) -> dict[str, Any]:
+    """Return a shallow model-config view without orchestration metadata."""
+
+    return {key: value for key, value in config.items() if key != PROSPECTIVE_POLICY_KEY}
+
+
+def prospective_policy_history(config: dict[str, Any]) -> dict[str, Any] | None:
+    """Return a defensive copy of the historical config attached to a policy."""
+
+    spec = config.get(PROSPECTIVE_POLICY_KEY)
+    if not isinstance(spec, dict):
+        return None
+    history = spec.get("history_config")
+    if not isinstance(history, dict):
+        raise ValueError("Prospective-policy metadata is missing a historical config")
+    return deepcopy(_without_prospective_policy(history))
+
+
+def attach_prospective_policy_history(
+    policy_config: dict[str, Any],
+    history_config: dict[str, Any],
+    *,
+    history_vaccine_scenario: str = "",
+    history_resistance_scenario: str = "",
+) -> dict[str, Any]:
+    """Attach an explicit pre-policy configuration to a prospective scenario.
+
+    This private orchestration block is removed before constructing
+    ``PreparedParameters``.  Keeping it beside the config makes direct callers
+    scientifically safe, while scenario executors can extract and deduplicate
+    it to share one t0 state across many policies.
+    """
+
+    out = deepcopy(_without_prospective_policy(policy_config))
+    history = deepcopy(_without_prospective_policy(history_config))
+    policy_start = float(out.get("simulation", {}).get("start_time", 0.0))
+    out[PROSPECTIVE_POLICY_KEY] = {
+        "schema_version": PROSPECTIVE_POLICY_SCHEMA_VERSION,
+        "start_time": policy_start,
+        "history_config": history,
+        "history_vaccine_scenario": str(history_vaccine_scenario),
+        "history_resistance_scenario": str(history_resistance_scenario),
+    }
+    metadata = out.setdefault("metadata", {})
+    metadata["prospective_policy"] = True
+    metadata["policy_start_time"] = policy_start
+    metadata["simulation_phase"] = "prospective_policy"
+    return out
+
+
+def apply_intervention_definition(
+    config: dict[str, Any],
+    intervention: dict[str, Any],
+    *,
+    history_config: dict[str, Any] | None = None,
+    history_vaccine_scenario: str = "",
+    history_resistance_scenario: str = "",
+) -> dict[str, Any]:
     """Apply one intervention definition to an already prepared config.
 
     This is used for both single predefined profiles and supplementary
     portfolio analyses where several program levers are layered in one run.
     """
-    config = deepcopy(config)
+    existing_history = prospective_policy_history(config)
+    historical = deepcopy(
+        history_config
+        if history_config is not None
+        else existing_history
+        if existing_history is not None
+        else _without_prospective_policy(config)
+    )
+    config = deepcopy(_without_prospective_policy(config))
     coverage_updates = intervention.get("coverage_updates", {})
     coverage_min_updates = intervention.get("coverage_min_updates", {})
     config = _apply_coverage_updates(config, coverage_updates)
@@ -1238,7 +1814,22 @@ def apply_intervention_definition(config: dict[str, Any], intervention: dict[str
         metadata["contact_matrix_directional_intervention"] = True
         metadata["contact_matrix_reciprocity_correction_after_intervention"] = False
 
-    return config
+    effect_scope = str(intervention.get("effect_scope", "prospective")).lower()
+    if effect_scope in {"structural", "historical", "all_time"}:
+        config.setdefault("metadata", {})["prospective_policy"] = False
+        config["metadata"]["simulation_phase"] = "structural_history"
+        return config
+    if effect_scope != "prospective":
+        raise ValueError(
+            f"Unsupported intervention effect_scope={effect_scope!r}; "
+            "use 'prospective' or 'structural'"
+        )
+    return attach_prospective_policy_history(
+        config,
+        historical,
+        history_vaccine_scenario=history_vaccine_scenario,
+        history_resistance_scenario=history_resistance_scenario,
+    )
 
 
 def make_intervention_config(
@@ -1249,14 +1840,28 @@ def make_intervention_config(
 ) -> tuple[dict[str, Any], str]:
     configs = load_configs()
     intervention = configs["interventions"][name]
-    vaccine_name = intervention.get("vaccine_scenario", configs["baseline"].get("baseline_vaccine_scenario"))
-    config = make_config(
-        vaccine_scenario=vaccine_name,
-        resistance_scenario=configs["baseline"].get("baseline_resistance_scenario"),
+    baseline_vaccine_name = str(configs["baseline"].get("baseline_vaccine_scenario"))
+    baseline_resistance_name = str(configs["baseline"].get("baseline_resistance_scenario"))
+    vaccine_name = intervention.get("vaccine_scenario", baseline_vaccine_name)
+    history_config = make_config(
+        vaccine_scenario=baseline_vaccine_name,
+        resistance_scenario=baseline_resistance_name,
         country_profile=country_profile,
         config_overrides=config_overrides,
     )
-    config = apply_intervention_definition(config, intervention)
+    config = make_config(
+        vaccine_scenario=vaccine_name,
+        resistance_scenario=baseline_resistance_name,
+        country_profile=country_profile,
+        config_overrides=config_overrides,
+    )
+    config = apply_intervention_definition(
+        config,
+        intervention,
+        history_config=history_config,
+        history_vaccine_scenario=baseline_vaccine_name,
+        history_resistance_scenario=baseline_resistance_name,
+    )
     return config, vaccine_name
 
 
@@ -1307,6 +1912,148 @@ def _apply_country_profile_from_profile(config: dict[str, Any], country: str, pr
     return out
 
 
+def _prepare_run_context(
+    config: dict[str, Any],
+    *,
+    analysis: str,
+    scenario: str,
+    vaccine_scenario: str = "",
+    resistance_scenario: str = "",
+    intervention: str = "",
+    metadata: dict[str, Any] | None = None,
+    history_config: dict[str, Any] | None = None,
+    initial_state_override: np.ndarray | None = None,
+) -> tuple[
+    PreparedParameters,
+    StateIndex,
+    PreparedParameters | None,
+    dict[str, Any],
+]:
+    """Resolve policy/history parameters once for every simulation surface.
+
+    Keeping this logic shared is scientifically important: full publication
+    output and the lightweight likelihood path must start from exactly the
+    same historical state and must apply the same prospective-policy boundary.
+    """
+
+    embedded_spec = config.get(PROSPECTIVE_POLICY_KEY)
+    embedded_history = prospective_policy_history(config)
+    if history_config is not None and embedded_history is not None:
+        # Explicit orchestration wins, but reject a mismatched policy origin.
+        explicit_payload = json.dumps(
+            _without_prospective_policy(history_config),
+            sort_keys=True,
+            default=str,
+            separators=(",", ":"),
+        )
+        embedded_payload = json.dumps(
+            embedded_history,
+            sort_keys=True,
+            default=str,
+            separators=(",", ":"),
+        )
+        if explicit_payload != embedded_payload:
+            raise ValueError("Explicit history_config disagrees with embedded policy history")
+    resolved_history = history_config or embedded_history
+    model_config = _without_prospective_policy(config)
+    params = PreparedParameters.from_config(
+        model_config,
+        analysis=analysis,
+        scenario=scenario,
+        vaccine_scenario=vaccine_scenario,
+        resistance_scenario=resistance_scenario,
+        intervention=intervention,
+        metadata=metadata,
+    )
+    index = StateIndex(params.age_groups)
+    history_params: PreparedParameters | None = None
+    history_model_config: dict[str, Any] | None = None
+    if resolved_history is not None:
+        history_model_config = _without_prospective_policy(resolved_history)
+        if float(history_model_config["simulation"]["start_time"]) != float(
+            model_config["simulation"]["start_time"]
+        ):
+            raise ValueError("Historical and policy simulation.start_time must match")
+        history_calendar_start = str(
+            history_model_config.get("calendar", {}).get("analysis_start_date", "")
+        )
+        policy_calendar_start = str(model_config.get("calendar", {}).get("analysis_start_date", ""))
+        if history_calendar_start != policy_calendar_start:
+            raise ValueError("Historical and policy calendar.analysis_start_date must match")
+        history_age_groups = tuple(
+            str(record["label"]) for record in history_model_config.get("age_groups", [])
+        )
+        if history_age_groups != tuple(params.age_groups):
+            raise ValueError("Historical and policy age-group order must match")
+    if history_model_config is not None and initial_state_override is None:
+        history_vaccine = ""
+        history_resistance = ""
+        if isinstance(embedded_spec, dict):
+            history_vaccine = str(embedded_spec.get("history_vaccine_scenario", ""))
+            history_resistance = str(embedded_spec.get("history_resistance_scenario", ""))
+        history_params = PreparedParameters.from_config(
+            history_model_config,
+            analysis=analysis,
+            scenario=f"{scenario}__history",
+            vaccine_scenario=history_vaccine,
+            resistance_scenario=history_resistance,
+            intervention="historical_current_practice",
+            metadata=metadata,
+        )
+    return params, index, history_params, model_config
+
+
+def run_prepared_case_exposure(
+    config: dict[str, Any],
+    observed: pd.DataFrame,
+    *,
+    analysis: str,
+    scenario: str,
+    vaccine_scenario: str = "",
+    resistance_scenario: str = "",
+    intervention: str = "",
+    metadata: dict[str, Any] | None = None,
+    history_config: dict[str, Any] | None = None,
+    initial_state_override: np.ndarray | None = None,
+    case_event_definition: str | None = None,
+) -> tuple[CaseExposure, np.ndarray]:
+    """Solve only biology plus exact observed-interval case counters.
+
+    The returned age-specific reporting rates are the unmultiplied base
+    probabilities.  Reporting multipliers and diagnostic standards can
+    therefore be projected repeatedly without another ODE solve.
+    """
+
+    params, index, history_params, model_config = _prepare_run_context(
+        config,
+        analysis=analysis,
+        scenario=scenario,
+        vaccine_scenario=vaccine_scenario,
+        resistance_scenario=resistance_scenario,
+        intervention=intervention,
+        metadata=metadata,
+        history_config=history_config,
+        initial_state_override=initial_state_override,
+    )
+    if initial_state_override is None:
+        t0_state = prepare_history_state(history_params or params, index)
+    else:
+        t0_state = np.array(initial_state_override, dtype=float, copy=True)
+    plan = build_observation_plan(observed, params)
+    exposure = solve_case_exposure(
+        params,
+        index,
+        t0_state,
+        plan,
+        case_event_definition=case_event_definition,
+    )
+    base_reporting_rates = np.asarray(
+        [float(record.get("reporting_rate", 0.0)) for record in model_config["age_groups"]],
+        dtype=float,
+    )
+    return exposure, base_reporting_rates
+
+
 def run_prepared_config(
     config: dict[str, Any],
     *,
@@ -1316,8 +2063,10 @@ def run_prepared_config(
     resistance_scenario: str = "",
     intervention: str = "",
     metadata: dict[str, Any] | None = None,
+    history_config: dict[str, Any] | None = None,
+    initial_state_override: np.ndarray | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    params = PreparedParameters.from_config(
+    params, index, history_params, _model_config = _prepare_run_context(
         config,
         analysis=analysis,
         scenario=scenario,
@@ -1325,9 +2074,15 @@ def run_prepared_config(
         resistance_scenario=resistance_scenario,
         intervention=intervention,
         metadata=metadata,
+        history_config=history_config,
+        initial_state_override=initial_state_override,
     )
-    index = StateIndex(params.age_groups)
-    solution = solve_model(params, index)
+    solution = solve_model(
+        params,
+        index,
+        history_params=history_params,
+        initial_state_override=initial_state_override,
+    )
     timeseries = compute_timeseries(solution, params, index)
     summary = summarize_timeseries(
         timeseries,
@@ -1380,6 +2135,95 @@ def _add_absolute_fit_context(summary: pd.DataFrame, config: dict[str, Any], met
     )
 
 
+def _history_config_fingerprint(history_config: dict[str, Any]) -> str:
+    """Stable within-run key for sharing an identical historical trajectory."""
+
+    payload = deepcopy(_without_prospective_policy(history_config))
+    metadata = payload.get("metadata")
+    if isinstance(metadata, dict):
+        metadata.pop("prospective_policy", None)
+        metadata.pop("policy_start_time", None)
+    encoded = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _prepare_history_config_item(item: dict[str, Any]) -> np.ndarray:
+    history_config = _without_prospective_policy(item["history_config"])
+    params = PreparedParameters.from_config(
+        history_config,
+        analysis=str(item.get("analysis", "prospective_history")),
+        scenario=f"{item.get('scenario', 'policy')}__history",
+        vaccine_scenario=str(item.get("history_vaccine_scenario", "")),
+        resistance_scenario=str(item.get("history_resistance_scenario", "")),
+        intervention="historical_current_practice",
+        metadata=item.get("metadata"),
+    )
+    index = StateIndex(params.age_groups)
+    return prepare_history_state(params, index)
+
+
+def _prepare_prospective_scenario_items(
+    scenarios: list[dict[str, Any]],
+    *,
+    stem: str,
+    n_jobs: int | None,
+) -> list[dict[str, Any]]:
+    """Compute each unique history once, then attach copied t0 states.
+
+    The grouping occurs before loky dispatch.  A process-local dictionary cache
+    would not guarantee that related policies reach the same worker and would
+    therefore fail to remove duplicate burn-ins.
+    """
+
+    prepared = [dict(item) for item in scenarios]
+    history_tasks: dict[str, dict[str, Any]] = {}
+    item_history_keys: dict[int, str] = {}
+    for position, item in enumerate(prepared):
+        if item.get("initial_state_override") is not None:
+            continue
+        explicit_history = item.get("history_config")
+        embedded_history = prospective_policy_history(item["config"])
+        history = explicit_history if isinstance(explicit_history, dict) else embedded_history
+        if history is None:
+            continue
+        key = _history_config_fingerprint(history)
+        item_history_keys[position] = key
+        if key in history_tasks:
+            continue
+        spec = item["config"].get(PROSPECTIVE_POLICY_KEY, {})
+        history_tasks[key] = {
+            "history_config": history,
+            "analysis": item.get("analysis", "prospective_history"),
+            "scenario": item.get("scenario", "policy"),
+            "history_vaccine_scenario": (
+                spec.get("history_vaccine_scenario", "") if isinstance(spec, dict) else ""
+            ),
+            "history_resistance_scenario": (
+                spec.get("history_resistance_scenario", "") if isinstance(spec, dict) else ""
+            ),
+            "metadata": item.get("metadata"),
+        }
+    if not history_tasks:
+        return prepared
+
+    keys = list(history_tasks)
+    states = parallel_map(
+        _prepare_history_config_item,
+        [history_tasks[key] for key in keys],
+        desc=f"{stem}_history",
+        n_jobs=n_jobs,
+    )
+    state_by_key = {key: state for key, state in zip(keys, states)}
+    for position, key in item_history_keys.items():
+        # Every policy receives an independent writable copy.  This is cheap
+        # (~4.7 KiB for the current 592-state model) and prevents cross-policy
+        # aliasing even if a future integrator mutates its input.
+        prepared[position]["initial_state_override"] = np.array(
+            state_by_key[key], dtype=float, copy=True
+        )
+    return prepared
+
+
 def _run_scenario_item(item: dict[str, Any]) -> tuple[pd.DataFrame, pd.DataFrame]:
     return run_prepared_config(**item)
 
@@ -1387,6 +2231,26 @@ def _run_scenario_item(item: dict[str, Any]) -> tuple[pd.DataFrame, pd.DataFrame
 def _run_scenario_summary_item(item: dict[str, Any]) -> pd.DataFrame:
     _, summary = run_prepared_config(**item)
     return summary
+
+
+def _scenario_execution_n_jobs(
+    scenarios: list[dict[str, Any]],
+    requested: int | None,
+) -> int | None:
+    """Resolve a top-level scenario budget without defeating an env cap.
+
+    A non-``None`` argument is an explicit allocation, including the smaller
+    budgets passed by nested schedulers.  Otherwise ``PERTUSSIS_N_JOBS`` is the
+    top-level run budget and must take precedence over a configuration default
+    such as ``simulation.n_jobs: -1``.  Returning ``None`` in that case lets
+    :func:`parallel_map` resolve and cap the environment value in one place.
+    """
+
+    if requested is not None:
+        return requested
+    if os.environ.get("PERTUSSIS_N_JOBS"):
+        return None
+    return scenarios[0]["config"].get("simulation", {}).get("n_jobs")
 
 
 def add_relative_reductions(
@@ -1469,9 +2333,13 @@ def execute_scenario_list(
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     if not scenarios:
         raise ValueError(f"No scenarios were provided for {stem}.")
-    if n_jobs is None:
-        n_jobs = scenarios[0]["config"].get("simulation", {}).get("n_jobs")
-    results = parallel_map(_run_scenario_item, scenarios, desc=stem, n_jobs=n_jobs)
+    n_jobs = _scenario_execution_n_jobs(scenarios, n_jobs)
+    prepared_scenarios = _prepare_prospective_scenario_items(
+        scenarios,
+        stem=stem,
+        n_jobs=n_jobs,
+    )
+    results = parallel_map(_run_scenario_item, prepared_scenarios, desc=stem, n_jobs=n_jobs)
     frames = [ts for ts, _ in results]
     summaries = [sm for _, sm in results]
     return pd.concat(frames, ignore_index=True), pd.concat(summaries, ignore_index=True)
@@ -1485,9 +2353,18 @@ def execute_scenario_summary_list(
 ) -> pd.DataFrame:
     if not scenarios:
         raise ValueError(f"No scenarios were provided for {stem}.")
-    if n_jobs is None:
-        n_jobs = scenarios[0]["config"].get("simulation", {}).get("n_jobs")
-    summaries = parallel_map(_run_scenario_summary_item, scenarios, desc=stem, n_jobs=n_jobs)
+    n_jobs = _scenario_execution_n_jobs(scenarios, n_jobs)
+    prepared_scenarios = _prepare_prospective_scenario_items(
+        scenarios,
+        stem=stem,
+        n_jobs=n_jobs,
+    )
+    summaries = parallel_map(
+        _run_scenario_summary_item,
+        prepared_scenarios,
+        desc=stem,
+        n_jobs=n_jobs,
+    )
     return pd.concat(summaries, ignore_index=True)
 
 
@@ -1549,18 +2426,421 @@ def write_manuscript_tables() -> None:
     settings = configs.get("settings", {})
     parameter_sources = settings.get("parameter_sources", {})
 
+    distribution_registry = configs.get("parameter_distributions", {})
+    evidence_psa = (
+        distribution_registry.get("global_sensitivity", {})
+        if isinstance(distribution_registry, dict)
+        else {}
+    )
+    evidence_specs = evidence_psa.get("parameters", {})
+    selected_sensitivity_specs = (
+        evidence_specs
+        if isinstance(evidence_specs, dict) and evidence_specs
+        else configs["sensitivity"].get("parameters", {})
+    )
     sensitivity_paths = {
         spec.get("path")
-        for spec in configs["sensitivity"].get("parameters", {}).values()
-        if isinstance(spec, dict)
+        for spec in selected_sensitivity_specs.values()
+        if isinstance(spec, dict) and spec.get("path")
     }
-    sensitivity_path_aliases = {
-        "natural_history.recovered_immunity_duration": "rates.waning_natural",
-        "natural_history.vaccine_protection_duration": "rates.waning_vaccine",
+    sensitivity_by_path = {
+        str(spec.get("path")): spec
+        for spec in selected_sensitivity_specs.values()
+        if isinstance(spec, dict) and spec.get("path")
     }
+    if evidence_specs:
+        sensitivity_path_aliases: dict[str, str] = {}
+        semantic_sensitivity_by_path = {
+            "vaccine.VE_sym": evidence_specs.get("vaccine_disease_efficacy"),
+            "natural_history.infectious_duration_asymptomatic": evidence_specs.get(
+                "asymptomatic_duration_ratio"
+            ),
+            "natural_history.R_to_W_duration": evidence_specs.get("natural_immunity_duration"),
+            "natural_history.W_to_S_duration": evidence_specs.get("natural_immunity_duration"),
+            "natural_history.vaccine_protection_duration": evidence_specs.get(
+                "vaccine_protection_duration"
+            ),
+            "immunity_model.waned_vaccine_duration": evidence_specs.get(
+                "vaccine_protection_duration"
+            ),
+        }
+        semantic_sensitivity_by_path = {
+            path: spec for path, spec in semantic_sensitivity_by_path.items() if isinstance(spec, dict)
+        }
+    else:
+        sensitivity_path_aliases = {
+            "natural_history.recovered_immunity_duration": "rates.waning_natural",
+            "natural_history.vaccine_protection_duration": "rates.waning_vaccine",
+        }
+        semantic_sensitivity_by_path = {}
+    parameter_source_aliases = {
+        "vaccine.VE_sus": "vaccine_scenarios",
+        "vaccine.VE_sym": "vaccine_scenarios",
+        "vaccine.VE_inf": "vaccine_scenarios",
+        "vaccine.VE_dur": "vaccine_scenarios",
+        "observation.reporting_probability_baseline": "observation_model",
+    }
+    parameter_source_overrides = {
+        "simulation.output_time_step": {
+            "source": "Analysis design",
+            "note": "Weekly saved output supports annualised summaries while calibration can use coarser monthly saved output for speed.",
+        },
+        "simulation.rtol": {
+            "source": "Numerical implementation setting",
+            "note": "Production tolerance used by the RK45 solver; calibration uses a slightly looser tolerance for repeated likelihood evaluations.",
+        },
+        "simulation.atol": {
+            "source": "Numerical implementation setting",
+            "note": "Production absolute tolerance used by the RK45 solver; calibration uses a slightly looser tolerance for repeated likelihood evaluations.",
+        },
+        "transmission.seasonal_phase": {
+            "source": "Calibrated/processed pertussis incidence",
+            "note": "Country profiles override the shared default when seasonal timing can be inferred from reported-case timing.",
+        },
+        "transmission.relative_infectiousness_asymptomatic": {
+            "source": "Literature-informed mechanism assumption",
+            "note": "Human household evidence does not identify this ratio; it is varied only in dedicated structural diagnostics.",
+        },
+        "transmission.fitness_R": {
+            "source": "Weak surveillance-informed model prior",
+            "note": "Baseline is fitness-neutral; surveillance does not separately identify biological transmission fitness.",
+        },
+        "transmission.multi_year_amplitude": {
+            "source": "Model-structure assumption",
+            "note": "Weak phase-locking is a zero-versus-enabled structural choice rather than a literature-estimated continuous parameter.",
+        },
+        "transmission.multi_year_phase": {
+            "source": "Model-structure assumption",
+            "note": "Optional multi-year recurrence phase is fixed in the submitted primary analysis.",
+        },
+        "importation.rate_per_100k_per_year": {
+            "source": "Importation implementation assumption",
+            "note": "Low-level imported infection seeding prevents deterministic extinction and is bounded in calibration support.",
+        },
+        "natural_history.maternal_protection_duration": {
+            "source": "Pregnancy-vaccination effectiveness evidence and scenario assumption",
+            "note": "Baseline passive maternal-protection duration is short-lived; pregnancy Tdap and Figure 2c intervention priors vary the duration.",
+        },
+        "natural_history.latent_duration": {
+            "source": "Interval-censored pertussis incubation evidence",
+            "note": "Two outbreak analyses give materially different incubation estimates; their broad synthesis is an explicit proxy for the unobserved latent-period mean.",
+        },
+        "natural_history.infectious_duration_symptomatic": {
+            "source": "SIRWS pertussis model fit",
+            "note": "The evidence-prior PSA encodes uncertainty around a fitted 3.7-week mean.",
+        },
+        "natural_history.infectious_duration_asymptomatic": {
+            "source": "Weak model prior",
+            "note": "Human studies establish asymptomatic infection but do not identify its duration relative to symptomatic infection.",
+        },
+        "natural_history.recovered_immunity_duration": {
+            "source": "Legacy no-boosting fallback",
+            "note": "This field is inactive when SIRWS boosting is enabled; active natural-immunity uncertainty is applied to the R-to-W and W-to-S stages.",
+        },
+        "natural_history.vaccine_protection_duration": {
+            "source": "aP waning literature-to-model mapping",
+            "note": "This is an explicit duration mapping rather than a directly observed duration distribution.",
+        },
+        "natural_history.R_to_W_duration": {
+            "source": "Pertussis waning and immune-boosting model evidence",
+            "note": "Equal R and W stages approximate an Erlang shape-2 total natural-immunity residence time when boosting is absent.",
+        },
+        "natural_history.W_to_S_duration": {
+            "source": "Pertussis waning and immune-boosting model evidence",
+            "note": "Equal R and W stages approximate an Erlang shape-2 total natural-immunity residence time when boosting is absent.",
+        },
+        "immunity_model.boosting_efficiency": {
+            "source": "SIRWS immune-boosting model assumption",
+            "note": "Controls what fraction of re-exposure events boost waned-natural immunity back toward the recovered state.",
+        },
+        "immunity_model.waned_natural_infection_susceptibility": {
+            "source": "SIRWS immune-boosting model assumption",
+            "note": "Susceptibility scalar for waned-natural-immunity breakthrough infection after failed boosting.",
+        },
+        "immunity_model.waned_relative_effect": {
+            "source": "Vaccine-origin mapping assumption",
+            "note": "Residual vaccine-effect weight assigned to waned vaccine-origin states.",
+        },
+        "immunity_model.maternal_relative_effect": {
+            "source": "Maternal-origin mapping assumption",
+            "note": "Relative vaccine-effect weight assigned to the maternal-protection origin.",
+        },
+        "immunity_model.dose1_relative_effect": {
+            "source": "Dose-history mapping assumption",
+            "note": "Relative vaccine-effect weight assigned after one primary-series dose.",
+        },
+        "immunity_model.dose2_relative_effect": {
+            "source": "Dose-history mapping assumption",
+            "note": "Relative vaccine-effect weight assigned after two primary-series doses.",
+        },
+        "immunity_model.waned_vaccine_duration": {
+            "source": "aP waning literature-to-model mapping",
+            "note": "The sampled total duration is split equally between recent and waned vaccine-origin stages.",
+        },
+        "immunity_model.initial_recent_fraction": {
+            "source": "Initial immunity-history mapping assumption",
+            "note": "Shared fallback for the fraction of vaccinated-origin individuals initialized as recently protected; age-specific values override it.",
+        },
+        "vaccine.VE_sus": {
+            "source": "Literature-informed vaccine-mechanism scenario",
+            "note": "Human effectiveness studies do not separately identify acquisition and symptom effects; VE_sus is fixed by the selected mechanism scenario in the evidence-prior PSA.",
+        },
+        "vaccine.VE_sym": {
+            "source": "Household-exposure overall vaccine-effect evidence",
+            "note": "VE_sym is derived conditional on scenario VE_sus so acquisition and symptom effects are not sampled independently.",
+        },
+        "vaccine.VE_inf": {
+            "source": "Literature-informed vaccine-mechanism scenario",
+            "note": "Human evidence supports residual transmission but does not identify an independent VE_inf distribution.",
+        },
+        "vaccine.VE_dur": {
+            "source": "Vaccine-mechanism scenario assumption",
+            "note": "No human study identifies an independent infectious-duration vaccine effect.",
+        },
+        "observation.reporting_probability_baseline": {
+            "source": "Age-specific reporting priors and country calibration",
+            "note": "Baseline age-specific reporting probabilities are country-calibrated and reported in the fitted reporting-probability table.",
+        },
+        "reporting_multiplier": {
+            "source": "Calibrated observation layer plus transfer prior",
+            "note": "The evidence-prior factor is applied around the calibrated country value and assessed only against reported cases.",
+        },
+        "calibration.dispersion": {
+            "source": "Negative-binomial observation-model assumption",
+            "note": "Dispersion parameter used in the reported-case calibration likelihood.",
+        },
+        "calibration.recent_years": {
+            "source": "Calibration design",
+            "note": "Number of recent surveillance years used by the staged calibration objective when available.",
+        },
+        "calibration.relative_incidence_tolerance": {
+            "source": "Calibration acceptance criterion",
+            "note": "Maximum tolerated relative deviation of modeled from observed mean annualised reported incidence during retained calibration.",
+        },
+        "resistance.target_prevalence_at_analysis_start": {
+            "source": "Country resistance evidence and fixed stress-test scenarios",
+            "note": "Country-timeline analyses use the latest admissible country-specific resistance anchor; fixed scenarios retain low-to-very-high contrasts.",
+        },
+        "resistance.importation_fraction": {
+            "source": "Country resistance evidence and fixed stress-test scenarios",
+            "note": "The resistant fraction among imports follows the country-timeline or fixed resistance-scenario anchor.",
+        },
+        "resistance.prevalence_anchor_rate_per_year": {
+            "source": "Resistance anchoring implementation assumption",
+            "note": "Burn-in rebalance rate used to move strain composition toward the evidence-based analysis-start anchor.",
+        },
+        "resistance.rebalance_after_burn_in": {
+            "source": "Resistance anchoring implementation assumption",
+            "note": "Submitted country-timeline analyses rebalance resistant prevalence after burn-in to match the evidence anchor.",
+        },
+        "routine_vaccination.target_relaxation_rate_per_year": {
+            "source": "Routine-immunisation implementation assumption",
+            "note": "Rate at which routine vaccination relaxes toward age-specific target dose-history origins.",
+        },
+        "routine_vaccination.max_daily_flow_fraction": {
+            "source": "Routine-immunisation numerical safeguard",
+            "note": "Caps daily flow from unvaccinated susceptible states to avoid numerical overshoot in the ODE implementation.",
+        },
+        "initial_conditions.initial_exposed_per_100k": {
+            "source": "Initial-condition implementation assumption",
+            "note": "Low-level exposed seeding at model start; long burn-in reduces dependence on this value.",
+        },
+        "initial_conditions.initial_infectious_per_100k": {
+            "source": "Initial-condition implementation assumption",
+            "note": "Low-level infectious seeding at model start; long burn-in reduces dependence on this value.",
+        },
+        "initial_conditions.initial_resistance_prevalence": {
+            "source": "Initial-condition implementation assumption",
+            "note": "Starting resistant fraction before burn-in; submitted country-timeline analyses subsequently rebalance to the evidence anchor.",
+        },
+        "PEP.coverage_household_contacts": {
+            "source": "CDC guidance plus elicited implementation prior",
+            "note": "Guidance identifies priority contacts but does not estimate coverage; the distribution is explicitly an implementation prior.",
+        },
+        "PEP.effectiveness_sensitive": {
+            "source": "Timely PEP effectiveness study",
+            "note": "The prior is centred on 82.3% effectiveness for PEP delivered within seven days.",
+        },
+        "PEP.effectiveness_resistant": {
+            "source": "CDC resistance and PEP guidance",
+            "note": "Standard macrolide PEP for confirmed high-level resistance is not assigned a pseudo-empirical continuous prior.",
+        },
+        "PEP.activation_prevalence": {
+            "source": "PEP implementation threshold assumption",
+            "note": "Low detection/prevalence proxy that activates PEP reach in the reduced-form contact-management pathway.",
+        },
+        "treatment.sensitive.infectious_duration_reduction": {
+            "source": "CDC guidance plus treatment-effect implementation assumption",
+            "note": "Standard macrolide treatment is assumed to shorten infectious duration for sensitive infections when started early.",
+        },
+        "treatment.sensitive.infectiousness_reduction": {
+            "source": "CDC guidance plus treatment-effect implementation assumption",
+            "note": "Standard macrolide treatment is assumed to reduce infectiousness for sensitive infections when started early.",
+        },
+        "treatment.resistant.infectious_duration_reduction": {
+            "source": "Macrolide-resistance treatment-effect assumption",
+            "note": "Standard macrolide management is assumed to shorten resistant infections less than sensitive infections; resistance-guided management varies this.",
+        },
+        "treatment.resistant.infectiousness_reduction": {
+            "source": "Macrolide-resistance treatment-effect assumption",
+            "note": "Standard macrolide management is assumed to reduce resistant infectiousness less than sensitive infectiousness; resistance-guided management varies this.",
+        },
+    }
+    baseline_vaccine_name = str(
+        baseline.get("calibration", {}).get("baseline_vaccine_scenario", "symptom_protective")
+    )
+    baseline_vaccine = vaccines.get(baseline_vaccine_name, vaccines.get("symptom_protective", {}))
+
+    def _fmt_parameter_value(value: Any) -> str:
+        if isinstance(value, (bool, np.bool_)):
+            return "Yes" if bool(value) else "No"
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            return str(value)
+        if not np.isfinite(numeric):
+            return ""
+        if abs(numeric) < 0.001 and numeric != 0:
+            return f"{numeric:.2e}"
+        if abs(numeric) < 0.1:
+            return f"{numeric:.4g}"
+        return f"{numeric:.4g}"
+
+    def _range_from_distribution(spec: dict[str, Any], *, unit: str = "") -> str:
+        low = _fmt_parameter_value(spec.get("low", spec.get("min")))
+        high = _fmt_parameter_value(spec.get("high", spec.get("max")))
+        suffix = f" {unit}" if unit and unit not in {"ratio", "proportion"} else ""
+        distribution = str(spec.get("distribution", "uniform")).replace("_", "-")
+        return f"{low} to {high}{suffix} ({distribution} support)".strip()
+
+    def _parameter_range_text(path: str, unit: str) -> str:
+        if path in sensitivity_by_path:
+            return _range_from_distribution(sensitivity_by_path[path], unit=unit)
+        if path in semantic_sensitivity_by_path:
+            spec = semantic_sensitivity_by_path[path]
+            if path == "vaccine.VE_sym":
+                return (
+                    f"Derived from overall vaccine disease efficacy; "
+                    f"{_range_from_distribution(spec, unit='proportion')}"
+                )
+            if path == "natural_history.infectious_duration_asymptomatic":
+                return (
+                    f"Derived as {_fmt_parameter_value(spec.get('low'))} to "
+                    f"{_fmt_parameter_value(spec.get('high'))} times the sampled symptomatic duration "
+                    "(beta ratio support)"
+                )
+            if path in {"natural_history.R_to_W_duration", "natural_history.W_to_S_duration"}:
+                low = 0.5 * float(spec["low"])
+                high = 0.5 * float(spec["high"])
+                return (
+                    f"{_fmt_parameter_value(low)} to {_fmt_parameter_value(high)} {unit} per stage "
+                    "(half of sampled total natural-immunity duration)"
+                )
+            if path in {
+                "natural_history.vaccine_protection_duration",
+                "immunity_model.waned_vaccine_duration",
+            }:
+                low = 0.5 * float(spec["low"])
+                high = 0.5 * float(spec["high"])
+                return (
+                    f"{_fmt_parameter_value(low)} to {_fmt_parameter_value(high)} {unit} per stage "
+                    "(half of sampled total vaccine-origin protection duration)"
+                )
+            return _range_from_distribution(spec, unit=unit)
+        alias = sensitivity_path_aliases.get(path)
+        if alias and alias in sensitivity_by_path:
+            spec = sensitivity_by_path[alias]
+            lower_duration = 1.0 / float(spec["max"])
+            upper_duration = 1.0 / float(spec["min"])
+            return (
+                f"{_fmt_parameter_value(lower_duration)} to {_fmt_parameter_value(upper_duration)} {unit} "
+                f"(reciprocal of {alias}={_fmt_parameter_value(spec['min'])} to "
+                f"{_fmt_parameter_value(spec['max'])} per day)"
+            )
+        explicit_ranges = {
+            "simulation.end_time": (
+                f"{baseline['calendar']['analysis_start_date']} to "
+                f"{baseline['calendar']['analysis_end_date']} in the current analysis"
+            ),
+            "simulation.history_start_date": (
+                f"{baseline['simulation']['history_start_date']} fixed calendar origin; "
+                f"prospective policy t0={baseline['calendar']['analysis_start_date']}"
+            ),
+            "simulation.output_time_step": "7 days in production output; calibration saves every 30 days",
+            "simulation.rtol": "1e-5 production; 1e-4 calibration",
+            "simulation.atol": "1e-7 production; 1e-6 calibration",
+            "transmission.beta_S": "Country-calibrated; bounded calibration support 0.002 to 0.20",
+            "transmission.seasonal_phase": "Country-specific processed value when inferred; shared default day 30",
+            "transmission.multi_year_period_years": "3 to 5 years when country surveillance supports recurrence; otherwise fixed at 4 years",
+            "transmission.multi_year_phase": "Fixed at 0 in the submitted primary analysis",
+            "natural_history.latent_duration": "7 to 10 days clinical range",
+            "natural_history.maternal_protection_duration": "90 days baseline; 180 days in pregnancy Tdap scale-up; 90 to 270 days in Figure 2c intervention prior",
+            "natural_history.recovered_immunity_duration": "Legacy fallback only; inactive under the submitted SIRWS boosting model",
+            "natural_history.R_to_W_duration": "Fixed at 1825 days in the submitted primary analysis",
+            "natural_history.W_to_S_duration": "Fixed at 3650 days in the submitted primary analysis",
+            "immunity_model.boosting_efficiency": "0 to 1 admissible; fixed at 0.70 in the submitted primary analysis",
+            "immunity_model.waned_natural_infection_susceptibility": "0 to 1 admissible; fixed at 0.35 in the submitted primary analysis",
+            "immunity_model.waned_relative_effect": "0 to 1 admissible; fixed at 0.35 in the submitted primary analysis",
+            "immunity_model.maternal_relative_effect": "0 to 1 admissible; fixed at 0.75 in the submitted primary analysis",
+            "immunity_model.dose1_relative_effect": "0 to 1 admissible; fixed at 0.45 in the submitted primary analysis",
+            "immunity_model.dose2_relative_effect": "0 to 1 admissible; fixed at 0.75 in the submitted primary analysis",
+            "immunity_model.waned_vaccine_duration": "Fixed at 3650 days in the submitted primary analysis",
+            "immunity_model.initial_recent_fraction": "Age-specific initial fractions 0.06 to 1.00; shared fallback 0.35",
+            "observation.reporting_probability_baseline": "Country- and age-specific calibrated probabilities; prior bounds reported in the fitted reporting-probability table",
+            "reporting_multiplier": "Calibration and sensitivity support 0.50 to 1.50; Figure 2c prior SD 0.80 on log scale",
+            "calibration.dispersion": "Fixed at 50 in the negative-binomial likelihood; stochastic overlay explores k=5 to 50 separately",
+            "calibration.recent_years": "Up to 6 recent observed years when available",
+            "calibration.relative_incidence_tolerance": "Fixed at 0.25 for retained mean-incidence calibration",
+            "treatment.treatment_rate_asymptomatic": "Fixed low-rate pathway in submitted analyses",
+            "treatment.sensitive.infectious_duration_reduction": "Fixed at 0.20 for standard sensitive-strain treatment",
+            "treatment.sensitive.infectiousness_reduction": "Fixed at 0.15 for standard sensitive-strain treatment",
+            "treatment.resistant.infectious_duration_reduction": "0.10 under standard macrolide practice; 0.45 under resistance-guided management",
+            "treatment.resistant.infectiousness_reduction": "0.05 under standard macrolide practice; 0.35 under resistance-guided management",
+            "PEP.effectiveness_sensitive": "Fixed at 0.70 for standard macrolide-sensitive PEP",
+            "PEP.activation_prevalence": "Fixed at 0.00002 in the submitted primary analysis",
+            "resistance.target_prevalence_at_analysis_start": "Country-timeline anchor or fixed scenarios 0.05, 0.30, 0.70, and 0.95",
+            "resistance.importation_fraction": "Country-timeline anchor or fixed scenarios 0.05, 0.30, 0.70, and 0.95",
+            "resistance.prevalence_anchor_rate_per_year": "Fixed at 2.0 per year for country-timeline anchoring",
+            "resistance.rebalance_after_burn_in": "Enabled in country-timeline analyses",
+            "importation.rate_per_100k_per_year": "Bounded calibration support 0.01 to 2.00",
+            "routine_vaccination.target_relaxation_rate_per_year": "2.0 per year baseline; 6.0 per year in routine-timeliness sensitivity",
+            "routine_vaccination.max_daily_flow_fraction": "0.01 per day baseline; 0.03 per day in routine-timeliness sensitivity",
+            "initial_conditions.initial_exposed_per_100k": "Fixed at 1.5 per 100,000 before burn-in",
+            "initial_conditions.initial_infectious_per_100k": "Fixed at 0.6 per 100,000 before burn-in",
+            "initial_conditions.initial_resistance_prevalence": "Fixed at 0.30 before burn-in; country-timeline analyses rebalance after burn-in",
+        }
+        return explicit_ranges.get(path, "Fixed in the submitted primary analysis")
+
     parameter_specs = [
         ("simulation.end_time", "Analysis horizon", "Simulation analysis horizon", baseline["simulation"]["end_time"], "days"),
-        ("simulation.burn_in_years", "Pre-analysis burn-in", "Pre-analysis burn-in horizon", baseline["simulation"]["burn_in_years"], "years"),
+        (
+            "simulation.history_start_date",
+            "Pre-analysis history origin",
+            "Fixed calendar origin for historical state reconstruction",
+            baseline["simulation"]["history_start_date"],
+            "calendar date",
+        ),
+        (
+            "simulation.output_time_step",
+            "Saved output interval",
+            "Time interval between saved model outputs",
+            baseline["simulation"]["output_time_step"],
+            "days",
+        ),
+        (
+            "simulation.rtol",
+            "Production solver relative tolerance",
+            "Relative tolerance for the RK45 ODE solver",
+            baseline["simulation"]["rtol"],
+            "unitless",
+        ),
+        (
+            "simulation.atol",
+            "Production solver absolute tolerance",
+            "Absolute tolerance for the RK45 ODE solver",
+            baseline["simulation"]["atol"],
+            "unitless",
+        ),
         (
             "transmission.beta_S",
             "Sensitive-strain transmission coefficient ($\\beta_{\\mathrm{sens}}$)",
@@ -1576,6 +2856,27 @@ def write_manuscript_tables() -> None:
             "ratio",
         ),
         (
+            "transmission.fitness_R",
+            "Resistant-strain relative fitness ($f_R$)",
+            "Relative transmission fitness of macrolide-resistant infections",
+            baseline["transmission"]["fitness_R"],
+            "ratio",
+        ),
+        (
+            "transmission.seasonal_amplitude",
+            "Seasonal forcing amplitude",
+            "Annual cosine forcing amplitude",
+            baseline["transmission"]["seasonal_amplitude"],
+            "ratio",
+        ),
+        (
+            "transmission.seasonal_phase",
+            "Seasonal forcing phase",
+            "Day-of-year phase for annual cosine forcing",
+            baseline["transmission"]["seasonal_phase"],
+            "day of year",
+        ),
+        (
             "transmission.multi_year_period_years",
             "Inter-epidemic recurrence period",
             "Target/diagnostic inter-epidemic period",
@@ -1588,6 +2889,13 @@ def write_manuscript_tables() -> None:
             "Weak multi-year phase-locking amplitude",
             baseline["transmission"]["multi_year_amplitude"],
             "ratio",
+        ),
+        (
+            "transmission.multi_year_phase",
+            "Multi-year recurrence phase",
+            "Phase of optional multi-year recurrence forcing",
+            baseline["transmission"]["multi_year_phase"],
+            "days",
         ),
         ("natural_history.latent_duration", "Latent period", "Latent period duration", baseline["natural_history"]["latent_duration"], "days"),
         (
@@ -1605,6 +2913,13 @@ def write_manuscript_tables() -> None:
             "days",
         ),
         (
+            "natural_history.maternal_protection_duration",
+            "Passive maternal-protection duration",
+            "Duration of short-lived maternally derived infant protection",
+            baseline["natural_history"]["maternal_protection_duration"],
+            "days",
+        ),
+        (
             "natural_history.recovered_immunity_duration",
             "Post-infection protection duration",
             "Duration of post-infection protection",
@@ -1617,6 +2932,209 @@ def write_manuscript_tables() -> None:
             "Duration of vaccine-derived protection proxy",
             baseline["natural_history"]["vaccine_protection_duration"],
             "days",
+        ),
+        (
+            "natural_history.R_to_W_duration",
+            "SIRWS recovered-to-waned duration",
+            "Duration before fully immune recovered state moves to waned-but-boostable state",
+            baseline["natural_history"]["R_to_W_duration"],
+            "days",
+        ),
+        (
+            "natural_history.W_to_S_duration",
+            "SIRWS waned-to-susceptible duration",
+            "Duration before waned-but-boostable state loses residual natural immunity",
+            baseline["natural_history"]["W_to_S_duration"],
+            "days",
+        ),
+        (
+            "immunity_model.boosting_efficiency",
+            "SIRWS boosting efficiency",
+            "Fraction of waned-natural exposure events that restore immunity",
+            baseline["immunity_model"]["boosting_efficiency"],
+            "proportion",
+        ),
+        (
+            "immunity_model.waned_natural_infection_susceptibility",
+            "Waned-natural infection susceptibility",
+            "Susceptibility scalar for the waned-natural-immunity state",
+            baseline["immunity_model"]["waned_natural_infection_susceptibility"],
+            "proportion",
+        ),
+        (
+            "immunity_model.waned_relative_effect",
+            "Waned vaccine-origin effect weight",
+            "Relative vaccine-effect weight assigned to waned vaccine-origin histories",
+            baseline["immunity_model"]["waned_relative_effect"],
+            "proportion",
+        ),
+        (
+            "immunity_model.maternal_relative_effect",
+            "Maternal-origin effect weight",
+            "Relative vaccine-effect weight assigned to maternal-protection origin histories",
+            baseline["immunity_model"]["maternal_relative_effect"],
+            "proportion",
+        ),
+        (
+            "immunity_model.dose1_relative_effect",
+            "Dose-1 origin effect weight",
+            "Relative vaccine-effect weight assigned after one primary-series dose",
+            baseline["immunity_model"]["dose1_relative_effect"],
+            "proportion",
+        ),
+        (
+            "immunity_model.dose2_relative_effect",
+            "Dose-2 origin effect weight",
+            "Relative vaccine-effect weight assigned after two primary-series doses",
+            baseline["immunity_model"]["dose2_relative_effect"],
+            "proportion",
+        ),
+        (
+            "immunity_model.waned_vaccine_duration",
+            "Waned vaccine-origin loss duration",
+            "Duration of residual protection for waned vaccine-origin histories",
+            baseline["immunity_model"]["waned_vaccine_duration"],
+            "days",
+        ),
+        (
+            "immunity_model.initial_recent_fraction",
+            "Initial recent-vaccine-origin fraction",
+            "Fallback fraction of vaccinated-origin people initialized as recently protected",
+            baseline["immunity_model"]["initial_recent_fraction"],
+            "proportion",
+        ),
+        (
+            "vaccine.VE_sus",
+            "Vaccine susceptibility effect ($VE_{\\mathrm{sus}}$)",
+            f"Baseline {baseline_vaccine_name} reduction in susceptibility to infection",
+            baseline_vaccine.get("VE_sus", np.nan),
+            "proportion",
+        ),
+        (
+            "vaccine.VE_sym",
+            "Vaccine symptom effect ($VE_{\\mathrm{sym}}$)",
+            f"Baseline {baseline_vaccine_name} reduction in symptomatic disease given infection",
+            baseline_vaccine.get("VE_sym", np.nan),
+            "proportion",
+        ),
+        (
+            "vaccine.VE_inf",
+            "Vaccine infectiousness effect ($VE_{\\mathrm{inf}}$)",
+            f"Baseline {baseline_vaccine_name} reduction in onward infectiousness",
+            baseline_vaccine.get("VE_inf", np.nan),
+            "proportion",
+        ),
+        (
+            "vaccine.VE_dur",
+            "Vaccine infectious-duration effect ($VE_{\\mathrm{dur}}$)",
+            f"Baseline {baseline_vaccine_name} reduction in infectious duration",
+            baseline_vaccine.get("VE_dur", np.nan),
+            "proportion",
+        ),
+        (
+            "importation.rate_per_100k_per_year",
+            "Imported infection seeding rate",
+            "Low-level imported infections per 100,000 persons per year",
+            baseline["importation"]["rate_per_100k_per_year"],
+            "per 100,000 per year",
+        ),
+        (
+            "resistance.target_prevalence_at_analysis_start",
+            "Target resistant fraction at analysis start",
+            "Macrolide-resistant fraction after burn-in rebalance",
+            baseline["resistance"]["target_prevalence_at_analysis_start"],
+            "proportion",
+        ),
+        (
+            "resistance.importation_fraction",
+            "Resistant fraction among imports",
+            "Fraction of imported infections assigned to the resistant strain",
+            baseline["resistance"]["importation_fraction"],
+            "proportion",
+        ),
+        (
+            "resistance.prevalence_anchor_rate_per_year",
+            "Resistance prevalence anchoring rate",
+            "Annual rate used during burn-in rebalance toward evidence-based resistant fraction",
+            baseline["resistance"]["prevalence_anchor_rate_per_year"],
+            "per year",
+        ),
+        (
+            "resistance.rebalance_after_burn_in",
+            "Resistance rebalance after burn-in",
+            "Whether burn-in output is rebalanced to the evidence-based resistant fraction",
+            baseline["resistance"]["rebalance_after_burn_in"],
+            "boolean",
+        ),
+        (
+            "observation.reporting_probability_baseline",
+            "Age-specific reporting probabilities",
+            "Observation-layer probabilities converting symptomatic cases to reported cases",
+            "Country- and age-specific",
+            "proportion",
+        ),
+        (
+            "reporting_multiplier",
+            "Reporting multiplier",
+            "Country-calibrated multiplier applied to age-specific reporting probabilities",
+            1.0,
+            "ratio",
+        ),
+        (
+            "calibration.dispersion",
+            "Negative-binomial calibration dispersion",
+            "Dispersion parameter for reported-case likelihood",
+            baseline["calibration"]["dispersion"],
+            "count-scale dispersion",
+        ),
+        (
+            "calibration.recent_years",
+            "Calibration observation window",
+            "Number of recent surveillance years used for calibration when available",
+            baseline["calibration"]["recent_years"],
+            "years",
+        ),
+        (
+            "calibration.relative_incidence_tolerance",
+            "Calibration mean-incidence tolerance",
+            "Retained-fit tolerance for model-to-observed mean reported incidence",
+            baseline["calibration"]["relative_incidence_tolerance"],
+            "relative difference",
+        ),
+        (
+            "routine_vaccination.target_relaxation_rate_per_year",
+            "Routine vaccination target-relaxation rate",
+            "Annual relaxation rate toward age-specific vaccine-origin targets",
+            baseline["routine_vaccination"]["target_relaxation_rate_per_year"],
+            "per year",
+        ),
+        (
+            "routine_vaccination.max_daily_flow_fraction",
+            "Routine vaccination maximum daily flow",
+            "Maximum daily fraction moved from unvaccinated susceptible state into vaccine-origin states",
+            baseline["routine_vaccination"]["max_daily_flow_fraction"],
+            "per day",
+        ),
+        (
+            "initial_conditions.initial_exposed_per_100k",
+            "Initial exposed seeding",
+            "Initial exposed infections per 100,000 persons before burn-in",
+            baseline["initial_conditions"]["initial_exposed_per_100k"],
+            "per 100,000",
+        ),
+        (
+            "initial_conditions.initial_infectious_per_100k",
+            "Initial infectious seeding",
+            "Initial infectious infections per 100,000 persons before burn-in",
+            baseline["initial_conditions"]["initial_infectious_per_100k"],
+            "per 100,000",
+        ),
+        (
+            "initial_conditions.initial_resistance_prevalence",
+            "Initial resistant fraction before burn-in",
+            "Initial resistant fraction used before burn-in rebalance",
+            baseline["initial_conditions"]["initial_resistance_prevalence"],
+            "proportion",
         ),
         (
             "treatment.treatment_rate_symptomatic",
@@ -1633,34 +3151,88 @@ def write_manuscript_tables() -> None:
             "per day",
         ),
         (
+            "treatment.sensitive.infectious_duration_reduction",
+            "Sensitive-strain treatment duration reduction",
+            "Reduction in infectious duration under standard treatment for sensitive infections",
+            baseline["treatment"]["sensitive"]["infectious_duration_reduction"],
+            "proportion",
+        ),
+        (
+            "treatment.sensitive.infectiousness_reduction",
+            "Sensitive-strain treatment infectiousness reduction",
+            "Reduction in infectiousness under standard treatment for sensitive infections",
+            baseline["treatment"]["sensitive"]["infectiousness_reduction"],
+            "proportion",
+        ),
+        (
+            "treatment.resistant.infectious_duration_reduction",
+            "Resistant-strain treatment duration reduction",
+            "Reduction in infectious duration under standard macrolide treatment for resistant infections",
+            baseline["treatment"]["resistant"]["infectious_duration_reduction"],
+            "proportion",
+        ),
+        (
+            "treatment.resistant.infectiousness_reduction",
+            "Resistant-strain treatment infectiousness reduction",
+            "Reduction in infectiousness under standard macrolide treatment for resistant infections",
+            baseline["treatment"]["resistant"]["infectiousness_reduction"],
+            "proportion",
+        ),
+        (
             "PEP.coverage_household_contacts",
             "PEP reach among close contacts",
             "Dynamic PEP coverage ceiling among close contacts",
             baseline["PEP"]["coverage_household_contacts"],
             "proportion",
         ),
+        (
+            "PEP.effectiveness_sensitive",
+            "PEP effectiveness for macrolide-sensitive infection",
+            "Reduction in susceptible exposure under standard PEP for sensitive infection",
+            baseline["PEP"]["effectiveness_sensitive"],
+            "proportion",
+        ),
+        (
+            "PEP.effectiveness_resistant",
+            "PEP effectiveness for macrolide-resistant infection",
+            "Reduction in susceptible exposure under standard macrolide PEP for resistant infection",
+            baseline["PEP"]["effectiveness_resistant"],
+            "proportion",
+        ),
+        (
+            "PEP.activation_prevalence",
+            "PEP activation prevalence proxy",
+            "Detection/prevalence proxy threshold for activating PEP reach",
+            baseline["PEP"]["activation_prevalence"],
+            "prevalence",
+        ),
     ]
     parameter_rows = []
     for path, display_name, description, value, unit in parameter_specs:
-        source_note = parameter_sources.get(path, parameter_sources.get(path.split(".")[0], {}))
+        source_key = parameter_source_aliases.get(path, path)
+        source_note = parameter_source_overrides.get(
+            path,
+            parameter_sources.get(source_key, parameter_sources.get(source_key.split(".")[0], {})),
+        )
         sensitivity_path = sensitivity_path_aliases.get(path, path)
-        used_in_sensitivity = path in sensitivity_paths or sensitivity_path in sensitivity_paths
-        range_note = "Prespecified sensitivity range in model settings"
-        if path in sensitivity_path_aliases and sensitivity_path in sensitivity_paths:
-            range_note = "Prespecified sensitivity range in model settings, implemented through the reciprocal waning rate"
+        used_in_sensitivity = (
+            path in sensitivity_paths
+            or sensitivity_path in sensitivity_paths
+            or path in semantic_sensitivity_by_path
+        )
         parameter_rows.append(
             {
                 "parameter": display_name,
                 "description": description,
                 "baseline_value": value,
-                "range": range_note,
+                "range": _parameter_range_text(path, unit),
                 "unit": unit,
                 "source_or_assumption": source_note.get("source", ""),
                 "source_note": source_note.get("note", ""),
                 "used_in_sensitivity_analysis": used_in_sensitivity,
             }
         )
-    write_dataframe(pd.DataFrame(parameter_rows), project_path("publication_inputs/parameter_table.csv"))
+    write_dataframe(pd.DataFrame(parameter_rows), project_path("manuscript_notes/parameter_table.csv"))
 
     vaccine_rows = []
     for name, values in vaccines.items():
@@ -1668,7 +3240,7 @@ def write_manuscript_tables() -> None:
         row.update({k: values[k] for k in ["VE_sus", "VE_sym", "VE_inf", "VE_dur"]})
         row["description"] = values.get("description", "")
         vaccine_rows.append(row)
-    write_dataframe(pd.DataFrame(vaccine_rows), project_path("publication_inputs/scenario_table.csv"))
+    write_dataframe(pd.DataFrame(vaccine_rows), project_path("manuscript_notes/scenario_table.csv"))
 
     resistance_rows = []
     for name, values in resistance.items():
@@ -1690,7 +3262,7 @@ def write_manuscript_tables() -> None:
                 "description": values.get("description", ""),
             }
         )
-    write_dataframe(pd.DataFrame(resistance_rows), project_path("publication_inputs/resistance_scenario_table.csv"))
+    write_dataframe(pd.DataFrame(resistance_rows), project_path("manuscript_notes/resistance_scenario_table.csv"))
 
     intervention_metadata = {
         "current": {
@@ -1834,7 +3406,7 @@ def write_manuscript_tables() -> None:
         row = {"strategy": name, "description": description}
         row.update(intervention_metadata.get(name, empty_metadata))
         intervention_rows.append(row)
-    write_dataframe(pd.DataFrame(intervention_rows), project_path("publication_inputs/intervention_scenario_table.csv"))
+    write_dataframe(pd.DataFrame(intervention_rows), project_path("manuscript_notes/intervention_scenario_table.csv"))
 
     reporting_rows = []
     for name, values in baseline["reporting_rate_sensitivity"].items():
@@ -1847,7 +3419,7 @@ def write_manuscript_tables() -> None:
                 "description": "Reporting-rate sensitivity assumption.",
             }
         )
-    write_dataframe(pd.DataFrame(reporting_rows), project_path("publication_inputs/reporting_scenario_table.csv"))
+    write_dataframe(pd.DataFrame(reporting_rows), project_path("manuscript_notes/reporting_scenario_table.csv"))
 
     fitness_grid = baseline.get("fitness_grid", {})
     fitness_rows = [
@@ -1860,7 +3432,7 @@ def write_manuscript_tables() -> None:
         for ve_inf in fitness_grid.get("VE_inf_values", [])
     ]
     if fitness_rows:
-        write_dataframe(pd.DataFrame(fitness_rows), project_path("publication_inputs/fitness_grid_table.csv"))
+        write_dataframe(pd.DataFrame(fitness_rows), project_path("manuscript_notes/fitness_grid_table.csv"))
 
     bayesian = baseline.get("bayesian_uncertainty", {})
     bayesian_interpretation_overrides = {
@@ -1871,9 +3443,15 @@ def write_manuscript_tables() -> None:
             "surveillance data; [0.30, 0.60] is retained as a modeling range for "
             "sensitivity and pilot uncertainty runs."
         ),
+        "VE_dur": (
+            "Mechanistic duration-shortening proxy for reduced infectious duration "
+            "among vaccinated infections. It is propagated as an external-prior "
+            "sensitivity dimension in the Figure 2c conditional interval and remains a vaccine-mechanism "
+            "sensitivity parameter in other diagnostics."
+        ),
         "resistance_prevalence": (
             "Resistance prevalence is fixed at the country-timeline value during the "
-            "primary conditional transmission analysis. The country_resistance_timeline.csv "
+            "Figure 2c conditional uncertainty analysis and beta-grid diagnostics. The country_resistance_timeline.csv "
             "provides well-constrained estimates for most countries; fixed, low-to-very-high "
             "resistance scenarios and the fitness grid evaluate the corresponding "
             "structural uncertainty."
@@ -1881,18 +3459,71 @@ def write_manuscript_tables() -> None:
     }
     prior_rows = []
     if bayesian:
+        prior_range_overrides = {
+            "VE_sus": "Normalized beta support 0.01 to 0.60",
+            "VE_inf": "Normalized beta support 0.05 to 0.60",
+            "VE_dur": "Normalized beta support 0.001 to 0.50",
+            "relative_infectiousness_asymptomatic": "Normalized beta support 0.05 to 0.95",
+            "infectious_duration_symptomatic": "Truncated lognormal support 14 to 35 days",
+            "infectious_duration_asymptomatic": "Truncated lognormal support 7 to 28 days",
+            "fitness_R": "0.70 to 1.25",
+            "resistance_prevalence": "Country-timeline anchor; fixed scenarios 0.05, 0.30, 0.70, and 0.95",
+            "maternal_VE_sus": "0.30 to 0.80 interpretation range",
+            "maternal_VE_sym": "0.00 to 1.00 beta support; high-confidence mass near 0.92",
+        }
+
+        def _prior_row(
+            parameter: str,
+            group: str,
+            value_or_center: Any,
+            uncertainty_range: str,
+            unit: str,
+            distribution: str,
+            figure2c_role: str,
+            interpretation: str,
+        ) -> dict[str, Any]:
+            return {
+                "parameter_group": group,
+                "parameter": parameter,
+                "value_or_center": value_or_center,
+                "uncertainty_range": uncertainty_range,
+                "unit": unit,
+                "distribution": distribution,
+                "figure2c_role": figure2c_role,
+                "interpretation": interpretation,
+            }
+
+        process_model = baseline.get("calibration", {}).get("process_model", {})
+        beta_state_prior_sd = float(process_model.get("log_beta_prior_sd", 1.0))
+        reporting_state_prior_sd = float(
+            process_model.get("log_reporting_prior_sd", 0.5)
+        )
+        beta_state_bounds = process_model.get("beta_S_bounds", [0.0005, 0.5])
+        reporting_state_bounds = process_model.get(
+            "reporting_multiplier_bounds", [0.5, 1.5]
+        )
         prior_rows.extend(
             [
-                {
-                    "parameter": "log_beta_S",
-                    "prior": f"Normal(log calibrated sensitive-strain transmission coefficient, {bayesian.get('priors', {}).get('log_beta_S_sd', '')})",
-                    "interpretation": "Transmission-rate uncertainty",
-                },
-                {
-                    "parameter": "log_reporting_multiplier",
-                    "prior": f"Normal(log calibrated reporting multiplier, {bayesian.get('priors', {}).get('log_reporting_multiplier_sd', '')})",
-                    "interpretation": "Surveillance/reporting uncertainty",
-                },
+                _prior_row(
+                    "log_beta_S",
+                    "Conditional state target",
+                    "Pre-surveillance country configuration",
+                    f"Bounded beta_S support {beta_state_bounds[0]} to {beta_state_bounds[1]}",
+                    "log scale",
+                    f"Normal(log pre-surveillance sensitive-strain transmission coefficient, {beta_state_prior_sd})",
+                    "Updated once by annual surveillance and propagated by exact-target importance resampling",
+                    "Conditional transmission-rate uncertainty; fixed AR(1) and measurement hyperparameters.",
+                ),
+                _prior_row(
+                    "log_reporting_multiplier",
+                    "Conditional state target",
+                    "Pre-surveillance multiplier 1.0",
+                    f"Bounded multiplier support {reporting_state_bounds[0]} to {reporting_state_bounds[1]}",
+                    "log scale",
+                    f"Normal(log pre-surveillance reporting multiplier, {reporting_state_prior_sd})",
+                    "Updated once by annual surveillance and propagated by exact-target importance resampling",
+                    "Conditional surveillance/reporting uncertainty.",
+                ),
             ]
         )
         for parameter, values in bayesian.get("priors", {}).items():
@@ -1907,17 +3538,53 @@ def write_manuscript_tables() -> None:
                     prior = f"Fixed country timeline, floor_sd={values['floor_sd']}"
                 else:
                     prior = str(values)
+                center = values.get("mean", baseline["natural_history"].get(parameter, "Country-specific"))
+                if parameter == "fitness_R":
+                    center = values.get("mean", 1.0)
+                elif parameter == "resistance_prevalence":
+                    center = "Country-timeline anchor"
+                elif parameter == "infectious_duration_symptomatic":
+                    center = baseline["natural_history"]["infectious_duration_symptomatic"]
+                elif parameter == "infectious_duration_asymptomatic":
+                    center = baseline["natural_history"]["infectious_duration_asymptomatic"]
+                role = "Propagated as an equal-mass external-prior sensitivity dimension"
+                group = "External structural prior"
+                if parameter == "resistance_prevalence":
+                    role = "Fixed in the Figure 2c conditional interval; structural uncertainty evaluated by resistance scenarios"
+                    group = "Fixed structural input"
+                elif parameter.startswith("maternal_VE_"):
+                    role = "Sampled as draw-level intervention-effect uncertainty in the Figure 2c conditional interval"
+                    group = "Intervention effect"
                 prior_rows.append(
-                    {
-                        "parameter": parameter,
-                        "prior": prior,
-                        "interpretation": bayesian_interpretation_overrides.get(
-                            parameter,
-                            values.get("note", ""),
-                        ),
-                    }
+                    _prior_row(
+                        parameter,
+                        group,
+                        center,
+                        prior_range_overrides.get(parameter, "0.00 to 1.00 beta support"),
+                        "days" if parameter.startswith("infectious_duration") else "proportion" if "VE" in parameter or parameter == "relative_infectiousness_asymptomatic" else "ratio" if parameter == "fitness_R" else "proportion",
+                        prior,
+                        role,
+                        bayesian_interpretation_overrides.get(parameter, values.get("note", "")),
+                    )
                 )
-        write_dataframe(pd.DataFrame(prior_rows), project_path("publication_inputs/bayesian_prior_table.csv"))
+        for parameter, values in (
+            bayesian.get("figure2c_conditional_uncertainty", {}).get("intervention_priors", {}).items()
+        ):
+            if isinstance(values, dict) and {"low", "mode", "high"}.issubset(values):
+                unit = "days" if parameter.endswith("_days") else "proportion"
+                prior_rows.append(
+                    _prior_row(
+                        f"figure2c_{parameter}",
+                        "Intervention implementation" if "coverage" in parameter else "Intervention effect",
+                        values["mode"],
+                        f"{values['low']} to {values['high']}",
+                        unit,
+                        f"Triangular(low={values['low']}, mode={values['mode']}, high={values['high']})",
+                        "Sampled at draw level and paired across current-practice and intervention simulations",
+                        values.get("note", ""),
+                    )
+                )
+        write_dataframe(pd.DataFrame(prior_rows), project_path("manuscript_notes/bayesian_prior_table.csv"))
 
     country_rows = [
         {
@@ -1941,7 +3608,7 @@ def write_manuscript_tables() -> None:
         }
         for name, values in countries.items()
     ]
-    write_dataframe(pd.DataFrame(country_rows), project_path("publication_inputs/country_profile_table.csv"))
+    write_dataframe(pd.DataFrame(country_rows), project_path("manuscript_notes/country_profile_table.csv"))
 
     intervention_summary_path = project_path("outputs/summaries/intervention_scenarios_summary.csv")
     if intervention_summary_path.exists():

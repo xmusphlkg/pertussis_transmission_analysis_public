@@ -23,6 +23,23 @@ extended_data_figure_7_metric_short_labels <- function() {
   )
 }
 
+extended_data_figure_7_publication_country_labels <- function() {
+  settings_path <- model_path("config", "model_settings.yaml")
+  profiles_path <- model_path("config", "country_profiles.yaml")
+  if (!file.exists(settings_path) || !file.exists(profiles_path)) {
+    stop("eFigure 7 requires current model settings and country profiles.", call. = FALSE)
+  }
+  settings <- yaml::read_yaml(settings_path)
+  profiles <- names(yaml::read_yaml(profiles_path))
+  exclusions <- settings$runtime$bayesian_uncertainty$publication_country_exclusions
+  exclusions <- if (is.null(exclusions)) character() else names(exclusions)
+  unknown <- setdiff(exclusions, profiles)
+  if (length(unknown) > 0L) {
+    stop("Unknown publication-country exclusions: ", paste(unknown, collapse = ", "), call. = FALSE)
+  }
+  format_country(setdiff(profiles, exclusions))
+}
+
 load_extended_data_figure_7_intervention_summary <- function() {
   read_model_table(model_path("outputs", "summaries", "intervention_scenarios_summary")) %>%
     add_country_label() %>%
@@ -47,10 +64,14 @@ load_extended_data_figure_7_inputs <- function() {
 prepare_extended_data_figure_7_data <- function(inputs = load_extended_data_figure_7_inputs()) {
   efig7_intervention_labels <- extended_data_figure_7_intervention_labels()
   metric_short_labels <- extended_data_figure_7_metric_short_labels()
+  publication_country_labels <- extended_data_figure_7_publication_country_labels()
 
   intervention_effects <- inputs$intervention_summary %>%
     mutate(scenario_key = as.character(scenario)) %>%
-    filter(scenario_key %in% intervention_levels) %>%
+    filter(
+      scenario_key %in% intervention_levels,
+      country_label %in% publication_country_labels
+    ) %>%
     mutate(
       scenario = factor(scenario_key, levels = intervention_levels),
       scenario_label = factor(efig7_intervention_labels[scenario_key], levels = efig7_intervention_labels[intervention_levels]),
@@ -146,7 +167,10 @@ prepare_extended_data_figure_7_data <- function(inputs = load_extended_data_figu
   }
 
   maternal_decomp <- maternal_decomposition_components %>%
-    filter(scenario %in% maternal_decomp_levels) %>%
+    filter(
+      scenario %in% maternal_decomp_levels,
+      country_label %in% publication_country_labels
+    ) %>%
     mutate(
       component = factor(
         maternal_decomp_labels[as.character(scenario)],
@@ -157,7 +181,7 @@ prepare_extended_data_figure_7_data <- function(inputs = load_extended_data_figu
   missing_decomp_components <- setdiff(maternal_decomp_levels, unique(as.character(maternal_decomp$scenario)))
   expected_decomp_cells <- expand_grid(
     scenario = maternal_decomp_levels,
-    country_label = country_label_levels
+    country_label = publication_country_labels
   )
   observed_decomp_cells <- maternal_decomp %>%
     transmute(

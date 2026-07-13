@@ -590,9 +590,9 @@ manuscript_route_matrix_colours <- c(
 )
 
 manuscript_parameter_audit_colours <- c(
-  "Posterior varied" = manuscript_colour("green"),
+  "PSA varied" = manuscript_colour("green"),
   "Grid override" = manuscript_colour("orange"),
-  "Fixed in selected posterior" = manuscript_colour("pale_grey")
+  "Excluded or fixed" = manuscript_colour("pale_grey")
 )
 
 manuscript_fitness_group_colours <- c(
@@ -974,7 +974,7 @@ if (nrow(fitness_benefit_psa_summary) > 0) {
 }
 bayesian_summary <- tibble()
 if (use_bayesian_posterior_outputs) {
-  bayesian_summary <- read_model_table_optional(model_path("outputs", "summaries", "bayesian_uncertainty_summary"))
+  bayesian_summary <- read_model_table_optional(model_path("outputs", "summaries", "bayesian_uncertainty_figure2c_conditional_summary"))
 }
 if (nrow(bayesian_summary) > 0) {
   bayesian_summary <- bayesian_summary %>% add_country_label()

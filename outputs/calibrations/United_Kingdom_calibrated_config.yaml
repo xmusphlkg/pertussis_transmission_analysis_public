@@ -4,22 +4,27 @@ config:
     time_step: 1
     output_time_step: 30.0
     burn_in_years: 15.0
+    initial_state_strategy: fixed_calendar_origin
+    history_start_date: '2005-01-01'
     solver_method: RK45
+    rhs_backend: numba
+    strict_likelihood_errors: true
     rtol: 0.0001
     atol: 1.0e-06
     n_jobs: -1
-    end_time: 1911.0
+    end_time: 1918.0
   calendar:
     enabled: true
-    analysis_start_date: '2020-01-06'
+    analysis_start_date: '2019-12-30'
     analysis_end_date: '2050-12-31'
     note: 'Simulation time is stored as days since analysis_start_date; end_time is
-      derived from (analysis_end_date - analysis_start_date). Output rows include
-      calendar_date/calendar_year. Calibration overrides these dates to the observed
-      surveillance window so modelled and observed annual cases align by real calendar
-      year, with reporting intervals split across calendar-year boundaries. Start
-      date set to 2025-01-01 to allow short-term out-of-sample validation against
-      2025 surveillance data before the forward projection period.
+      the half-open solver boundary immediately after the inclusive analysis_end_date.
+      Output rows include calendar_date/calendar_year. Calibration overrides these
+      dates to the observed surveillance window so modelled and observed annual cases
+      align by real calendar year, with reporting intervals split across calendar-year
+      boundaries. Rolling-origin validation withholds each eligible historical final
+      year; the prospective policy horizon begins on 2027-01-01, after the latest
+      partial 2026 surveillance interval.
 
       '
   age_groups:
@@ -142,7 +147,7 @@ config:
       - 2.204483
       - 1.498914
   transmission:
-    beta_S: 0.019599316815170024
+    beta_S: 0.021755322830988216
     fitness_R: 1.0
     relative_infectiousness_asymptomatic: 0.35
     seasonal_amplitude: 0.1959377729440335
@@ -152,20 +157,21 @@ config:
     multi_year_phase: 0
     npi_contact_reduction:
       enabled: true
-      reduction_column: baseline_contact_reduction
+      reduction_column: contact_reduction_mean
       note: 'Loads country-specific COVID-19/NPI effective contact-reduction periods
         from data/raw/covid_npi_contact_reduction_timeline.csv. The baseline uses
-        the calibration-screened baseline_contact_reduction column; mean/lower/upper
-        proxy values are reserved for temporal sensitivity analyses because nonzero
-        shocks can distort country-specific post-pandemic peak timing. Contact shocks
-        must not be encoded in diagnostic/reporting multipliers.
+        the external-evidence mean. Lower/upper proxy values are reserved for temporal
+        sensitivity analyses; the historical calibration-screened column is retained
+        only for audit because it can encode outcome-informed model selection and
+        must not drive forecasts. country-specific post-pandemic peak timing. Contact
+        shocks must not be encoded in diagnostic/reporting multipliers.
 
         '
       periods_loaded: 1
     npi_contact_reduction_periods:
     - start_date: '2020-03-23'
       end_date: '2021-07-19'
-      reduction: 0.0
+      reduction: 0.4
       baseline_reduction: 0.0
       reduction_mean: 0.4
       reduction_lower: 0.2
@@ -176,6 +182,135 @@ config:
         school closures distancing and masking; sensitivity-only in baseline calibration
         because nonzero values worsen interval fit.
     npi_ramp_days: 180.0
+    log_beta_time_variation:
+      enabled: true
+      interpretation: latent_AR1_process_MAP_with_conditional_mean_forecast
+      ar1_rho: 0.5
+      innovation_sd: 0.6
+      periods:
+      - start_date: '2019-01-01'
+        end_date: '2019-12-31'
+        log_multiplier: 0.15604969570701874
+      - start_date: '2020-01-01'
+        end_date: '2020-12-31'
+        log_multiplier: 0.522860187501918
+      - start_date: '2021-01-01'
+        end_date: '2021-12-31'
+        log_multiplier: 0.608340623453209
+      - start_date: '2022-01-01'
+        end_date: '2022-12-31'
+        log_multiplier: -0.13478384276402836
+      - start_date: '2023-01-01'
+        end_date: '2023-12-31'
+        log_multiplier: 0.21269162825889426
+      - start_date: '2024-01-01'
+        end_date: '2024-12-31'
+        log_multiplier: 0.039478454615498274
+      - start_date: '2025-01-01'
+        end_date: '2025-12-31'
+        log_multiplier: -1.700535345413732
+      - start_date: '2026-01-01'
+        end_date: '2026-12-31'
+        log_multiplier: -0.850267672706866
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2027-01-01'
+        end_date: '2027-12-31'
+        log_multiplier: -0.425133836353433
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2028-01-01'
+        end_date: '2028-12-31'
+        log_multiplier: -0.2125669181767165
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2029-01-01'
+        end_date: '2029-12-31'
+        log_multiplier: -0.10628345908835825
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2030-01-01'
+        end_date: '2030-12-31'
+        log_multiplier: -0.053141729544179124
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2031-01-01'
+        end_date: '2031-12-31'
+        log_multiplier: -0.026570864772089562
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2032-01-01'
+        end_date: '2032-12-31'
+        log_multiplier: -0.013285432386044781
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2033-01-01'
+        end_date: '2033-12-31'
+        log_multiplier: -0.0066427161930223905
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2034-01-01'
+        end_date: '2034-12-31'
+        log_multiplier: -0.0033213580965111953
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2035-01-01'
+        end_date: '2035-12-31'
+        log_multiplier: -0.0016606790482555976
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2036-01-01'
+        end_date: '2036-12-31'
+        log_multiplier: -0.0008303395241277988
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2037-01-01'
+        end_date: '2037-12-31'
+        log_multiplier: -0.0004151697620638994
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2038-01-01'
+        end_date: '2038-12-31'
+        log_multiplier: -0.0002075848810319497
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2039-01-01'
+        end_date: '2039-12-31'
+        log_multiplier: -0.00010379244051597485
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2040-01-01'
+        end_date: '2040-12-31'
+        log_multiplier: -5.1896220257987426e-05
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2041-01-01'
+        end_date: '2041-12-31'
+        log_multiplier: -2.5948110128993713e-05
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2042-01-01'
+        end_date: '2042-12-31'
+        log_multiplier: -1.2974055064496856e-05
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2043-01-01'
+        end_date: '2043-12-31'
+        log_multiplier: -6.487027532248428e-06
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2044-01-01'
+        end_date: '2044-12-31'
+        log_multiplier: -3.243513766124214e-06
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2045-01-01'
+        end_date: '2045-12-31'
+        log_multiplier: -1.621756883062107e-06
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2046-01-01'
+        end_date: '2046-12-31'
+        log_multiplier: -8.108784415310535e-07
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2047-01-01'
+        end_date: '2047-12-31'
+        log_multiplier: -4.0543922076552676e-07
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2048-01-01'
+        end_date: '2048-12-31'
+        log_multiplier: -2.0271961038276338e-07
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2049-01-01'
+        end_date: '2049-12-31'
+        log_multiplier: -1.0135980519138169e-07
+        state_origin: AR1_conditional_mean_forecast
+      - start_date: '2050-01-01'
+        end_date: '2050-12-31'
+        log_multiplier: -5.0679902595690846e-08
+        state_origin: AR1_conditional_mean_forecast
+      historical_state_end_year: 2025
+      forecast_process_contract: AR1_conditional_mean
   importation:
     enabled: true
     rate_per_100k_per_year: 0.2
@@ -190,14 +325,14 @@ config:
       middle_adult_40_64y: 0.16
       elderly_65plus: 0.09
   natural_history:
-    latent_duration: 8.0
-    infectious_duration_symptomatic: 21.0
-    infectious_duration_asymptomatic: 14.0
+    latent_duration: 9.0
+    infectious_duration_symptomatic: 24.0
+    infectious_duration_asymptomatic: 17.3
     maternal_protection_duration: 90.0
-    recovered_immunity_duration: 3285.0
-    vaccine_protection_duration: 1825.0
-    R_to_W_duration: 1825.0
-    W_to_S_duration: 3650.0
+    recovered_immunity_duration: 12227.5
+    vaccine_protection_duration: 798.0
+    R_to_W_duration: 6113.75
+    W_to_S_duration: 6113.75
   immunity_model:
     mode: maternal_dose_history
     boosting_enabled: true
@@ -217,7 +352,7 @@ config:
     maternal_relative_effect: 0.75
     dose1_relative_effect: 0.45
     dose2_relative_effect: 0.75
-    waned_vaccine_duration: 3650.0
+    waned_vaccine_duration: 798.0
     initial_recent_fraction: 0.35
     initial_recent_fraction_by_age:
       infant_0_2m: 1.0
@@ -231,6 +366,7 @@ config:
   observation_model:
     enabled: true
     structure: symptomatic_to_care_to_test_to_report
+    case_event_definition: symptomatic_onset
     diagnostic_standards:
       enabled: true
       multiplier_column: relative_detection_prior_mean
@@ -255,10 +391,52 @@ config:
       '
   severity_model:
     residual_maternal_protection_for_unvaccinated_origin: false
+    age_hospitalization_probability:
+      infant_0_2m: 0.6
+      infant_3_11m: 0.25
+      child_1_4y: 0.02
+      child_5_9y: 0.003
+      adolescent_10_17y: 0.001
+      young_adult_18_39y: 0.0008
+      middle_adult_40_64y: 0.002
+      elderly_65plus: 0.008
+    age_death_given_hospitalization:
+      infant_0_2m: 0.02
+      infant_3_11m: 0.005
+      child_1_4y: 0.0003
+      child_5_9y: 0.0001
+      adolescent_10_17y: 5.0e-05
+      young_adult_18_39y: 5.0e-05
+      middle_adult_40_64y: 0.0003
+      elderly_65plus: 0.002
+    origin_conditional_ve_hospitalization:
+      unvaccinated: 0.0
+      maternal: 0.5
+      dose1_recent: 0.5
+      dose1_waned: 0.2
+      dose2_recent: 0.65
+      dose2_waned: 0.3
+      recent: 0.75
+      waned: 0.35
+    origin_conditional_ve_death:
+      unvaccinated: 0.0
+      maternal: 0.8
+      dose1_recent: 0.6
+      dose1_waned: 0.25
+      dose2_recent: 0.7
+      dose2_waned: 0.35
+      recent: 0.8
+      waned: 0.4
     note: 'Maternal protection against hospitalization/death is applied to the explicit
       maternal-origin compartment. Population-average maternal coverage is not applied
       to all unvaccinated-origin infants in the baseline, because that would assign
-      protection to infants whose mothers were not vaccinated.
+      protection to infants whose mothers were not vaccinated. The maternal 0.50 VE
+      against hospitalization given symptomatic disease is a structural cascade mapping,
+      not a directly estimated conditional effect: with maternal_relative_effect=0.75,
+      maternal_VE_sus=0.55, and maternal_VE_sym=0.92, it gives approximately 91% overall
+      effectiveness against hospitalization [1-(1-0.75*0.55)(1-0.75*0.92)(1-0.50)].
+      Other origin-specific conditional effects are structural severity assumptions
+      rather than direct estimates at every dose/waning state.
 
       '
   resistance:
@@ -304,19 +482,48 @@ config:
     enabled: false
     allow_stale_parameter_overlay: false
     default_country_profile: Australia
-    method: staged_fast
+    method: state_space_map
     objective: negative_binomial_reporting_interval_cases
+    likelihood_observation_frequency: annual
     dispersion: 50.0
     maxiter: 12
     n_starts: 1
+    beta_grid_points: 11
+    beta_grid_refinements: 2
+    initial_phase_grid_points: 9
     recent_years: 6
     mean_fit_penalty_weight: 50000.0
+    process_model:
+      type: latent_log_beta_ar1_map
+      ar1_rho: 0.5
+      log_beta_innovation_sd: 0.6
+      log_beta_prior_sd: 1.0
+      log_reporting_prior_sd: 0.5
+      beta_S_bounds:
+      - 0.0005
+      - 0.5
+      reporting_multiplier_bounds:
+      - 0.5
+      - 1.5
+      max_abs_log_beta_deviation: 2.5
+      max_posterior_condition_number: 1.0e8
+      max_nfev: 256
+      xtol: 0.0001
+      ftol: 0.0001
+      gtol: 0.0001
+      note: 'Regularized MAP bridge to a full POMP analysis. Annual latent transmission
+        deviations separate process variation from NB2 measurement error and condition
+        the forecast initial state. Final publication inference must retain sensitivity
+        to innovation SD and should be upgraded to iterated filtering/particle methods
+        when a tractable stochastic transition implementation is available.
+
+        '
     acceptance:
       min_overlap_intervals: 5
-      max_interval_smape: 1.3
-      min_log1p_correlation: -0.3
-      peak_ratio_min: 0.25
-      peak_ratio_max: 4.0
+      max_interval_smape: 0.5
+      min_log1p_correlation: 0.5
+      peak_ratio_min: 0.5
+      peak_ratio_max: 2.0
     simulation_overrides:
       burn_in_years: 15
       output_time_step: 30
@@ -326,10 +533,8 @@ config:
     relative_incidence_tolerance: 0.25
     fit_parameters:
     - transmission.beta_S
+    - transmission.multi_year_phase
     - reporting_multiplier
-    - transmission.seasonal_amplitude
-    - importation.rate_per_100k_per_year
-    - resistance.importation_fraction
   demography:
     enabled: true
     fixed_population_profile: true
@@ -360,11 +565,16 @@ config:
     wpp_trajectory:
       source: UN WPP 2024 one-year age-sex population, 1990-2050, aggregated to model
         age groups
-      horizon_start_year: 2008
+      horizon_start_year: 2003
       horizon_end_year: 2050
-      analysis_start_year: 2025
+      analysis_start_year: 2027
       analysis_end_year: 2050
       years:
+      - 2003
+      - 2004
+      - 2005
+      - 2006
+      - 2007
       - 2008
       - 2009
       - 2010
@@ -410,6 +620,11 @@ config:
       - 2050
       population_by_year:
         infant_0_2m:
+          2003: 115411.16666666666
+          2004: 118869.66666666666
+          2005: 121681.66666666666
+          2006: 124619.66666666666
+          2007: 128561.83333333333
           2008: 131821.66666666666
           2009: 132941.66666666666
           2010: 133781.5
@@ -454,6 +669,11 @@ config:
           2049: 123025.0
           2050: 122206.5
         infant_3_11m:
+          2003: 577055.8333333334
+          2004: 594348.3333333334
+          2005: 608408.3333333334
+          2006: 623098.3333333334
+          2007: 642809.1666666667
           2008: 659108.3333333334
           2009: 664708.3333333334
           2010: 668907.5
@@ -498,6 +718,11 @@ config:
           2049: 615125.0
           2050: 611032.5
         child_1_4y:
+          2003: 2760794.0
+          2004: 2751172.0
+          2005: 2772379.0
+          2006: 2821735.0
+          2007: 2892517.0
           2008: 2973977.0
           2009: 3054099.0
           2010: 3120703.0
@@ -542,6 +767,11 @@ config:
           2049: 3025686.0
           2050: 3014922.0
         child_5_9y:
+          2003: 3693429.0
+          2004: 3668835.0
+          2005: 3635407.0
+          2006: 3589292.0
+          2007: 3541437.0
           2008: 3512655.0
           2009: 3511887.0
           2010: 3540512.0
@@ -586,6 +816,11 @@ config:
           2049: 3828880.0
           2050: 3845018.0
         adolescent_10_17y:
+          2003: 6151537.0
+          2004: 6125677.0
+          2005: 6118847.0
+          2006: 6164610.0
+          2007: 6206308.0
           2008: 6187424.0
           2009: 6143383.0
           2010: 6080906.0
@@ -630,6 +865,11 @@ config:
           2049: 5985264.0
           2050: 6019248.0
         young_adult_18_39y:
+          2003: 18208255.0
+          2004: 18301766.0
+          2005: 18401816.0
+          2006: 18453892.0
+          2007: 18501786.0
           2008: 18567422.0
           2009: 18611492.0
           2010: 18691984.0
@@ -674,6 +914,11 @@ config:
           2049: 20402482.0
           2050: 20253997.0
         middle_adult_40_64y:
+          2003: 18776111.0
+          2004: 19005721.0
+          2005: 19267739.0
+          2006: 19547681.0
+          2007: 19808352.0
           2008: 20047759.0
           2009: 20274083.0
           2010: 20475449.0
@@ -718,6 +963,11 @@ config:
           2049: 22927933.0
           2050: 23005788.0
         elderly_65plus:
+          2003: 9537792.0
+          2004: 9603576.0
+          2005: 9669830.0
+          2006: 9726166.0
+          2007: 9814089.0
           2008: 9947137.0
           2009: 10113628.0
           2010: 10294241.0
@@ -762,6 +1012,11 @@ config:
           2049: 18472003.0
           2050: 18632475.0
       births_by_year:
+        2003: 692467.0
+        2004: 713218.0
+        2005: 730090.0
+        2006: 747718.0
+        2007: 771371.0
         2008: 790930.0
         2009: 797650.0
         2010: 802689.0
@@ -806,6 +1061,11 @@ config:
         2049: 738150.0
         2050: 733239.0
       total_population_by_year:
+        2003: 59820385.0
+        2004: 60169965.0
+        2005: 60596108.0
+        2006: 61051094.0
+        2007: 61535860.0
         2008: 62027304.0
         2009: 62506222.0
         2010: 63006484.0
@@ -884,7 +1144,7 @@ config:
       infectiousness_reduction: 0.05
   PEP:
     coverage_household_contacts: 0.3
-    effectiveness_sensitive: 0.7
+    effectiveness_sensitive: 0.823
     effectiveness_resistant: 0.1
     activation_prevalence: 2.0e-05
   reporting_rate_sensitivity:
@@ -1046,33 +1306,137 @@ config:
       '
   bayesian_uncertainty:
     random_seed: 20260510
+    publication_country_exclusions:
+      South_Africa: 'Only three recent non-overlapping observation intervals are available,
+        below the prespecified five-interval calibration/validation floor. Retain
+        as an exploratory deterministic scenario, but exclude it from calibrated policy
+        uncertainty until additional surveillance data or a separately justified external
+        calibration model is supplied.
+
+        '
+    inference_structure: reference_structure_state_space_exact_importance_cut
+    shared_structural_seed: 20260712
     n_chains: 4
-    warmup: 2000
-    draws: 2000
-    thin: 3
+    warmup: 0
+    draws: 128
+    thin: 1
     proposal_scale: 1.0
+    smc_particles: 1024
+    smc_ess_fraction: 0.65
+    smc_move_steps: 4
+    smc_max_stages: 100
     posterior_predictive_draws_per_country: 100
     dispersion: 50.0
     enable_time_varying_reporting: false
-    likelihood_observation_frequency: monthly
+    likelihood_observation_frequency: annual
     require_calibrated_start: true
-    note: 'The production uncertainty path is conditional unless an explicit multi-parameter
-      MCMC sampler is requested. The default beta_grid workflow integrates over beta_S
-      after fixing reporting, VE, asymptomatic infectiousness, duration, and resistance-fitness
-      nuisance parameters; outputs are conditional beta-uncertainty summaries. A full
-      structural posterior would require sampling the additional reporting, vaccine-effect,
-      duration, asymptomatic-infectiousness, and resistance-fitness dimensions. Adaptive
-      Metropolis remains available for pilot and sensitivity analyses when those additional
-      dimensions are meant to be sampled.
+    state_space_importance:
+      adaptation_candidate_count: 512
+      adaptation_round_candidate_count: 512
+      candidate_count: 1024
+      max_adaptive_rounds: 2
+      require_recommended_quality: true
+      localized_mixture_enabled: true
+      localized_candidate_count: 2048
+      localized_component_count: 8
+      localized_covariance_scale: 0.25
+      adaptation_target_ess: 96
+      adaptation_covariance_regularization: 0.1
+      initial_proposal_covariance_scales:
+      - 0.0625
+      - 0.25
+      - 1.0
+      - 4.0
+      proposal_covariance_scales:
+      - 0.25
+      - 0.5
+      - 1.0
+      - 2.0
+      - 4.0
+      note: 'The multi-scale Gauss-Newton Gaussian mixture is only a normalized proposal.
+        Candidate states are reweighted by the exact NB2 plus AR(1) plus beta/reporting-prior
+        target before stratified resampling. Final acceptance requires adequate exact-target
+        importance ESS, maximum normalized weight, Pareto-tail shape, coordinate-wise
+        2.5%/97.5% tail effective support, and bounded-proposal support. Failure writes
+        a full candidate audit but no posterior sample or publication interval.
+
+        '
+    figure2c_conditional_uncertainty:
+      posterior_draws_per_country: 512
+      note: 'Figure 2c uses paired conditional uncertainty draws. Surveillance is
+        used once in the annual latent-log-beta state reconstruction; beta, reporting,
+        and historical states are proposed by a bounded multi-scale Gauss-Newton mixture
+        and corrected against the exact NB2 plus AR(1) target before resampling. Future
+        AR(1) innovations, shared external structural-prior draws, and intervention
+        implementation/effect draws are then paired across current practice and interventions.
+        These are conditional intervals, not full joint Bayesian credible intervals.
+
+        '
+      intervention_priors:
+        adolescent_coverage_floor:
+          low: 0.75
+          mode: 0.9
+          high: 0.98
+          distribution: triangular
+          note: Plausible achieved adolescent Tdap coverage floor under scale-up.
+        maternal_coverage_floor:
+          low: 0.55
+          mode: 0.75
+          high: 0.9
+          distribution: triangular
+          note: Plausible achieved pregnancy Tdap coverage floor under scale-up.
+        young_adult_coverage_floor:
+          low: 0.35
+          mode: 0.55
+          high: 0.75
+          distribution: triangular
+          note: Plausible achieved close-contact/reproductive-age adult Tdap coverage
+            floor.
+        contact_reduction_fraction:
+          low: 0.05
+          mode: 0.15
+          high: 0.3
+          distribution: triangular
+          note: Directional reduction in young-adult to infant effective contacts
+            for adjunct exposure reduction.
+        targeted_pep_coverage:
+          low: 0.05
+          mode: 0.45
+          high: 0.6
+          distribution: triangular
+          note: Plausible household-contact PEP reach among guideline-prioritized
+            contacts.
+        maternal_protection_duration_days:
+          low: 90.0
+          mode: 180.0
+          high: 270.0
+          distribution: triangular
+          note: Duration of passive maternal protection in early infancy.
+    note: 'The default route is reference_structure_state_space_exact_importance_cut.
+      The canonical CLI sampler is state_space_exact_importance_cut; state_space_laplace_cut
+      is accepted only as a legacy input alias and is never written to new outputs.
+      Externally informed vaccine, duration, asymptomatic-infectiousness, and resistance-fitness
+      uncertainty is shared across countries and propagated, but sparse surveillance
+      is not allowed to update those structural priors. Legacy grid, Adaptive Metropolis,
+      importance, and SMC engines target a separate deterministic no-process likelihood
+      from pre-surveillance priors and must be labelled as alternative sensitivity
+      analyses.
 
       '
     convergence_criteria:
       rhat_threshold: 1.05
       min_bulk_ess: 100
       min_tail_ess: 50
-      note: 'Convergence is assessed per-parameter per-country. Parameters with rank-normalized
-        split-R-hat > 1.05 or bulk ESS < 100 are flagged. Reference: Vehtari et al.
-        (2021) Bayesian Analysis 16(2):667-718.
+      recommended_rhat_threshold: 1.01
+      recommended_min_bulk_ess: 400
+      recommended_min_tail_ess: 400
+      note: 'R-hat/ESS thresholds apply only to genuine MCMC/SMC alternatives. The
+        default state-space route instead gates Hessian rank/conditioning, bounded-mixture
+        rejection mass, exact-target importance ESS, maximum weight, Pareto-tail shape
+        and coordinate-tail support, state-draw count, structural design size, complete
+        annual process paths, cross-country structural pairing, and rolling-origin
+        predictive checks. Synthetic chain labels are output batching, not Markov
+        chains.
 
         '
     adaptive_metropolis:
@@ -1087,65 +1451,62 @@ config:
 
         '
     priors:
-      log_beta_S_sd: 0.8
-      log_reporting_multiplier_sd: 0.8
+      log_beta_S_sd: 1.25
+      log_reporting_multiplier_sd: 0.35
       VE_sus:
-        mean: 0.45
-        sd: 0.05
-        note: 'Literature-informed decomposition parameter for reduced susceptibility
-          after aP vaccination. Aggregate studies support high disease protection
-          and waning protection; the posterior is constrained to [0.30, 0.60] as a
-          modelling range.
+        mean: 0.15
+        sd: 0.1
+        note: 'Weak vaccine-mechanism prior for reduced susceptibility, centred on
+          the selected symptom-protective baseline. Aggregate studies do not identify
+          this acquisition component separately; see parameter_distributions.yaml
+          for support and provenance.
 
           '
       VE_inf:
         mean: 0.25
-        sd: 0.05
-        note: 'Literature-informed decomposition parameter for reduced onward infectiousness
-          among vaccinated infections. It is motivated by aP transmission-blocking
-          evidence and waning studies; range [0.12, 0.38] spans weak-to-moderate residual
-          transmission blocking.
+        sd: 0.15
+        note: 'Broad vaccine-mechanism prior for reduced onward infectiousness among
+          vaccinated infections. Human data support residual transmission but do not
+          identify this component separately.
 
           '
       VE_dur:
         mean: 0.1
         sd: 0.1
-        note: 'Mechanistic duration-shortening proxy fixed at the prior mean during
-          the primary conditional transmission analysis; treated as a vaccine-scenario
-          assumption for sensitivity and pilot context.
+        note: 'Mechanistic duration-shortening proxy for reduced infectious duration
+          among vaccinated infections. It is sampled jointly in the shared external-prior
+          structural design for Figure 2c and remains a vaccine-mechanism sensitivity
+          parameter in deterministic diagnostics.
 
           '
       relative_infectiousness_asymptomatic:
-        mean: 0.45
-        sd: 0.1
+        mean: 0.5
+        sd: 0.25
         note: 'Relative infectiousness of asymptomatic/subclinical infections compared
-          to symptomatic cases. The exact ratio is weakly identified; range [0.20,
-          0.70] spans minimal subclinical transmission to near-equal infectiousness.
+          to symptomatic cases. The exact ratio is not identified; the central registry
+          assigns a broad weak-model prior.
 
           '
       infectious_duration_symptomatic:
-        log_sd: 0.15
-        note: 'Clinical natural-history nuisance parameter centered on the CDC-aligned
-          21-day symptomatic infectious window; uncertainty range captures plausible
-          variation around the clinical anchor.
+        log_sd: 0.103
+        note: 'Compatibility width only. The normalized Bayesian prior is centred
+          at the literature model-fit median of 24 days and truncated to [14, 35]
+          days in parameter_distributions.yaml.
 
           '
       infectious_duration_asymptomatic:
-        log_sd: 0.2
-        note: 'Modelling assumption centred on a shorter mild/asymptomatic infectious
-          window than symptomatic pertussis; uncertainty range captures plausible
-          mild-infection duration.
+        log_sd: 0.3
+        note: 'Weak modelling assumption; the central registry uses median 17.3 days
+          and support [7, 28] because human data do not identify it.
 
           '
       fitness_R:
         min: 0.7
         max: 1.25
         mean: 1.0
-        sd: 0.12
-        note: 'Epidemiologically motivated prior centred on fitness-neutral (1.0),
-          because MRBP reached near-fixation in China within 8 years and spread internationally
-          without clear transmission disadvantage. SD of 0.12 allows modest fitness
-          costs or advantages.
+        sd: 0.15
+        note: 'Compatibility width alias. Production uses the central truncated lognormal
+          weak-model prior (median 1.0, log-SD 0.15, support [0.70, 1.25]).
 
           '
       resistance_prevalence:
@@ -1249,7 +1610,7 @@ config:
       reciprocity_error_before: 0.5500178504512391
       reciprocity_error_after: 1.6947706207041372e-16
     routine_age_pattern: W8;W12;W16;M40
-    routine_first_shot_months: 1.83908045977012
+    routine_first_shot_months: 1.8410958904109591
     routine_last_shot_months: 40.0
     routine_dose_count: 4
     routine_scheduler_code: aP
@@ -1257,10 +1618,14 @@ config:
     npi_contact_reduction_country: United_Kingdom
     npi_contact_reduction_iso3: GBR
     npi_contact_reduction_periods_loaded: 1
-    npi_contact_reduction_reduction_column: baseline_contact_reduction
+    npi_contact_reduction_reduction_column: contact_reduction_mean
+    npi_contact_reduction_evidence_cutoff_date: null
     resistance_timeline_country: United_Kingdom
     resistance_timeline_iso3: GBR
     resistance_timeline_anchor_year: 2025
+    resistance_timeline_configured_anchor_year: 2025
+    resistance_timeline_evidence_cutoff_year: null
+    resistance_timeline_applied: true
     resistance_timeline_allows_future_evidence: false
     resistance_timeline_method: nearest_past_year
     resistance_timeline_evidence_years: '2024'
@@ -1273,10 +1638,11 @@ config:
     diagnostic_standard_iso3: GBR
     diagnostic_standard_periods_loaded: 3
     diagnostic_standard_multiplier_column: relative_detection_prior_mean
+    diagnostic_standard_evidence_cutoff_date: null
   country: United_Kingdom
   vaccine:
     VE_sus: 0.15
-    VE_sym: 0.85
+    VE_sym: 0.8670588235
     VE_inf: 0.25
     VE_dur: 0.0
   diagnostic_reporting_time_variation:
@@ -1325,18 +1691,164 @@ config:
       evidence_strength: moderate
       source_ids: UK_GOV_2014;UK_EID_2012
       notes: Modern reference regime for UK data.
-  reporting_multiplier: 0.9482053470999048
+  diagnosis_probability:
+    infant_0_2m: 0.6
+    infant_3_11m: 0.5
+    child_1_4y: 0.25
+    child_5_9y: 0.18
+    adolescent_10_17y: 0.08
+    young_adult_18_39y: 0.05
+    middle_adult_40_64y: 0.03
+    elderly_65plus: 0.04
+  reporting_multiplier: 0.5001149652864767
 metadata:
   country: United_Kingdom
   accepted: true
   optimizer_success: true
-  calibration_status: accepted
-  fit_score: 6244.019776870553
-  data_fit_score: 6244.019776870553
+  calibration_status: state_reconstruction_accepted
+  fit_score: 48.22162649451701
+  data_fit_score: 42.000016882084694
   n_starts: 1
   maxiter: 12
-  config_hash: 6e926907320a8d929f5e700e87f528c158d870d2137c2f1a259302a95f37705c
-  calibration_config_hash: 374ca2c5c483bb8158ab5616cbe6969335d9e033b8768439dd96c386454b694a
+  config_hash: e07d2d9623bba63452e5939f83db5c87901a902d0a71c99df08b4ecdc3550c54
+  calibration_config_hash: c36eefa5b9e490f39c68369d7b2ec545f1003c465b2d7a3d65a4f58b53b37bf6
+  source_code_hash: 5099510352e2b46ef0d2c3446081a1ae5478a09870b5800d9b98ca23adb6952d
+  calibration_source_code_hash: da699062f293e102f575418151b66dc4d05987c72b0a8cedf397b0576a0719f2
   baseline_vaccine_scenario: symptom_protective
   baseline_resistance_scenario: country_timeline
-  generated_at_utc: '2026-07-07T05:43:11.756539+00:00'
+  generated_at_utc: '2026-07-13T19:40:25.220506+00:00'
+  state_posterior_approximation:
+    method: gauss_newton_laplace_conditional
+    scope: conditional_on_fixed_rho_innovation_sd_dispersion_and_reference_structure
+    coordinate_names:
+    - log_beta_S
+    - log_reporting_multiplier
+    - log_beta_process_2019
+    - log_beta_process_2020
+    - log_beta_process_2021
+    - log_beta_process_2022
+    - log_beta_process_2023
+    - log_beta_process_2024
+    - log_beta_process_2025
+    map_vector:
+    - -3.827896823526895
+    - -0.6929172764169748
+    - 0.15604969570701874
+    - 0.522860187501918
+    - 0.608340623453209
+    - -0.13478384276402836
+    - 0.21269162825889426
+    - 0.039478454615498274
+    - -1.700535345413732
+    covariance:
+    - - 0.15345833720747637
+      - -0.0038678189261457455
+      - 0.1294869128499061
+      - -0.016435284316995896
+      - -0.1271971054307617
+      - -0.08286203348854393
+      - -0.13614821015200387
+      - -0.1287347001302574
+      - -0.07710757306492391
+    - - -0.0038678189261457455
+      - 0.17775985287800752
+      - -0.015395654405653653
+      - -0.01681782778727093
+      - -0.00592330425014231
+      - -0.008192414299668584
+      - 0.011955358039784727
+      - 0.00644076917798629
+      - -0.09527427321211487
+    - - 0.1294869128499061
+      - -0.015395654405653653
+      - 0.13807618474808692
+      - -0.0655549530864311
+      - -0.07742265462876495
+      - -0.08805415299612249
+      - -0.10142659512526941
+      - -0.10705913895495042
+      - -0.052776037143885436
+    - - -0.016435284316995896
+      - -0.01681782778727093
+      - -0.0655549530864311
+      - 0.10435094568483688
+      - -0.04161699194683346
+      - 0.04604601133031006
+      - -0.013181449215995896
+      - 0.010063717562020937
+      - 0.007042645316594605
+    - - -0.1271971054307617
+      - -0.00592330425014231
+      - -0.07742265462876495
+      - -0.04161699194683346
+      - 0.13768909873845628
+      - 0.048136459001813695
+      - 0.12774919361171422
+      - 0.10833654966150583
+      - 0.07552231824275578
+    - - -0.08286203348854393
+      - -0.008192414299668584
+      - -0.08805415299612249
+      - 0.04604601133031006
+      - 0.048136459001813695
+      - 0.06117440058658186
+      - 0.061809672247853026
+      - 0.06835541171573135
+      - 0.04129301073910889
+    - - -0.13614821015200387
+      - 0.011955358039784727
+      - -0.10142659512526941
+      - -0.013181449215995896
+      - 0.12774919361171422
+      - 0.061809672247853026
+      - 0.1295670802153774
+      - 0.11490818217712517
+      - 0.06944763711035935
+    - - -0.1287347001302574
+      - 0.00644076917798629
+      - -0.10705913895495042
+      - 0.010063717562020937
+      - 0.10833654966150583
+      - 0.06835541171573135
+      - 0.11490818217712517
+      - 0.10866291559988339
+      - 0.05794585127114768
+    - - -0.07710757306492391
+      - -0.09527427321211487
+      - -0.052776037143885436
+      - 0.007042645316594605
+      - 0.07552231824275578
+      - 0.04129301073910889
+      - 0.06944763711035935
+      - 0.05794585127114768
+      - 0.2536014988336061
+    lower_bounds:
+    - -7.600902459542082
+    - -0.6931471805599453
+    - -2.5
+    - -2.5
+    - -2.5
+    - -2.5
+    - -2.5
+    - -2.5
+    - -2.5
+    upper_bounds:
+    - -0.6931471805599453
+    - 0.4054651081081644
+    - 2.5
+    - 2.5
+    - 2.5
+    - 2.5
+    - 2.5
+    - 2.5
+    - 2.5
+    rank: 9
+    condition_number: 284.9237425625419
+    prior_center_source: pre_surveillance_country_config
+    measurement_dispersion: 50.0
+    likelihood_observation_frequency: annual
+    observation_aggregation_contract: whole_integer_source_intervals_projected_exactly_then_grouped_by_midpoint_year
+    process_ar1_rho: 0.5
+    process_innovation_sd: 0.6
+    beta_prior_log_sd: 1.0
+    reporting_prior_log_sd: 0.5

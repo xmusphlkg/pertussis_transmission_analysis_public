@@ -20,6 +20,7 @@ def test_country_profile_inputs_extracts_measured_schedule_and_maternal_coverage
     united_states = df.loc["United_States"]
     brazil = df.loc["Brazil"]
     thailand = df.loc["Thailand"]
+    south_africa = df.loc["South_Africa"]
 
     expected_dtp = {
         "Australia": (0.9300, 0.9266, "wuenic", "official"),
@@ -31,6 +32,7 @@ def test_country_profile_inputs_extracts_measured_schedule_and_maternal_coverage
         "United_States": (0.9800, 0.9400, "wuenic", "wuenic"),
         "Brazil": (0.8891, 0.8891, "official", "official"),
         "Thailand": (0.9203, 0.8922, "administrative", "administrative"),
+        "South_Africa": (0.7590, 0.7390, "official", "official"),
     }
     for country, (dtp1, dtp3, dtp1_source_type, dtp3_source_type) in expected_dtp.items():
         row = df.loc[country]
@@ -64,7 +66,15 @@ def test_country_profile_inputs_extracts_measured_schedule_and_maternal_coverage
     assert not bool(thailand["adult_program"])
     assert not bool(thailand["risk_program"])
     assert np.isclose(thailand["maternal_coverage"], 0.0)
+    assert thailand["maternal_program_note"] == "1st contact"
     assert thailand["routine_age_pattern"] == "M2;M4;M6;Y1.5;Y4"
+
+    assert bool(south_africa["maternal_program"])
+    assert np.isclose(south_africa["maternal_coverage"], 0.45)
+    assert south_africa["maternal_coverage_source_type"] == "configuration_assumption"
+    assert south_africa["routine_age_pattern"] == "W6;W10;W14;M18;Y6;Y12"
+    assert np.isclose(south_africa["routine_first_shot_months"], 6 / 4.345238095238095)
+    assert np.isclose(south_africa["routine_last_shot_months"], 144.0)
 
 
 def test_incidence_loading_from_xlsx_normalizes_reporting_intervals() -> None:

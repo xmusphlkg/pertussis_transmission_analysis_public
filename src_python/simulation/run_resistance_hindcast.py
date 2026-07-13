@@ -21,7 +21,9 @@ import pandas as pd
 
 from src_python.simulation.common import (
     current_run_metadata,
+    load_configs,
     make_config,
+    publication_country_names,
     run_prepared_config,
     write_run_metadata,
 )
@@ -241,28 +243,34 @@ def _score_hindcast(df: pd.DataFrame) -> pd.DataFrame:
     return summary.sort_values(["country", "mean_absolute_error"])
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Run resistance hindcast validation.")
-    parser.add_argument(
-        "--countries",
-        nargs="*",
-        default=None,
-        help="Subset of countries to hindcast (default: all available).",
-    )
-    parser.add_argument("--n-jobs", type=int, default=None, help="Parallel worker count.")
-    args = parser.parse_args()
-
-    countries = args.countries or list(HINDCAST_COUNTRIES.keys())
-    countries = [c for c in countries if c in HINDCAST_COUNTRIES]
+def run(
+    countries: list[str] | tuple[str, ...] | None = None,
+    *,
+    n_jobs: int | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    configs = load_configs()
+    publication_countries = set(publication_country_names(configs))
+    requested = list(countries) if countries is not None else [
+        country for country in HINDCAST_COUNTRIES if country in publication_countries
+    ]
+    unsupported = sorted(set(requested) - set(HINDCAST_COUNTRIES))
+    if unsupported:
+        raise ValueError("No resistance hindcast specification for: " + ", ".join(unsupported))
+    outside_publication_scope = sorted(set(requested) - publication_countries)
+    if outside_publication_scope:
+        raise ValueError(
+            "Resistance publication hindcasts exclude countries outside the "
+            "prespecified publication set: " + ", ".join(outside_publication_scope)
+        )
 
     tasks = [
         {"country": country, "fitness_R": fitness_R}
-        for country in countries
+        for country in requested
         for fitness_R in FITNESS_VALUES
     ]
     combined = _attach_observations(
-        _run_hindcast_tasks(tasks, n_jobs=args.n_jobs),
-        countries,
+        _run_hindcast_tasks(tasks, n_jobs=n_jobs),
+        requested,
     )
 
     if not combined.empty:
@@ -291,6 +299,20 @@ def main() -> None:
             },
         ),
     )
+    return combined, scores
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run resistance hindcast validation.")
+    parser.add_argument(
+        "--countries",
+        nargs="*",
+        default=None,
+        help="Subset of publication countries to hindcast (default: all with specifications).",
+    )
+    parser.add_argument("--n-jobs", type=int, default=None, help="Parallel worker count.")
+    args = parser.parse_args()
+    run(args.countries, n_jobs=args.n_jobs)
 
 
 if __name__ == "__main__":

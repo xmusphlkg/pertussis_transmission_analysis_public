@@ -30,7 +30,7 @@ extended_data_figure_5_origin_columns <- function() {
 }
 
 load_extended_data_figure_5_scenario_table <- function() {
-  readr::read_csv(model_path("publication_inputs", "scenario_table.csv"), show_col_types = FALSE) %>%
+  readr::read_csv(model_path("manuscript_notes", "scenario_table.csv"), show_col_types = FALSE) %>%
     mutate(
       scenario = factor(scenario, levels = vaccine_levels),
       scenario_label = factor(vaccine_labels[as.character(scenario)], levels = vaccine_labels[vaccine_levels])

@@ -47,7 +47,7 @@ plot_figure_4_panel_a <- function(data) {
       labels = unname(data$mechanism_outcome_labels[data$mechanism_outcome_breaks]),
       name = "Outcome",
       guide = guide_legend(
-        nrow = 1,
+        ncol = 1,
         byrow = TRUE,
         title.position = "top",
         title.hjust = 0,
@@ -71,7 +71,7 @@ plot_figure_4_panel_a <- function(data) {
       values = c("Profiles" = 16, "Cross-profile median" = 23),
       name = "Point",
       guide = guide_legend(
-        nrow = 1,
+        ncol = 1,
         byrow = TRUE,
         title.position = "top",
         title.hjust = 0,
@@ -201,6 +201,12 @@ plot_figure_4_panel_b <- function(data) {
 
 plot_figure_4_panel_c <- function(data) {
   pct <- label_lancet_percent(accuracy = 1)
+  profile_count <- data$preference_summary %>%
+    group_by(resistance_weight_lambda) %>%
+    summarise(total = sum(countries_preferred), .groups = "drop") %>%
+    summarise(total = max(total, na.rm = TRUE)) %>%
+    pull(total)
+  profile_breaks <- sort(unique(c(seq(0, profile_count, by = 2), profile_count)))
 
   ggplot(data$preference_summary, aes(resistance_weight_lambda, countries_preferred, colour = strategy_label)) +
     geom_step(linewidth = 0.72, direction = "hv", alpha = 0.88) +
@@ -232,7 +238,7 @@ plot_figure_4_panel_c <- function(data) {
       size = lancet_pt_to_geom_size(5.8),
       fontface = "bold",
       angle = 90,
-      hjust = 0.5,
+      hjust = 1,
       vjust = 0.5
     ) +
     geom_segment(
@@ -268,18 +274,18 @@ plot_figure_4_panel_c <- function(data) {
       expand = expansion(mult = c(0.02, 0.04))
     ) +
     scale_y_continuous(
-      breaks = seq(0, 10, by = 2),
-      limits = c(-1.08, 10.3),
+      breaks = profile_breaks,
+      limits = c(-1.08, profile_count + 0.3),
       expand = expansion(mult = c(0.01, 0.03))
     ) +
     scale_colour_manual(
       values = data$preference_colours,
       guide = "none"
     ) +
-    coord_cartesian(xlim = c(0, 1), ylim = c(-1.08, 10.3), clip = "off") +
+    coord_cartesian(xlim = c(0, 1), ylim = c(-1.08, profile_count + 0.3), clip = "off") +
     labs(
       x = "Weight on resistant-infection reduction",
-      y = "Profiles with lowest weighted metric\n(out of 10)",
+      y = paste0("Profiles with lowest weighted metric\n(out of ", profile_count, ")"),
       tag = "c"
     ) +
     theme_lancet_panel(base_size = journal_compact_text_size, plot_margin = margin(4, 5, 4, 4), show_x_grid = TRUE, show_y_grid = TRUE) +
@@ -407,9 +413,9 @@ plot_figure_4_future_residual <- function(data) {
     scale_shape_profile_median() +
     coord_cartesian(xlim = c(0.08, 1400), clip = "off") +
     labs(
-      x = "Remaining cases per 100 000/year\namong people aged <18 years (log scale)",
+      x = "Remaining conditional symptomatic-case index per 100 000/year\namong people aged <18 years (log scale)",
       y = NULL,
-      tag = "c"
+      tag = "e"
     ) +
     theme_lancet_panel(base_size = journal_dense_text_size, plot_margin = margin(4, 5, 4, 5), show_y_grid = TRUE) +
     theme(
@@ -431,6 +437,13 @@ plot_figure_4_future_residual <- function(data) {
 }
 
 plot_figure_4_future_veinf <- function(data) {
+  profile_count <- max(
+    data$veinf_attainment_plot_summary$countries_evaluated,
+    na.rm = TRUE
+  )
+  profile_breaks <- sort(unique(c(seq(0, profile_count, by = 2), profile_count)))
+  reference_lines <- sort(unique(c(2, 6, profile_count)))
+  reference_lines <- reference_lines[reference_lines <= profile_count]
   ggplot(
     data$veinf_attainment_plot_summary,
     aes(
@@ -445,7 +458,7 @@ plot_figure_4_future_veinf <- function(data) {
     geom_step(direction = "hv", linewidth = 0.78, alpha = 0.88, lineend = "round") +
     geom_point(size = 1.25, stroke = 0.20, alpha = 0.88) +
     geom_hline(
-      yintercept = c(2, 6, 10),
+      yintercept = reference_lines,
       linewidth = 0.18,
       colour = manuscript_colour("pale_grey")
     ) +
@@ -463,8 +476,8 @@ plot_figure_4_future_veinf <- function(data) {
       expand = expansion(mult = c(0.01, 0.02))
     ) +
     scale_y_continuous(
-      breaks = seq(0, 10, by = 2),
-      limits = c(0, 10),
+      breaks = profile_breaks,
+      limits = c(0, profile_count),
       expand = expansion(mult = c(0.02, 0.06))
     ) +
     scale_colour_manual(
@@ -486,11 +499,11 @@ plot_figure_4_future_veinf <- function(data) {
       labels = names(data$veinf_seed_shapes),
       name = "Resistant seeding level"
     ) +
-    coord_cartesian(xlim = c(0, 0.6), ylim = c(0, 10.2), clip = "off") +
+    coord_cartesian(xlim = c(0, 0.6), ylim = c(0, profile_count + 0.2), clip = "off") +
     labs(
       x = "Vaccine reduction in onward infectiousness (%)",
-      y = "Profiles reaching comparator infant-case burden\n(out of 10)",
-      tag = "d"
+      y = paste0("Profiles reaching comparator infant-case index\n(out of ", profile_count, ")"),
+      tag = "f"
     ) +
     theme_lancet_panel(base_size = journal_compact_text_size, plot_margin = margin(2, 6, 4, 4), show_x_grid = TRUE, show_y_grid = TRUE) +
     theme(

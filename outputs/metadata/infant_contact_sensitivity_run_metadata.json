@@ -1,5 +1,5 @@
 {
-  "config_hash": "6e926907320a8d929f5e700e87f528c158d870d2137c2f1a259302a95f37705c",
+  "config_hash": "e07d2d9623bba63452e5939f83db5c87901a902d0a71c99df08b4ecdc3550c54",
   "dependency_versions": {
     "joblib": "1.5.3",
     "numba": "0.65.1",
@@ -10,16 +10,17 @@
     "pyyaml": "6.0.3",
     "scipy": "1.17.1"
   },
-  "generated_at_utc": "2026-07-07T08:48:18.358489+00:00",
+  "generated_at_utc": "2026-07-13T21:23:55.040110+00:00",
   "git": {
     "branch": "main",
-    "commit": "6249860760ed7b7d58501c5f6b233d3c55368123",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
     "dirty": true
   },
   "row_counts": {
-    "summary": 80,
-    "timeseries": 79360
+    "summary": 72,
+    "timeseries": 71424
   },
   "schema_version": 1,
+  "source_code_hash": "5099510352e2b46ef0d2c3446081a1ae5478a09870b5800d9b98ca23adb6952d",
   "stem": "infant_contact_sensitivity"
 }

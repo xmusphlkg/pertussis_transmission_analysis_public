@@ -35,7 +35,7 @@ scale_colour_vaccine_profiles <- function(guide = "none") {
 ## Panel A: vaccine mechanism matrix ------------------------------------------
 
 scenario_params <- readr::read_csv(
-  model_path("publication_inputs", "scenario_table.csv"),
+  model_path("manuscript_notes", "scenario_table.csv"),
   show_col_types = FALSE
 ) %>%
   filter(scenario %in% vaccine_levels) %>%

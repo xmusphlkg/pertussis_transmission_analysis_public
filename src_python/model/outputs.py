@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from datetime import date, datetime
+from typing import Any, Callable
+
 import numpy as np
 import pandas as pd
-from scipy.integrate import solve_ivp
 from scipy.signal import find_peaks
 
 from src_python.model.compartments import (
@@ -16,8 +18,14 @@ from src_python.model.compartments import (
     treated_name,
 )
 from src_python.model.force_of_infection import compute_force_of_infection
+from src_python.model.fast_rhs import (
+    NUMBA_FAST_RHS_AVAILABLE,
+    FastRHSUnsupportedError,
+    build_fast_rhs,
+)
 from src_python.model.ode_system import rhs
 from src_python.model.parameters import PreparedParameters
+from src_python.model.solver_utils import solve_ivp_piecewise
 from src_python.model.treatment import treated_recovery_rate
 from src_python.model.vaccination import (
     default_initial_origin_distribution,
@@ -56,6 +64,7 @@ INFANT_AGE_GROUPS = ("infant_0_2m", "infant_3_11m")
 CHILD_1_9_AGE_GROUPS = ("child_1_4y", "child_5_9y")
 ADOLESCENT_AGE_GROUPS = ("adolescent_10_17y",)
 CHILD_ADOLESCENT_AGE_GROUPS = (*INFANT_AGE_GROUPS, *CHILD_1_9_AGE_GROUPS, *ADOLESCENT_AGE_GROUPS)
+GREGORIAN_YEAR_DAYS = 365.2425
 
 ORIGIN_SHARE_COLUMNS = (
     "vaccinated_origin_infection_share",
@@ -84,16 +93,17 @@ ORIGIN_SHARE_COLUMNS = (
 # The overall VE against death is:
 #   VE_death_overall = 1 - (1-VE_sus)*(1-VE_sym)*(1-VE_hosp)*(1-VE_death)
 #
-# For maternal Tdap in <2mo infants:
-#   VE_sus ≈ 0.55, VE_sym ≈ 0.68 (via maternal_relative_effect*0.92)
-#   VE_hosp|symptomatic ≈ 0.72 (Amirthalingam 2014; Baxter 2017)
+# For maternal Tdap in <2mo infants, the origin-specific model effects are:
+#   VE_sus = 0.75*0.55 = 0.4125 and VE_sym = 0.75*0.92 = 0.69
+#   VE_hosp|symptomatic = 0.50 (a structural mapping, not a direct estimate)
 #   VE_death|hospitalized ≈ 0.80 (inferred from near-zero deaths in
 #     vaccinated mothers' infants across multiple surveillance systems)
-#   Combined VE_death_overall ≈ 1 - 0.45*0.32*0.28*0.20 = 99.2%
+#   The first three stages give overall VE_hosp ≈
+#     1 - (1-0.4125)*(1-0.69)*(1-0.50) = 90.9%.
 #
 # Sources:
 #   - Amirthalingam et al. (2014) Lancet: VE against hospitalization 91%
-#     (this is the OVERALL VE, not conditional; conditional VE_hosp|sym ≈ 72%)
+#     (this is the OVERALL VE and motivates the structural conditional mapping)
 #   - Skoff et al. (2017) Clin Infect Dis: VE against confirmed disease 78%
 #   - Baxter et al. (2017) Pediatrics: VE against hospitalization 91.4%
 #   - CIDRAP 2025: CDC reported 41% of infant patients <6mo hospitalized, 10 died
@@ -107,7 +117,9 @@ ORIGIN_SHARE_COLUMNS = (
 #   P(death | hospitalized, 3-11mo) ≈ 0.005
 # ---------------------------------------------------------------------------
 
-# Age-specific hospitalization probability GIVEN symptomatic disease (unvaccinated baseline)
+# Compatibility defaults for legacy/test callers that do not supply a
+# severity_model. Production runs read these maps from model_settings.yaml.
+# Age-specific hospitalization probability GIVEN symptomatic disease.
 _AGE_HOSPITALIZATION_PROBABILITY: dict[str, float] = {
     "infant_0_2m": 0.60,        # CDC: 41-67% of <6mo cases hospitalized
     "infant_3_11m": 0.25,       # Lower but still substantial
@@ -121,8 +133,8 @@ _AGE_HOSPITALIZATION_PROBABILITY: dict[str, float] = {
 
 # Age-specific death probability GIVEN hospitalization (unvaccinated baseline)
 _AGE_DEATH_GIVEN_HOSPITALIZATION: dict[str, float] = {
-    "infant_0_2m": 0.010,       # US PICU data: ~10 deaths / ~1000 hospitalized <2mo
-    "infant_3_11m": 0.002,      # Lower, partially vaccinated
+    "infant_0_2m": 0.020,       # Baseline within the documented 0.015-0.025 range
+    "infant_3_11m": 0.005,      # Lower, partially vaccinated
     "child_1_4y": 0.0003,       # Very rare
     "child_5_9y": 0.0001,       # Extremely rare
     "adolescent_10_17y": 0.00005,
@@ -137,7 +149,7 @@ _AGE_DEATH_GIVEN_HOSPITALIZATION: dict[str, float] = {
 # even when they fail to prevent infection or mild symptoms.
 _ORIGIN_VE_HOSPITALIZATION: dict[str, float] = {
     "unvaccinated": 0.0,
-    "maternal": 0.72,           # Derived: overall VE_hosp 91% / VE_sym contribution
+    "maternal": 0.50,           # Structural mapping to ~91% overall VE_hosp
     "dose1_recent": 0.50,
     "dose1_waned": 0.20,
     "dose2_recent": 0.65,
@@ -167,6 +179,7 @@ def _compute_severity_outcomes(
     *,
     maternal_coverage: float = 0.0,
     residual_maternal_protection_for_unvaccinated: bool = False,
+    severity_model: dict[str, Any] | None = None,
 ) -> tuple[float, float, float]:
     """Compute hospitalization and death rates from origin-specific symptomatic rates.
 
@@ -187,8 +200,25 @@ def _compute_severity_outcomes(
         - Warfel et al. (2014): baboon model shows partial immunity reduces
           disease severity even when colonization is not prevented
     """
-    base_p_hosp = _AGE_HOSPITALIZATION_PROBABILITY.get(age_group, 0.001)
-    base_p_death = _AGE_DEATH_GIVEN_HOSPITALIZATION.get(age_group, 0.0005)
+    configured = severity_model or {}
+    age_hospitalization = configured.get(
+        "age_hospitalization_probability",
+        _AGE_HOSPITALIZATION_PROBABILITY,
+    )
+    age_death_given_hospitalization = configured.get(
+        "age_death_given_hospitalization",
+        _AGE_DEATH_GIVEN_HOSPITALIZATION,
+    )
+    origin_ve_hospitalization = configured.get(
+        "origin_conditional_ve_hospitalization",
+        _ORIGIN_VE_HOSPITALIZATION,
+    )
+    origin_ve_death = configured.get(
+        "origin_conditional_ve_death",
+        _ORIGIN_VE_DEATH,
+    )
+    base_p_hosp = float(age_hospitalization.get(age_group, 0.001))
+    base_p_death = float(age_death_given_hospitalization.get(age_group, 0.0005))
 
     # Optional residual severity protection for unvaccinated-origin infants in
     # maternal-program sensitivity analyses. Disabled by default to avoid
@@ -213,8 +243,8 @@ def _compute_severity_outcomes(
     for origin, sym_rate in symptomatic_rate_by_origin.items():
         if sym_rate <= 0:
             continue
-        ve_hosp = _ORIGIN_VE_HOSPITALIZATION.get(origin, 0.0)
-        ve_death = _ORIGIN_VE_DEATH.get(origin, 0.0)
+        ve_hosp = float(origin_ve_hospitalization.get(origin, 0.0))
+        ve_death = float(origin_ve_death.get(origin, 0.0))
 
         # Apply residual protection to unvaccinated infants
         if origin == "unvaccinated" and is_infant:
@@ -372,7 +402,52 @@ def active_resistant_fraction(y: np.ndarray, index: StateIndex) -> float:
     return resistant / total if total > 0 else 0.0
 
 
-def solve_model(params: PreparedParameters, index: StateIndex):
+def state_invariant_diagnostics(
+    states: np.ndarray,
+    index: StateIndex,
+    *,
+    reference_total: float | None = None,
+) -> dict[str, float | int]:
+    """Summarize raw-state numerical invariants without hiding undershoots.
+
+    The epidemiological RHS evaluates rates on non-negative state values, but
+    solver output is inspected *before* any projection here.  This keeps small
+    numerical undershoots and population drift visible to validation gates.
+    Population drift is descriptive because demographic/WPP modes can change
+    population intentionally; callers decide which tolerance is scientifically
+    appropriate for a given configuration.
+    """
+
+    array = np.asarray(states, dtype=float)
+    if array.ndim == 1:
+        if array.shape[0] != index.size:
+            raise ValueError(f"Expected {index.size} state values, got {array.shape[0]}")
+        array = array[:, np.newaxis]
+    elif array.ndim != 2 or array.shape[0] != index.size:
+        raise ValueError(
+            f"Expected states with shape ({index.size}, n_times); got {array.shape}"
+        )
+    if array.shape[1] == 0:
+        raise ValueError("At least one state time point is required")
+
+    negative = array < 0.0
+    totals = np.sum(array, axis=0)
+    initial_population = float(totals[0])
+    baseline = initial_population if reference_total is None else float(reference_total)
+    drift = totals - baseline
+    denominator = max(abs(baseline), 1e-12)
+    return {
+        "min_state": float(np.min(array)),
+        "negative_state_count": int(np.count_nonzero(negative)),
+        "negative_state_mass": float(-np.sum(array[negative])) if np.any(negative) else 0.0,
+        "initial_population": initial_population,
+        "final_population": float(totals[-1]),
+        "max_abs_population_drift": float(np.max(np.abs(drift))),
+        "max_rel_population_drift": float(np.max(np.abs(drift)) / denominator),
+    }
+
+
+def _solver_time_grid(params: PreparedParameters) -> np.ndarray:
     sim = params.raw["simulation"]
     output_time_step = float(sim.get("output_time_step", sim.get("time_step", 1.0)))
     start_time = float(sim["start_time"])
@@ -385,57 +460,204 @@ def solve_model(params: PreparedParameters, index: StateIndex):
     t_eval = t_eval[t_eval <= end_time]
     if t_eval[-1] < end_time:
         t_eval = np.append(t_eval, end_time)
-    y0 = initial_state(params, index)
+    return t_eval
+
+
+def model_rhs_callable(
+    params: PreparedParameters,
+    index: StateIndex,
+) -> Callable[[float, np.ndarray], np.ndarray]:
+    """Resolve the explicitly configured biological RHS backend."""
+
+    backend = str(params.raw["simulation"].get("rhs_backend", "numba")).lower()
+    if backend in {"python", "python_reference", "reference"}:
+        return lambda t, y: rhs(t, y, params, index)
+    if backend not in {"numba", "auto"}:
+        raise ValueError(
+            f"Unsupported simulation.rhs_backend={backend!r}; expected numba, auto, or python_reference"
+        )
+    if not NUMBA_FAST_RHS_AVAILABLE:
+        if backend == "auto":
+            return lambda t, y: rhs(t, y, params, index)
+        raise RuntimeError("simulation.rhs_backend=numba requires the numba package")
+    try:
+        return build_fast_rhs(params, index)
+    except FastRHSUnsupportedError:
+        if backend == "auto":
+            return lambda t, y: rhs(t, y, params, index)
+        raise
+
+
+def history_integration_start_time(params: PreparedParameters) -> float:
+    """Resolve the reproducible historical origin for initial-state preparation."""
+
+    sim = params.raw["simulation"]
+    analysis_start_time = float(sim["start_time"])
+    strategy = str(sim.get("initial_state_strategy", "fixed_duration")).lower()
+    if strategy in {"fixed_duration", "duration"}:
+        return analysis_start_time - float(sim.get("burn_in_years", 0.0)) * 365.0
+    if strategy not in {"fixed_calendar_origin", "calendar_origin"}:
+        raise ValueError(
+            f"Unsupported simulation.initial_state_strategy={strategy!r}"
+        )
+    if params.calendar_start_date is None:
+        raise ValueError("fixed_calendar_origin requires calendar.analysis_start_date")
+    raw_history_date = sim.get("history_start_date")
+    try:
+        history_date = (
+            raw_history_date
+            if isinstance(raw_history_date, date)
+            else datetime.strptime(str(raw_history_date), "%Y-%m-%d").date()
+        )
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            "fixed_calendar_origin requires simulation.history_start_date in YYYY-MM-DD format"
+        ) from exc
+    if history_date > params.calendar_start_date:
+        raise ValueError("simulation.history_start_date must not follow analysis_start_date")
+    return analysis_start_time + float((history_date - params.calendar_start_date).days)
+
+
+def prepare_history_state(
+    history_params: PreparedParameters,
+    index: StateIndex,
+) -> np.ndarray:
+    """Advance historical parameters to the common prospective-policy origin.
+
+    ``history_params`` governs initialization, the complete negative-time
+    burn-in, and any declared analysis-start resistance rebalance.  A policy is
+    not allowed to rewrite this state implicitly; an intervention that truly
+    acts instantaneously at t0 must use a separate explicit, mass-conserving
+    transform.  A fresh writable array is always returned so it is safe to
+    share a cached value across policy simulations.
+    """
+
+    if tuple(history_params.age_groups) != tuple(index.age_groups):
+        raise ValueError("Historical parameters and StateIndex age groups do not match")
+    sim = history_params.raw["simulation"]
+    start_time = float(sim["start_time"])
+    y0 = initial_state(history_params, index)
 
     solver_method = str(sim.get("solver_method", "LSODA"))
     use_rk4 = solver_method.upper() == "RK4"
+    biological_rhs = None if use_rk4 else model_rhs_callable(history_params, index)
 
-    burn_in_years = float(sim.get("burn_in_years", 0.0))
-    if burn_in_years > 0:
-        burn_t_start = start_time - burn_in_years * 365.0
+    burn_t_start = history_integration_start_time(history_params)
+    if burn_t_start < start_time:
+        if (
+            str(sim.get("initial_state_strategy", "fixed_duration")).lower()
+            in {"fixed_calendar_origin", "calendar_origin"}
+            and history_params.wpp_trajectory_active()
+        ):
+            history_year = float(history_params.calendar_year_at(burn_t_start) or 0)
+            target_population = history_params.wpp_population_at(history_year)
+            initial_matrix = index.reshape(y0).copy()
+            current_population = np.maximum(initial_matrix.sum(axis=1), 1e-12)
+            initial_matrix *= (target_population / current_population)[:, np.newaxis]
+            y0 = index.flatten(initial_matrix)
         if use_rk4:
             from src_python.model.rk4_solver import solve_rk4
             dt_burnin = float(sim.get("rk4_dt_burnin", 2.0))
             burn_solution = solve_rk4(
-                params, index, y0,
+                history_params, index, y0,
                 t_span=(burn_t_start, start_time),
                 dt=dt_burnin,
             )
         else:
-            burn_solution = solve_ivp(
-                fun=lambda t, y: rhs(t, y, params, index),
+            burn_solution = solve_ivp_piecewise(
+                fun=biological_rhs,
                 t_span=(burn_t_start, start_time),
                 y0=y0,
                 t_eval=[start_time],
+                params=history_params,
                 method=solver_method,
                 rtol=float(sim.get("rtol", 1e-6)),
                 atol=float(sim.get("atol", 1e-8)),
             )
         if not burn_solution.success:
-            raise RuntimeError(f"Burn-in failed for {params.scenario}: {burn_solution.message}")
+            raise RuntimeError(
+                f"Burn-in failed for {history_params.scenario}: {burn_solution.message}"
+            )
         y0 = np.maximum(burn_solution.y[:, -1], 0.0)
-        if params.resistance.get("rebalance_after_burn_in", True):
-            y0 = rebalance_resistant_prevalence(y0, params, index)
+        if history_params.resistance.get("rebalance_after_burn_in", True):
+            y0 = rebalance_resistant_prevalence(y0, history_params, index)
+
+    return np.array(y0, dtype=float, copy=True)
+
+
+def simulate_policy_from_state(
+    params: PreparedParameters,
+    index: StateIndex,
+    t0_state: np.ndarray,
+):
+    """Simulate the saved analysis interval from an explicit shared t0 state.
+
+    Burn-in settings on ``params`` are deliberately ignored: prospective
+    policies start at the analysis origin and may never rewrite historical
+    immunity or infection states.  The input state is copied and remains
+    untouched, which permits safe reuse across paired scenarios.
+    """
+
+    sim = params.raw["simulation"]
+    start_time = float(sim["start_time"])
+    end_time = float(sim["end_time"])
+    t_eval = _solver_time_grid(params)
+    y0 = np.asarray(t0_state, dtype=float)
+    if y0.shape != (index.size,):
+        raise ValueError(f"Expected t0_state shape ({index.size},), got {y0.shape}")
+    y0 = np.array(y0, dtype=float, copy=True)
+
+    solver_method = str(sim.get("solver_method", "LSODA"))
+    use_rk4 = solver_method.upper() == "RK4"
+    biological_rhs = None if use_rk4 else model_rhs_callable(params, index)
 
     if use_rk4:
         from src_python.model.rk4_solver import solve_rk4
         dt_analysis = float(sim.get("rk4_dt_analysis", 1.0))
-        return solve_rk4(
+        solution = solve_rk4(
             params, index, y0,
             t_span=(start_time, end_time),
             t_eval=t_eval,
             dt=dt_analysis,
         )
+    else:
+        solution = solve_ivp_piecewise(
+            fun=biological_rhs,
+            t_span=(start_time, end_time),
+            y0=y0,
+            t_eval=t_eval,
+            params=params,
+            method=solver_method,
+            rtol=float(sim.get("rtol", 1e-6)),
+            atol=float(sim.get("atol", 1e-8)),
+        )
+    solution.diagnostics = state_invariant_diagnostics(solution.y, index)
+    return solution
 
-    return solve_ivp(
-        fun=lambda t, y: rhs(t, y, params, index),
-        t_span=(start_time, end_time),
-        y0=y0,
-        t_eval=t_eval,
-        method=solver_method,
-        rtol=float(sim.get("rtol", 1e-6)),
-        atol=float(sim.get("atol", 1e-8)),
-    )
+
+def solve_model(
+    params: PreparedParameters,
+    index: StateIndex,
+    *,
+    history_params: PreparedParameters | None = None,
+    initial_state_override: np.ndarray | None = None,
+):
+    """Compatibility wrapper for historical preparation plus analysis solve.
+
+    Legacy/structural simulations omit both optional arguments and therefore
+    use the same parameters for burn-in and analysis.  Prospective-policy runs
+    pass ``history_params`` or a cached ``initial_state_override`` so policy
+    changes occur only from t0 onward.
+    """
+
+    if history_params is not None and initial_state_override is not None:
+        raise ValueError("Pass either history_params or initial_state_override, not both")
+    if initial_state_override is None:
+        historical = history_params or params
+        y0 = prepare_history_state(historical, index)
+    else:
+        y0 = np.array(initial_state_override, dtype=float, copy=True)
+    return simulate_policy_from_state(params, index, y0)
 
 
 def _daily_metrics(t: float, y: np.ndarray, params: PreparedParameters, index: StateIndex) -> list[dict]:
@@ -543,7 +765,20 @@ def _daily_metrics(t: float, y: np.ndarray, params: PreparedParameters, index: S
     tr_asym_by_age = tr_asym_base * diagnosis_prob
     reporting_rate = params.reporting_rate_at(t)
     diagnostic_reporting_multiplier = params.diagnostic_reporting_multiplier_at(t)
-    severity_model = params.raw.get("severity_model", {})
+    case_event_definition = str(
+        params.observation_model.get(
+            "case_event_definition",
+            "infection_destined_symptomatic",
+        )
+    )
+    if case_event_definition not in {
+        "infection_destined_symptomatic",
+        "symptomatic_onset",
+    }:
+        raise ValueError(
+            f"Unsupported observation_model.case_event_definition={case_event_definition!r}"
+        )
+    severity_model = params.severity_model
     residual_maternal_protection = bool(
         severity_model.get("residual_maternal_protection_for_unvaccinated_origin", False)
     )
@@ -555,6 +790,8 @@ def _daily_metrics(t: float, y: np.ndarray, params: PreparedParameters, index: S
         age_population = float(current_age_population[age_idx])
         for strain, strain_label in (("S", "sensitive"), ("R", "resistant")):
             sym_cases = 0.0
+            infection_destined_symptomatic_cases = 0.0
+            symptomatic_onsets = 0.0
             asym_infections = 0.0
             total_infections = 0.0
             treated_cases = 0.0
@@ -570,7 +807,19 @@ def _daily_metrics(t: float, y: np.ndarray, params: PreparedParameters, index: S
             for oi, origin in enumerate(VACCINE_ORIGINS):
                 flow = float(infection_flows[strain][origin][age_idx])
                 p_sym_origin = float(p_sym_by_origin[origin][age_idx])
-                origin_sym = flow * p_sym_origin
+                infection_destined_origin_sym = flow * p_sym_origin
+                onset_origin_sym = (
+                    float(params.rates["latent"])
+                    * float(comp[exposed_name(strain, origin)][age_idx])
+                    * p_sym_origin
+                )
+                infection_destined_symptomatic_cases += infection_destined_origin_sym
+                symptomatic_onsets += onset_origin_sym
+                origin_sym = (
+                    onset_origin_sym
+                    if case_event_definition == "symptomatic_onset"
+                    else infection_destined_origin_sym
+                )
                 sym_cases += origin_sym
                 sym_cases_by_origin[origin] = sym_cases_by_origin.get(origin, 0.0) + origin_sym
                 asym_infections += flow * (1.0 - p_sym_origin)
@@ -620,6 +869,7 @@ def _daily_metrics(t: float, y: np.ndarray, params: PreparedParameters, index: S
                 sym_cases_by_origin, age,
                 maternal_coverage=float(params.demography.get("birth_entry", {}).get("V", 0.0)),
                 residual_maternal_protection_for_unvaccinated=residual_maternal_protection,
+                severity_model=severity_model,
             )
 
             vaccinated_origin_share = vaccinated_origin_infections / total_infections if total_infections > 0 else 0.0
@@ -657,7 +907,12 @@ def _daily_metrics(t: float, y: np.ndarray, params: PreparedParameters, index: S
                     "reference_population": float(params.population[age_idx]),
                     "total_population": current_total_population,
                     "reference_total_population": float(params.total_population),
+                    "case_event_definition": case_event_definition,
                     "symptomatic_case_rate_per_day": float(sym_cases),
+                    "infection_destined_symptomatic_case_rate_per_day": float(
+                        infection_destined_symptomatic_cases
+                    ),
+                    "symptomatic_onset_rate_per_day": float(symptomatic_onsets),
                     "asymptomatic_infection_rate_per_day": float(asym_infections),
                     "total_infection_rate_per_day": float(total_infections),
                     "reported_case_rate_per_day": float(reported_cases),
@@ -829,7 +1084,10 @@ def summarize_timeseries(
         adolescent_population = _population_for_age_groups(age_population, ADOLESCENT_AGE_GROUPS)
         child_adolescent_population = _population_for_age_groups(age_population, CHILD_ADOLESCENT_AGE_GROUPS)
         duration_days = float(group["time"].max()) - float(group["time"].min())
-        duration_years = max(duration_days / 365.0, dt / 365.0)
+        duration_years = max(
+            duration_days / GREGORIAN_YEAR_DAYS,
+            dt / GREGORIAN_YEAR_DAYS,
+        )
 
         summary = {
             "analysis": keys[0],
