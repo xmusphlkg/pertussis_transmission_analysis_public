@@ -27,7 +27,7 @@
       "target_fitness_R": 1.1
     }
   ],
-  "generated_at_utc": "2026-07-13T22:07:12.577539+00:00",
+  "generated_at_utc": "2026-07-14T01:04:58.443500+00:00",
   "git": {
     "branch": "main",
     "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
@@ -54,7 +54,7 @@
     "psa_parameter_samples_used": 128
   },
   "schema_version": 1,
-  "source_code_hash": "5099510352e2b46ef0d2c3446081a1ae5478a09870b5800d9b98ca23adb6952d",
+  "source_code_hash": "1b39feb5574028211a6cbd5c7ef247152b81925a64cd082bcab52ffa09d72af1",
   "stem": "fitness_resistance_grid_psa_benefit",
   "uncertainty_scope": "Targeted Figure 3D probabilistic sensitivity analysis varying infant-contact, asymptomatic infectiousness/duration, and PEP nuisance parameters while holding grid_fitness_R and grid_VE_inf fixed for paired low/high VE_inf comparisons; observation-only reporting uncertainty is excluded from the true-case endpoint.",
   "uncertainty_source": "targeted_latin_hypercube_psa",

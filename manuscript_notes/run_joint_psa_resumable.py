@@ -29,6 +29,9 @@ from src_python.simulation.run_joint_psa_rank_acceptability import (
     SIMULATION_SUMMARY_PATH,
     SIMULATION_TS_PATH,
     STEM,
+    UNDER18_PROGRAMME_ACCEPTABILITY_PATH,
+    UNDER18_PROGRAMME_RANK_SAMPLE_PATH,
+    UNDER18_PROGRAMME_RUN_SUMMARY_PATH,
     UNCERTAINTY_SCHEMA_VERSION,
     _completed_rank_samples,
     _default_parameter_specs,
@@ -47,6 +50,9 @@ def _remove_stale_outputs() -> None:
         RUN_SUMMARY_PATH,
         SIMULATION_SUMMARY_PATH,
         SIMULATION_TS_PATH,
+        UNDER18_PROGRAMME_RANK_SAMPLE_PATH,
+        UNDER18_PROGRAMME_ACCEPTABILITY_PATH,
+        UNDER18_PROGRAMME_RUN_SUMMARY_PATH,
     ):
         for artifact in (Path(path), Path(path).with_suffix(".parquet")):
             artifact.unlink(missing_ok=True)
@@ -127,10 +133,18 @@ def main() -> None:
             strategies=strategies,
         )
         matching, _ = _retain_matching_completed_draws(completed, existing, samples)
-        if len(matching) == int(args.samples):
+        primary_endpoint_outputs = (
+            UNDER18_PROGRAMME_RANK_SAMPLE_PATH,
+            UNDER18_PROGRAMME_ACCEPTABILITY_PATH,
+            UNDER18_PROGRAMME_RUN_SUMMARY_PATH,
+        )
+        if len(matching) == int(args.samples) and all(
+            Path(path).exists() or Path(path).with_suffix(".parquet").exists()
+            for path in primary_endpoint_outputs
+        ):
             print(
                 f"Joint PSA already complete: {len(matching)}/{int(args.samples)} "
-                "fixed-seed samples match current provenance."
+                "fixed-seed samples and primary-endpoint summaries match current provenance."
             )
             return
 

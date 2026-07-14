@@ -87,11 +87,15 @@ plot_extended_data_figure_9_panel_d <- function(data) {
 }
 
 plot_extended_data_figure_9_panel_e <- function(data) {
-  ggplot(data$psa, aes(probability_top_2, strategy_label)) +
+  ggplot(data$psa, aes(frequency_rank_1, strategy_label)) +
     geom_col(width = 0.65, fill = manuscript_diagnostic_colours["Top 2"], colour = "black", linewidth = 0.15) +
-    geom_point(aes(x = probability_within_10_percent_of_best), size = 1.5, colour = manuscript_diagnostic_colours["Within 10% of best"]) +
+    geom_point(aes(x = frequency_top_2), size = 1.5, colour = manuscript_diagnostic_colours["Within 10% of best"]) +
     scale_x_continuous(labels = pct_label, limits = c(0, 1), expand = expansion(mult = c(0.01, 0.04))) +
-    labs(x = "Probability", y = NULL, caption = "Bars: top 2; dots: within 10% of best") +
+    labs(
+      x = "Selected-parameter frequency",
+      y = NULL,
+      caption = "Primary <18 endpoint; bars: rank 1; dots: top 2"
+    ) +
     extended_data_figure_9_panel_theme()
 }
 

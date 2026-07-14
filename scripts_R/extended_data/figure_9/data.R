@@ -69,7 +69,9 @@ load_extended_data_figure_9_inputs <- function() {
     horizon = read_csv_local("outputs", "tables", "intervention_horizon_rank_summary.csv"),
     age_split = read_csv_local("outputs", "tables", "infant_age_split_horizon_sensitivity.csv"),
     stability = read_csv_local("outputs", "tables", "intervention_rank_stability_diagnostics.csv"),
-    psa = read_csv_local("outputs", "tables", "joint_psa_rank_acceptability.csv"),
+    psa = read_csv_local(
+      "outputs", "tables", "joint_psa_under18_programme_rank_acceptability.csv"
+    ),
     age_pattern = read_csv_local("outputs", "tables", "age_pattern_scenario_ordering_sensitivity.csv"),
     age_pattern_programme = read_csv_local("outputs", "tables", "lancet_age_pattern_weighted_strategy_summary.csv")
   )
@@ -131,10 +133,13 @@ prepare_extended_data_figure_9_data <- function(inputs = load_extended_data_figu
     mutate(diagnostic = recode(diagnostic, window_top2 = "Window cells top 2", infant_top2 = "Infant-age cells top 2"))
 
   psa <- inputs$psa %>%
-    filter(country == "All_countries_pooled", rank == 1, strategy %in% strategy_order) %>%
+    filter(country == "All_countries_pooled", rank == 1, strategy %in% programme_strategy_order) %>%
     distinct(strategy, .keep_all = TRUE) %>%
     mutate(
-      strategy_label = factor(recode(strategy, !!!strategy_labels), levels = rev(strategy_labels[strategy_order]))
+      strategy_label = factor(
+        programme_strategy_labels[strategy],
+        levels = rev(programme_strategy_labels[programme_strategy_order])
+      )
     )
 
   age_pattern <- inputs$age_pattern %>%

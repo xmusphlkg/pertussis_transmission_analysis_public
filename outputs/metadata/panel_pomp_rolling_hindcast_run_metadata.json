@@ -829,7 +829,7 @@
   },
   "forecast_mode": "prequential",
   "full_compartment_pomp_claimed": false,
-  "generated_at_utc": "2026-07-13T20:05:03.066912+00:00",
+  "generated_at_utc": "2026-07-14T01:06:48.812692+00:00",
   "git": {
     "branch": "main",
     "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
@@ -844,7 +844,7 @@
     "observation_source_reconciliation": "a03a90db8b88dcf86bee52729dd9a84e7c92baf7827876be6b4400cfabdecf58",
     "observation_source_reconciliation_summary": "d44026db2517eed42559055fef7da5136703d9e2a07927c37eb77bffd991e12c",
     "panel_pomp_candidate_selection": "2e9823615e99f3ebc116522c25d26f047d39d4cea7759123263f305def068d18",
-    "panel_pomp_evidence_cutoff_audit": "cf6538c47600e164ba7b39eb4c113c0f3a6877ae714b996ccc22973e8a2614b2",
+    "panel_pomp_evidence_cutoff_audit": "82f144d92df67b88980fdebc706084216a617810b79657a02d788235b02ed4d8",
     "panel_pomp_rolling_hindcast_folds": "5b6fb3143812e409b5521406320d5b949500ca75e529e731f851db95dcb3ac1d",
     "panel_pomp_rolling_hindcast_gate": "bf1e8f7af618b318dcac3c55be4321dbfa5b7b74aba168b1acdc9616ac3bb187",
     "panel_pomp_rolling_hindcast_intervals": "9fe0bee35e6b2116e75b71bcd8cb50312e909933b3ce6cc3146fae5ebaa2e526",
@@ -868,7 +868,7 @@
   "schema_version": 1,
   "scope": "semi_mechanistic_discrepancy_pomp_not_full_compartment_pomp",
   "seed": 20260713,
-  "source_code_hash": "5099510352e2b46ef0d2c3446081a1ae5478a09870b5800d9b98ca23adb6952d",
+  "source_code_hash": "1b39feb5574028211a6cbd5c7ef247152b81925a64cd082bcab52ffa09d72af1",
   "stem": "panel_pomp_rolling_hindcast",
   "test_years": [
     2023,

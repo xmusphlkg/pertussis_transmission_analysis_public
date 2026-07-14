@@ -11,7 +11,7 @@
     "pyyaml": "6.0.3",
     "scipy": "1.17.1"
   },
-  "generated_at_utc": "2026-07-13T20:01:57.729633+00:00",
+  "generated_at_utc": "2026-07-13T23:07:35.496106+00:00",
   "git": {
     "branch": "main",
     "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
@@ -207,7 +207,7 @@
   "sample_seed": 20260430,
   "sample_size": 128,
   "schema_version": 1,
-  "source_code_hash": "5099510352e2b46ef0d2c3446081a1ae5478a09870b5800d9b98ca23adb6952d",
+  "source_code_hash": "1b39feb5574028211a6cbd5c7ef247152b81925a64cd082bcab52ffa09d72af1",
   "stem": "sensitivity_runs",
   "uncertainty_config_hash": "335ce4e2c3abf688d9af8e6d639567e9ca1648149e93ba3fac993225416dedd3",
   "uncertainty_schema_version": 1,

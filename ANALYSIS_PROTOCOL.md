@@ -130,9 +130,11 @@ validated age-specific policy effects.
 The main policy figures show deterministic conditional point estimates,
 cross-profile heterogeneity, and runner-up margins. They contain no Bayesian
 credible or predictive intervals. A fixed-seed 128-point Latin-hypercube design
-is used as a paired input-sensitivity diagnostic for ranking robustness. It is
-not a posterior distribution and rank frequencies are not posterior
-probabilities.
+is used as a paired selected-parameter input-sensitivity diagnostic. Programme-
+only scenarios are ranked separately on the primary symptomatic-case endpoint
+among people younger than 18 years; infant ranks are retained as a distinct
+secondary endpoint. The design is not a posterior distribution, and rank
+frequencies are not posterior probabilities or complete decision uncertainty.
 
 Additional diagnostics address age-pattern weighting, schedule coverage versus
 timeliness, analysis window, pandemic shock recovery, infant contacts,
@@ -183,4 +185,3 @@ state.
 
 The public repository is the citable reproducibility snapshot:
 https://github.com/xmusphlkg/pertussis_transmission_analysis_public
-

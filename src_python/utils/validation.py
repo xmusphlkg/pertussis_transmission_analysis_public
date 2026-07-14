@@ -90,7 +90,12 @@ PUBLICATION_REQUIRED_TABLES = {
     "temporal_assumption_sensitivity": ("outputs/summaries/temporal_assumption_sensitivity_summary.csv",),
     "treatment_implementation_sensitivity": ("outputs/summaries/treatment_implementation_sensitivity_summary.csv",),
     "individual_stochastic_toy": ("outputs/tables/individual_stochastic_toy_summary.csv",),
-    "joint_psa_rank_acceptability": ("outputs/summaries/joint_psa_rank_acceptability_summary.csv",),
+    "joint_psa_rank_acceptability": (
+        "outputs/summaries/joint_psa_rank_acceptability_summary.csv",
+        "outputs/tables/joint_psa_under18_programme_rank_samples.csv",
+        "outputs/tables/joint_psa_under18_programme_rank_acceptability.csv",
+        "outputs/summaries/joint_psa_under18_programme_rank_acceptability_summary.csv",
+    ),
     "fitness_resistance_grid_posterior_sample_diagnostics": (
         "outputs/summaries/fitness_resistance_grid_posterior_sample_diagnostics.csv",
     ),

@@ -16,7 +16,10 @@ from src_python.simulation.common import (
 from src_python.simulation.parameter_distributions import inverse_cdf, validate_distribution_spec
 from src_python.simulation.run_all import BAYESIAN_FIXED_PARAMETERS
 from src_python.simulation.run_joint_psa_rank_acceptability import (
+    PROGRAMME_ONLY_STRATEGIES,
     SAMPLE_DESIGN as JOINT_SAMPLE_DESIGN,
+    _acceptability_from_programme_under18_rank_samples,
+    _rank_programme_under18_summary,
     _retain_matching_completed_draws,
     _sample_table as joint_sample_table,
 )
@@ -237,6 +240,49 @@ def test_joint_rank_psa_uses_registry_distributions_and_rejects_stale_resume() -
 
     with pytest.raises(ValueError, match="semantic contract"):
         joint_sample_table(4, 1, {**specs, "unimplemented_parameter": {"min": 0, "max": 1}})
+
+
+def test_joint_psa_ranks_programmes_on_the_primary_under18_endpoint_separately() -> None:
+    rows = []
+    for sample_id, winning_strategy in ((1, "timeliness_only"), (2, "maternal_immunization")):
+        rows.append(
+            {
+                "psa_sample_id": sample_id,
+                "country": "A",
+                "strategy": "current",
+                "total_child_adolescent_cases": 100.0,
+                "annualized_child_adolescent_cases_per_100k": 100.0,
+            }
+        )
+        for position, strategy in enumerate(PROGRAMME_ONLY_STRATEGIES, start=1):
+            value = 70.0 if strategy == winning_strategy else 80.0 + position
+            rows.append(
+                {
+                    "psa_sample_id": sample_id,
+                    "country": "A",
+                    "strategy": strategy,
+                    "total_child_adolescent_cases": value,
+                    "annualized_child_adolescent_cases_per_100k": value,
+                }
+            )
+
+    ranked = _rank_programme_under18_summary(pd.DataFrame(rows))
+    winners = ranked.loc[ranked["rank"].eq(1), ["psa_sample_id", "strategy"]]
+    assert winners.set_index("psa_sample_id")["strategy"].to_dict() == {
+        1: "timeliness_only",
+        2: "maternal_immunization",
+    }
+    assert ranked["relative_reduction_under18_cases_vs_current"].between(0.0, 1.0).all()
+
+    acceptability = _acceptability_from_programme_under18_rank_samples(ranked)
+    pooled_rank1 = acceptability.loc[
+        acceptability["country"].eq("All_countries_pooled") & acceptability["rank"].eq(1)
+    ]
+    frequencies = pooled_rank1.set_index("strategy")["frequency_rank_1"]
+    assert frequencies["timeliness_only"] == 0.5
+    assert frequencies["maternal_immunization"] == 0.5
+    assert np.isclose(frequencies.sum(), 1.0)
+    assert pooled_rank1["interpretation"].str.contains("not a posterior").all()
 
 
 def test_beta_grid_orchestration_leaves_exactly_one_parameter_active() -> None:

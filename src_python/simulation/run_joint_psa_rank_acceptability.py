@@ -43,6 +43,14 @@ SELECTED_STRATEGIES = (
     "next_generation_vaccine",
     "combined_strategy",
 )
+PROGRAMME_ONLY_STRATEGIES = (
+    "timeliness_only",
+    "adolescent_booster",
+    "pregnancy_tdap_scaleup",
+    "cocooning_adjunct",
+    "maternal_immunization",
+    "targeted_pep_high_risk",
+)
 INFANT_TARGETS = ("infant_0_2m", "infant_3_11m")
 HOUSEHOLD_LIKE_SOURCES = (
     "child_1_4y",
@@ -69,6 +77,15 @@ SAMPLE_PATH = project_path("outputs", "tables", "joint_psa_parameter_samples.csv
 RANK_SAMPLE_PATH = project_path("outputs", "tables", "joint_psa_infant_rank_samples.csv")
 ACCEPTABILITY_PATH = project_path("outputs", "tables", "joint_psa_rank_acceptability.csv")
 RUN_SUMMARY_PATH = project_path("outputs", "summaries", "joint_psa_rank_acceptability_summary.csv")
+UNDER18_PROGRAMME_RANK_SAMPLE_PATH = project_path(
+    "outputs", "tables", "joint_psa_under18_programme_rank_samples.csv"
+)
+UNDER18_PROGRAMME_ACCEPTABILITY_PATH = project_path(
+    "outputs", "tables", "joint_psa_under18_programme_rank_acceptability.csv"
+)
+UNDER18_PROGRAMME_RUN_SUMMARY_PATH = project_path(
+    "outputs", "summaries", "joint_psa_under18_programme_rank_acceptability_summary.csv"
+)
 SIMULATION_SUMMARY_PATH = project_path("outputs", "summaries", "joint_psa_scenario_summary.csv")
 SIMULATION_TS_PATH = project_path("outputs", "simulations", "joint_psa_rank_acceptability.parquet")
 
@@ -352,6 +369,18 @@ def _rank_sample_summary(summary: pd.DataFrame) -> pd.DataFrame:
             raise KeyError("Expected either 'strategy' or 'scenario' in PSA summary output")
         out["strategy"] = out["scenario"]
     out["psa_sample_id"] = pd.to_numeric(out["psa_sample_id"], errors="raise").astype(int)
+    required_outcomes = {
+        "total_infant_cases",
+        "annualized_infant_cases_per_100k",
+        "total_child_adolescent_cases",
+        "annualized_child_adolescent_cases_per_100k",
+    }
+    missing_outcomes = sorted(required_outcomes.difference(out.columns))
+    if missing_outcomes:
+        raise KeyError(
+            "Joint PSA outcomes are missing endpoint columns required for infant and "
+            f"primary <18 ranking: {missing_outcomes}"
+        )
     out["rank"] = out.groupby(["country", "psa_sample_id"])["total_infant_cases"].rank(
         method="min",
         ascending=True,
@@ -381,6 +410,8 @@ def _rank_sample_summary(summary: pd.DataFrame) -> pd.DataFrame:
         "rank",
         "total_infant_cases",
         "annualized_infant_cases_per_100k",
+        "total_child_adolescent_cases",
+        "annualized_child_adolescent_cases_per_100k",
         "relative_reduction_infant_cases_vs_current",
         "within_10_percent_of_best",
         *EXPECTED_PARAMETER_NAMES,
@@ -389,6 +420,91 @@ def _rank_sample_summary(summary: pd.DataFrame) -> pd.DataFrame:
         if optional in out.columns:
             keep.append(optional)
     return out.loc[:, keep].sort_values(["psa_sample_id", "country", "rank", "strategy"]).reset_index(drop=True)
+
+
+def _rank_programme_under18_summary(
+    rank_samples: pd.DataFrame,
+    strategies: tuple[str, ...] = PROGRAMME_ONLY_STRATEGIES,
+) -> pd.DataFrame:
+    """Rank implementable programme scenarios on the manuscript primary endpoint.
+
+    The selected-parameter PSA originally retained only infant ranks even though
+    every simulation also produced the child/adolescent (<18 years) endpoint.
+    This endpoint-specific table prevents an infant ranking from being used as
+    evidence for the manuscript's primary programme-only ranking.
+    """
+
+    required = {
+        "psa_sample_id",
+        "country",
+        "strategy",
+        "total_child_adolescent_cases",
+        "annualized_child_adolescent_cases_per_100k",
+    }
+    missing = sorted(required.difference(rank_samples.columns))
+    if missing:
+        raise KeyError(f"Joint PSA rank samples are missing primary-endpoint columns: {missing}")
+
+    data = rank_samples.copy()
+    data["psa_sample_id"] = pd.to_numeric(data["psa_sample_id"], errors="raise").astype(int)
+    current = data.loc[
+        data["strategy"].eq("current"),
+        [
+            "country",
+            "psa_sample_id",
+            "total_child_adolescent_cases",
+            "annualized_child_adolescent_cases_per_100k",
+        ],
+    ].rename(
+        columns={
+            "total_child_adolescent_cases": "current_total_child_adolescent_cases",
+            "annualized_child_adolescent_cases_per_100k": (
+                "current_annualized_child_adolescent_cases_per_100k"
+            ),
+        }
+    )
+    out = data.loc[data["strategy"].isin(strategies)].copy()
+    observed = set(out["strategy"].astype(str))
+    missing_strategies = sorted(set(strategies).difference(observed))
+    if missing_strategies:
+        raise ValueError(f"Primary-endpoint joint PSA is missing programme strategies: {missing_strategies}")
+
+    group_keys = ["country", "psa_sample_id"]
+    out["rank"] = out.groupby(group_keys)["total_child_adolescent_cases"].rank(
+        method="min",
+        ascending=True,
+    )
+    best = out.groupby(group_keys, as_index=False)["total_child_adolescent_cases"].min().rename(
+        columns={"total_child_adolescent_cases": "best_total_child_adolescent_cases"}
+    )
+    out = out.merge(best, on=group_keys, how="left")
+    out = out.merge(current, on=group_keys, how="left", validate="many_to_one")
+    if out["current_total_child_adolescent_cases"].isna().any():
+        raise ValueError("Primary-endpoint joint PSA is missing current-practice comparators")
+    out["relative_reduction_under18_cases_vs_current"] = 1.0 - (
+        out["total_child_adolescent_cases"]
+        / out["current_total_child_adolescent_cases"].replace(0, np.nan)
+    )
+    out["within_10_percent_of_best"] = out["total_child_adolescent_cases"] <= (
+        1.10 * out["best_total_child_adolescent_cases"]
+    )
+    keep = [
+        "psa_sample_id",
+        "country",
+        "strategy",
+        "rank",
+        "total_child_adolescent_cases",
+        "annualized_child_adolescent_cases_per_100k",
+        "relative_reduction_under18_cases_vs_current",
+        "within_10_percent_of_best",
+    ]
+    keep.extend(column for column in EXPECTED_PARAMETER_NAMES if column in out.columns)
+    for optional in ("sample_design", "uncertainty_schema_version"):
+        if optional in out.columns:
+            keep.append(optional)
+    return out.loc[:, keep].sort_values(
+        ["psa_sample_id", "country", "rank", "strategy"]
+    ).reset_index(drop=True)
 
 
 def _acceptability_from_rank_samples(rank_samples: pd.DataFrame, strategies: tuple[str, ...]) -> pd.DataFrame:
@@ -446,9 +562,84 @@ def _acceptability_from_rank_samples(rank_samples: pd.DataFrame, strategies: tup
     return acceptability.sort_values(["country", "rank", "strategy"]).reset_index(drop=True)
 
 
+def _acceptability_from_programme_under18_rank_samples(
+    rank_samples: pd.DataFrame,
+    strategies: tuple[str, ...] = PROGRAMME_ONLY_STRATEGIES,
+) -> pd.DataFrame:
+    rank_samples = rank_samples.copy()
+    rank_samples["rank"] = pd.to_numeric(rank_samples["rank"], errors="coerce")
+    ranks = list(range(1, len(strategies) + 1))
+    rows: list[dict[str, Any]] = []
+
+    def append_rows(country_label: str, group: pd.DataFrame) -> None:
+        grouped = group.groupby("strategy", dropna=False)
+        for strategy in strategies:
+            strategy_group = grouped.get_group(strategy) if strategy in grouped.groups else pd.DataFrame()
+            n = int(strategy_group["psa_sample_id"].nunique()) if not strategy_group.empty else 0
+            rank_values = strategy_group["rank"].to_numpy(dtype=float) if n else np.array([], dtype=float)
+            cases = (
+                pd.to_numeric(
+                    strategy_group["annualized_child_adolescent_cases_per_100k"], errors="coerce"
+                )
+                if n
+                else pd.Series(dtype=float)
+            )
+            reductions = (
+                pd.to_numeric(
+                    strategy_group["relative_reduction_under18_cases_vs_current"], errors="coerce"
+                )
+                if n
+                else pd.Series(dtype=float)
+            )
+            for rank in ranks:
+                rows.append(
+                    {
+                        "country": country_label,
+                        "strategy": strategy,
+                        "rank": rank,
+                        "rank_acceptability_frequency": float(np.mean(rank_values == rank)) if n else np.nan,
+                        "frequency_rank_1": float(np.mean(rank_values == 1)) if n else np.nan,
+                        "frequency_top_2": float(np.mean(rank_values <= 2)) if n else np.nan,
+                        "frequency_top_3": float(np.mean(rank_values <= 3)) if n else np.nan,
+                        "frequency_within_10_percent_of_best": float(
+                            strategy_group["within_10_percent_of_best"].mean()
+                        )
+                        if n
+                        else np.nan,
+                        "mean_rank": float(np.nanmean(rank_values)) if n else np.nan,
+                        "median_rank": float(np.nanmedian(rank_values)) if n else np.nan,
+                        "median_under18_cases_per_100k": float(cases.median(skipna=True)) if n else np.nan,
+                        "q025_under18_cases_per_100k": float(cases.quantile(0.025)) if n else np.nan,
+                        "q975_under18_cases_per_100k": float(cases.quantile(0.975)) if n else np.nan,
+                        "median_relative_reduction_vs_current": (
+                            float(reductions.median(skipna=True)) if n else np.nan
+                        ),
+                        "n_psa_samples": n,
+                        "n_rank_observations": int(len(strategy_group)) if n else 0,
+                        "interpretation": (
+                            "Selected-parameter deterministic frequency; not a posterior probability."
+                        ),
+                    }
+                )
+
+    for country, group in rank_samples.groupby("country", sort=True):
+        append_rows(str(country), group)
+    append_rows("All_countries_pooled", rank_samples)
+    acceptability = pd.DataFrame(rows)
+    return acceptability.sort_values(["country", "rank", "strategy"]).reset_index(drop=True)
+
+
 def _run_summary(acceptability: pd.DataFrame) -> pd.DataFrame:
     rank1 = acceptability.loc[acceptability["rank"].eq(1)].copy()
     return rank1.sort_values(["country", "probability_rank_1", "probability_top_2"], ascending=[True, False, False])
+
+
+def _under18_programme_run_summary(acceptability: pd.DataFrame) -> pd.DataFrame:
+    rank1 = acceptability.loc[acceptability["rank"].eq(1)].copy()
+    return rank1.sort_values(
+        ["country", "frequency_rank_1", "frequency_top_2"],
+        ascending=[True, False, False],
+    )
 
 
 def _completed_rank_samples(
@@ -666,16 +857,41 @@ def run_joint_psa(
         partial_acceptability = _acceptability_from_rank_samples(combined_rank, strategies)
         write_dataframe(partial_acceptability, ACCEPTABILITY_PATH)
         write_dataframe(_run_summary(partial_acceptability), RUN_SUMMARY_PATH)
+        programme_under18_rank = _rank_programme_under18_summary(combined_rank)
+        _write_incremental(programme_under18_rank, UNDER18_PROGRAMME_RANK_SAMPLE_PATH)
+        programme_under18_acceptability = _acceptability_from_programme_under18_rank_samples(
+            programme_under18_rank
+        )
+        write_dataframe(
+            programme_under18_acceptability,
+            UNDER18_PROGRAMME_ACCEPTABILITY_PATH,
+        )
+        write_dataframe(
+            _under18_programme_run_summary(programme_under18_acceptability),
+            UNDER18_PROGRAMME_RUN_SUMMARY_PATH,
+        )
 
     combined_outcomes = pd.concat(outcome_frames, ignore_index=True) if outcome_frames else pd.DataFrame()
     complete_outcomes = _complete_outcome_rows(combined_outcomes, countries=countries, strategies=strategies)
     rank_samples = _rank_sample_summary(complete_outcomes) if not complete_outcomes.empty else _read_existing(RANK_SAMPLE_PATH)
     acceptability = _acceptability_from_rank_samples(rank_samples, strategies)
     run_summary = _run_summary(acceptability)
+    programme_under18_rank = _rank_programme_under18_summary(rank_samples)
+    programme_under18_acceptability = _acceptability_from_programme_under18_rank_samples(
+        programme_under18_rank
+    )
+    programme_under18_run_summary = _under18_programme_run_summary(
+        programme_under18_acceptability
+    )
     write_dataframe(acceptability, ACCEPTABILITY_PATH)
     write_dataframe(run_summary, RUN_SUMMARY_PATH)
-    if not complete_outcomes.empty:
-        write_dataframe(complete_outcomes, SIMULATION_SUMMARY_PATH)
+    _write_incremental(programme_under18_rank, UNDER18_PROGRAMME_RANK_SAMPLE_PATH)
+    write_dataframe(programme_under18_acceptability, UNDER18_PROGRAMME_ACCEPTABILITY_PATH)
+    write_dataframe(programme_under18_run_summary, UNDER18_PROGRAMME_RUN_SUMMARY_PATH)
+    if not rank_samples.empty:
+        # Persist a compact, complete checkpoint rather than a sparse union of
+        # prior compact ranks and only the most recent raw scenario batch.
+        write_dataframe(rank_samples, SIMULATION_SUMMARY_PATH)
     if keep_timeseries and timeseries_frames:
         write_dataframe(pd.concat(timeseries_frames, ignore_index=True), SIMULATION_TS_PATH)
 
@@ -686,6 +902,9 @@ def run_joint_psa(
             "rank_samples": int(len(rank_samples)),
             "rank_acceptability": int(len(acceptability)),
             "run_summary": int(len(run_summary)),
+            "under18_programme_rank_samples": int(len(programme_under18_rank)),
+            "under18_programme_rank_acceptability": int(len(programme_under18_acceptability)),
+            "under18_programme_run_summary": int(len(programme_under18_run_summary)),
         },
     )
     metadata.update(
@@ -694,6 +913,8 @@ def run_joint_psa(
             "sample_seed": int(seed),
             "countries": list(countries),
             "strategies": list(strategies),
+            "programme_only_strategies": list(PROGRAMME_ONLY_STRATEGIES),
+            "primary_policy_endpoint": "annualized_child_adolescent_cases_per_100k",
             "resume": bool(resume),
             "sample_batch_size": int(batch_size),
             "smoke_runtime": bool(smoke_runtime),

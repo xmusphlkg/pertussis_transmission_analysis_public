@@ -632,7 +632,7 @@ def limitation_diagnostic_map() -> None:
             "limitation_domain": "Strategy-profile ordering under selected-parameter sensitivity",
             "added_or_existing_diagnostic": "Country-level order positions, analysis-window order positions, infant-age/window order positions, strategy-ordering summary, Figure 2A-C decision-framework source data, retained regret source data, and selected-parameter deterministic strategy-ordering diagnostics.",
             "supplement_location": "Figure 2A-C and figures S5 and S6",
-            "residual_interpretation": "Order-position probabilities are conditional on the selected epidemiologic sensitivity ranges and do not include costs, feasibility, or equity weights.",
+            "residual_interpretation": "Order-position frequencies are conditional on the selected deterministic sensitivity ranges and do not include costs, feasibility, or equity weights.",
         },
         {
             "limitation_domain": "Deterministic dynamics without stochastic extinction or superspreading",

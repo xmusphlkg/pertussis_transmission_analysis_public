@@ -1712,11 +1712,11 @@ metadata:
   maxiter: 12
   config_hash: e07d2d9623bba63452e5939f83db5c87901a902d0a71c99df08b4ecdc3550c54
   calibration_config_hash: c36eefa5b9e490f39c68369d7b2ec545f1003c465b2d7a3d65a4f58b53b37bf6
-  source_code_hash: 5099510352e2b46ef0d2c3446081a1ae5478a09870b5800d9b98ca23adb6952d
-  calibration_source_code_hash: da699062f293e102f575418151b66dc4d05987c72b0a8cedf397b0576a0719f2
+  source_code_hash: 1b39feb5574028211a6cbd5c7ef247152b81925a64cd082bcab52ffa09d72af1
+  calibration_source_code_hash: 66ac2d3e7fa864c9f10636feb83f14fc28153b6aa0c0adc9547e1d6118895239
   baseline_vaccine_scenario: symptom_protective
   baseline_resistance_scenario: country_timeline
-  generated_at_utc: '2026-07-13T19:40:25.220506+00:00'
+  generated_at_utc: '2026-07-13T22:46:38.003259+00:00'
   state_posterior_approximation:
     method: gauss_newton_laplace_conditional
     scope: conditional_on_fixed_rho_innovation_sd_dispersion_and_reference_structure

@@ -1,0 +1,13 @@
+country,strategy,strategy_label,frequency_rank_1,frequency_top_2,frequency_top_3,frequency_within_10_percent_of_best,mean_rank,median_rank,median_under18_cases_per_100k,q025_under18_cases_per_100k,q975_under18_cases_per_100k,median_relative_reduction_vs_current,n_psa_samples,n_rank_observations,interpretation
+All_countries_pooled,adolescent_booster,"Adolescent booster
+scale-up",8.6805555555555e-4,0.01041666666666666,0.05729166666666666,0.1545138888888889,5.247395833333333,6,983.2887756677484,22.302108104394787,1706.2091387212313,-2.4681023965356097e-5,128,1152,Selected-parameter deterministic frequency; not a posterior probability.
+All_countries_pooled,cocooning_adjunct,"Close-contact
+adult adjuncts",0,0.02083333333333333,0.2604166666666667,0.2048611111111111,4.3515625,4,978.9800804655956,23.36789568480974,1698.3777392824843,0.01154208540698292,128,1152,Selected-parameter deterministic frequency; not a posterior probability.
+All_countries_pooled,maternal_immunization,"Infant-exposure
+composite",0.03559027777777777,0.6128472222222222,0.9149305555555556,0.3220486111111111,2.453125,2,959.3654622290125,22.81044056435897,1652.9339591926475,0.03346012978100898,128,1152,Selected-parameter deterministic frequency; not a posterior probability.
+All_countries_pooled,pregnancy_tdap_scaleup,"Pregnancy Tdap
+scale-up",8.6805555555555e-4,0.1328125,0.4548611111111111,0.24305555555555555,3.8585069444444446,4,973.5091957163608,29.811868832617968,1666.5508015702928,0.01767280161698853,128,1152,Selected-parameter deterministic frequency; not a posterior probability.
+All_countries_pooled,targeted_pep_high_risk,"Targeted high-risk
+PEP",0.09809027777777778,0.2482638888888889,0.3229166666666667,0.2795138888888889,3.9140625,4,974.616364450301,21.22805597233069,1685.375167351349,0.01555832972083981,128,1152,Selected-parameter deterministic frequency; not a posterior probability.
+All_countries_pooled,timeliness_only,"Routine schedule
+timeliness",0.8645833333333334,0.9748263888888888,0.9895833333333334,0.9513888888888888,1.1753472222222223,1,852.2786828055296,21.345411483653603,1465.0879122902606,0.1419135614037867,128,1152,Selected-parameter deterministic frequency; not a posterior probability.
