@@ -62,9 +62,11 @@ prepare_extended_data_figure_2_data <- function(inputs = load_extended_data_figu
 
   baseline <- inputs$baseline %>%
     add_country_label()
+  formal_countries <- unique(as.character(baseline$country))
 
   observed <- inputs$observed
   observed_annual <- observed %>%
+    filter(config_key %in% formal_countries) %>%
     mutate(country = config_key) %>%
     group_by(country, Year) %>%
     summarise(observed_cases = sum(Cases, na.rm = TRUE), .groups = "drop") %>%
@@ -73,6 +75,12 @@ prepare_extended_data_figure_2_data <- function(inputs = load_extended_data_figu
     mutate(
       observed_reported_incidence = observed_cases / total_population * 1e5,
       country_code = factor(country_codes[country], levels = country_codes[country_levels])
+    ) %>%
+    filter(
+      !is.na(country_code),
+      is.finite(total_population),
+      total_population > 0,
+      is.finite(observed_reported_incidence)
     )
 
   calibration <- inputs$calibration
@@ -233,8 +241,9 @@ prepare_extended_data_figure_2_data <- function(inputs = load_extended_data_figu
   reporting_long <- calibration %>%
     mutate(
       country = str_replace_all(country, " ", "_"),
-      country_label = factor(format_country(country), levels = country_label_levels)
+      country_label = factor(format_country(country), levels = calibration_country_order)
     ) %>%
+    filter(country %in% formal_countries) %>%
     select(country_label, reporting_multiplier_by_age) %>%
     separate_rows(reporting_multiplier_by_age, sep = ";") %>%
     separate(reporting_multiplier_by_age, into = c("age_group", "reporting_rate"), sep = "=", convert = TRUE) %>%
@@ -244,7 +253,7 @@ prepare_extended_data_figure_2_data <- function(inputs = load_extended_data_figu
     )
 
   expected_reporting_cells <- expand_grid(
-    country_label = country_label_levels,
+    country_label = calibration_country_order,
     age_group = unname(age_labels)
   )
   observed_reporting_cells <- reporting_long %>%

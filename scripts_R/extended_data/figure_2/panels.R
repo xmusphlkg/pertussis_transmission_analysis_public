@@ -95,10 +95,15 @@ plot_extended_data_figure_2_panel_c <- function(data) {
 
 plot_extended_data_figure_2_panel_d <- function(data) {
   theme_calibration_fingerprint <- extended_data_figure_2_calibration_fingerprint_theme()
+  threshold <- data$calibration_thresholds$max_interval_smape[[1]]
+  x_upper <- max(
+    threshold * 1.08,
+    max(data$calibration_fingerprint$calibration_interval_smape, na.rm = TRUE) * 1.10
+  )
 
   ggplot(data$calibration_fingerprint, aes(calibration_interval_smape, country_label_factor)) +
     geom_vline(
-      xintercept = data$calibration_thresholds$max_interval_smape[[1]],
+      xintercept = threshold,
       linewidth = 0.26,
       linetype = "dashed",
       colour = manuscript_colour("mid_grey")
@@ -106,11 +111,11 @@ plot_extended_data_figure_2_panel_d <- function(data) {
     geom_point(aes(fill = who_region), shape = 21, size = 1.95, colour = manuscript_colour("black"), stroke = 0.22, alpha = 0.88) +
     scale_fill_manual(values = c(region_colours, "Other" = manuscript_colour("mid_grey")), guide = "none") +
     scale_x_continuous(
-      breaks = c(0.5, 1.0, 1.3),
+      breaks = c(0, threshold / 2, threshold),
       labels = label_lancet_number(accuracy = 0.01),
       expand = expansion(mult = c(0.05, 0.07))
     ) +
-    coord_cartesian(xlim = c(0.5, 1.35)) +
+    coord_cartesian(xlim = c(0, x_upper)) +
     labs(x = "Interval\nsMAPE", y = NULL, tag = "D") +
     theme_calibration_fingerprint +
     theme(axis.text.y = element_blank())

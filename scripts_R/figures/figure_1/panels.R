@@ -164,11 +164,17 @@ plot_figure_1_panel_b <- function(data) {
 }
 
 plot_figure_1_panel_c <- function(data) {
-  panel_limits <- c(0, 1200)
-  panel_breaks <- seq(0, 1200, by = 200)
   decision_map <- data$decision_map %>%
     left_join(figure_1_decision_map_label_offsets(), by = "country_label_text") %>%
     arrange(primary_cases_per_100k, infant_hospitalizations_per_100k)
+  panel_upper <- ceiling(
+    max(
+      c(decision_map$primary_cases_per_100k, decision_map$infant_hospitalizations_per_100k),
+      na.rm = TRUE
+    ) / 200
+  ) * 200
+  panel_limits <- c(0, panel_upper)
+  panel_breaks <- seq(0, panel_upper, by = 200)
 
   ggplot(decision_map, aes(primary_cases_per_100k, infant_hospitalizations_per_100k)) +
     geom_abline(
