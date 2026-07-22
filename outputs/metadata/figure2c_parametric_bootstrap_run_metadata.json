@@ -1,0 +1,156 @@
+{
+  "analysis_role": "publication_estimation_confidence_interval",
+  "bootstrap_data_generation": "marginal_AR1_process_plus_NB2_measurement",
+  "bootstrap_refit": "country_state_space_MAP_full_refit_per_replicate",
+  "checkpoint_archive_path": "/home/ctm/pertussis_transmission_analysis/outputs/archive/figure2c_parametric_bootstrap/checkpoint_20260720T074913273424Z_old-ceb643d9_new-d2fc3122",
+  "confidence_interval_method": "percentile_parametric_bootstrap",
+  "config_hash": "fe4b0945dbc60905bca91e1dac7a67bb5863846eea9d42ff0fc0dbee6b1fb742",
+  "countries": [
+    "Australia",
+    "China",
+    "United_Kingdom",
+    "Japan",
+    "New_Zealand",
+    "Sweden",
+    "United_States",
+    "Brazil",
+    "Thailand"
+  ],
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "figure2c_interval_source": true,
+  "fixed_programme_reference_inputs": {
+    "adolescent_coverage_floor": 0.9,
+    "contact_reduction_fraction": 0.15,
+    "maternal_VE_sus": 0.55,
+    "maternal_VE_sym": 0.92,
+    "maternal_coverage_floor": 0.75,
+    "maternal_protection_duration_days": 180.0,
+    "targeted_pep_coverage": 0.45,
+    "young_adult_coverage_floor": 0.55
+  },
+  "fixed_programme_reference_source": "configs.interventions_formal_programme_definitions",
+  "fixed_reference_inputs": [
+    "biological_parameters",
+    "intervention_definitions",
+    "AR1_hyperparameters",
+    "NB2_dispersion"
+  ],
+  "future_observation_prediction_interval": false,
+  "generated_at_utc": "2026-07-20T19:22:16.064554+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
+    "dirty": true
+  },
+  "input_artifact_path_sha256": {
+    "outputs/calibrations/Australia_calibrated_config.yaml": "3deffa94a7732a6ec0ee2bd7c200dfef3505d15c3ebb1991fa4a3a2b8b5b17a0",
+    "outputs/calibrations/Brazil_calibrated_config.yaml": "e6a51ab6b8297f4bae0df394d67910053d8728b42653e5ae82e2e96ce69d572e",
+    "outputs/calibrations/China_calibrated_config.yaml": "640a0ee643356fda4081af042537de20636586f0b3c8b1f62b53b003e09b3347",
+    "outputs/calibrations/Japan_calibrated_config.yaml": "6ee9c8a013d9a7150fd76fc04de12026398c38bfb919b1db44d95d3e2bde3da6",
+    "outputs/calibrations/New_Zealand_calibrated_config.yaml": "c7aef32af4997b19123e90faa9054719d8b7011c28753bee0107ae1b956fe30c",
+    "outputs/calibrations/Sweden_calibrated_config.yaml": "1765ea41d577fb7d7902273a29233abed075404f676169e98463e52a76bb552f",
+    "outputs/calibrations/Thailand_calibrated_config.yaml": "c8cd63d95e3a8dc372e4f11f55d4ad895484d2b91f880ed413f6450c61894610",
+    "outputs/calibrations/United_Kingdom_calibrated_config.yaml": "123dff4b095f18e4bcf27beb0735f361d2b2998ae14ee68c534017f1561940d1",
+    "outputs/calibrations/United_States_calibrated_config.yaml": "d92de493c14f490597885b1ccc54c894eab92a4fc9b5f31f2a6e23a3d9c9f54b",
+    "outputs/tables/lancet_child_adolescent_decision_frontier.csv": "5c04b3bb4d8a83b10235151091b070102f553a0bf02e6447b6e08ad7eb08fda2"
+  },
+  "input_artifact_sha256": {
+    "calibration_Australia": "1da88f052589bca1525043e9cd18aa693da70ebee6bc2496cb191f8f312e6f1d",
+    "calibration_Brazil": "1180f610ee659bc3558b2bd903b402eab8e761dcaf46b84905ab470b83360676",
+    "calibration_China": "153eee20f33e3360ccb879ce1a9c19228d3a049de964c47c23dfa336b8899af3",
+    "calibration_Japan": "17eca9e0fc82dfacc62254ff0f4f3b8e4ca030ec390f90de8ac1ab8caf54de22",
+    "calibration_New_Zealand": "fa7c16287d5351b09894046ff1399348e84ad3c7ed4d89a37ff3de4f0fa60c45",
+    "calibration_Sweden": "1152d4ddccd53617ec32244ba5fa5b19439883ab5f324c07b95581951929690b",
+    "calibration_Thailand": "23ede23a834980f8e666b927d1e68816800c943c4bdee4cece88fc351a10bf4a",
+    "calibration_United_Kingdom": "4a0d5ef826f77d156802461388ca1b84f463df40bedd5ccf2d8a9cae081f35de",
+    "calibration_United_States": "eed49ff163a906bc17e22f57598f84b6ab7450fa033a0160d30627c5bafadbd4",
+    "decision_frontier": "5c04b3bb4d8a83b10235151091b070102f553a0bf02e6447b6e08ad7eb08fda2"
+  },
+  "interval_basis": "Paired marginal parametric bootstrap. Annual latent transmission paths are regenerated from the prespecified AR(1) process, surveillance counts are regenerated from the fitted NB2 observation model, and the country state-space model is fully refitted before the same fitted replicate is propagated through current practice and intervention. Biological and intervention-definition inputs remain fixed at prespecified reference values.",
+  "interval_type": "95% parametric-bootstrap confidence interval",
+  "maximum_tail_probability_mcse_threshold": 0.005,
+  "maxiter": 12,
+  "minimum_success_fraction": 0.95,
+  "minimum_successful_replicates": 1000,
+  "n_jobs": 128,
+  "observed_maximum_endpoint_mcse": 0.10052709441041861,
+  "observed_maximum_tail_probability_mcse": 0.004883676232314583,
+  "output_artifact_sha256": {
+    "confidence_intervals": "e640e519328d26cea05ef527f3708b4d328d95b09947342f1e7bbc3cc2ae17ed",
+    "fit_diagnostics": "815ef282d3ed9b52347e74222294d9340d17b6afff553e00801c06868cd0e768",
+    "interval_stability": "8bb5ffce873ce0ad6cb14e7f4429a07b458517d9fd8c92fc58bb05fadec46cfd",
+    "paired_bootstrap_draws": "b75afc4b80415085879340ef86ffb3f4a00fe782ab08f30161bec98743dcef03"
+  },
+  "paired_scenario_contrast": true,
+  "posterior_credible_interval": false,
+  "publication_path": true,
+  "replicates_requested_per_country": 1024,
+  "retry_maxiter_schedule": [
+    64,
+    128
+  ],
+  "row_counts": {
+    "confidence_interval_rows": 54,
+    "fit_diagnostics": 9216,
+    "interval_stability_rows": 54,
+    "paired_bootstrap_draws": 55266
+  },
+  "schema_version": 1,
+  "seed": 20260716,
+  "source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+  "source_hash_reattestation": {
+    "attested_at_utc": "2026-07-22T00:32:28.958887+00:00",
+    "change_class": "validation_contract_and_fingerprint_scope_no_numerical_change",
+    "changed_source_paths": [
+      "src_python/utils/validation.py",
+      "src_python/simulation/common.py",
+      "Makefile"
+    ],
+    "new_common_file_sha256": "f2013608cacb158e80dd138c0003228bab0a3e98cd42520d22cf4e76b65be845",
+    "new_makefile_sha256": "6fb613b2f04c0bb304f20849acab1ce3d304a8fce53404bd4c8dc68778bcdd9f",
+    "new_source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+    "new_validation_file_sha256": "e53bb5c63197063bcb45a1b020b0d5662f8d2855c2d6d33310a4f27786243f16",
+    "numerical_artifacts_regenerated": false,
+    "old_common_file_sha256": "271d625b719f7f5364a90a57e69488ad5ff091601b35c5ce4e0dd7dce9a899e3",
+    "old_makefile_sha256": "4f920081b277eaabbb0088ce5507676363703344081305fa8aea3b5c09a2c5cd",
+    "old_source_code_hash": "ba497202d4e1ede62d2c1a8500cff7ecee3ba54aecc2d558e44ac80fa19aac74",
+    "old_validation_file_sha256": "40bef8420b07823ff83d7209c23660194201c6bb247a5c5f95bfb6abb7c50f82",
+    "reason": "Removed retired posterior publication requirements, added the active Figure 1b and Figure 2 publication stems, unified the generic and manuscript publication inventories, and excluded the non-generating validator from numerical fingerprints/prerequisites."
+  },
+  "stability_blocks": 8,
+  "statistical_target": "frequentist_confidence_interval",
+  "stem": "figure2c_parametric_bootstrap",
+  "strategies": [
+    "timeliness_only",
+    "adolescent_booster",
+    "pregnancy_tdap_scaleup",
+    "cocooning_adjunct",
+    "maternal_immunization",
+    "targeted_pep_high_risk"
+  ],
+  "successful_replicates_by_country": {
+    "Australia": 1024,
+    "Brazil": 1024,
+    "China": 1024,
+    "Japan": 1024,
+    "New_Zealand": 1024,
+    "Sweden": 1023,
+    "Thailand": 1022,
+    "United_Kingdom": 1022,
+    "United_States": 1024
+  },
+  "varied_estimation_components": [
+    "annual_AR1_latent_transmission_path",
+    "NB2_surveillance_observations",
+    "state_space_MAP_refit"
+  ]
+}

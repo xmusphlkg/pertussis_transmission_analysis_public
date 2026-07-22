@@ -1,0 +1,95 @@
+{
+  "analysis_role": "prebootstrap_deterministic_decision_frontier",
+  "bootstrap_independent": true,
+  "config_hash": "fe4b0945dbc60905bca91e1dac7a67bb5863846eea9d42ff0fc0dbee6b1fb742",
+  "countries": [
+    "Australia",
+    "China",
+    "United_Kingdom",
+    "Japan",
+    "New_Zealand",
+    "Sweden",
+    "United_States",
+    "Brazil",
+    "Thailand"
+  ],
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "deterministic_parent_stems": [
+    "intervention_scenarios",
+    "vaccine_scenarios",
+    "figure2_programme_reference"
+  ],
+  "generated_at_utc": "2026-07-20T06:50:29.805809+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
+    "dirty": true
+  },
+  "input_artifact_path_sha256": {
+    "outputs/calibrations/Australia_calibrated_config.yaml": "3deffa94a7732a6ec0ee2bd7c200dfef3505d15c3ebb1991fa4a3a2b8b5b17a0",
+    "outputs/calibrations/Brazil_calibrated_config.yaml": "e6a51ab6b8297f4bae0df394d67910053d8728b42653e5ae82e2e96ce69d572e",
+    "outputs/calibrations/China_calibrated_config.yaml": "640a0ee643356fda4081af042537de20636586f0b3c8b1f62b53b003e09b3347",
+    "outputs/calibrations/Japan_calibrated_config.yaml": "6ee9c8a013d9a7150fd76fc04de12026398c38bfb919b1db44d95d3e2bde3da6",
+    "outputs/calibrations/New_Zealand_calibrated_config.yaml": "c7aef32af4997b19123e90faa9054719d8b7011c28753bee0107ae1b956fe30c",
+    "outputs/calibrations/Sweden_calibrated_config.yaml": "1765ea41d577fb7d7902273a29233abed075404f676169e98463e52a76bb552f",
+    "outputs/calibrations/Thailand_calibrated_config.yaml": "c8cd63d95e3a8dc372e4f11f55d4ad895484d2b91f880ed413f6450c61894610",
+    "outputs/calibrations/United_Kingdom_calibrated_config.yaml": "123dff4b095f18e4bcf27beb0735f361d2b2998ae14ee68c534017f1561940d1",
+    "outputs/calibrations/United_States_calibrated_config.yaml": "d92de493c14f490597885b1ccc54c894eab92a4fc9b5f31f2a6e23a3d9c9f54b",
+    "outputs/simulations/figure2_programme_reference.parquet": "a9bb1a7c50236265e56f0d8d5ad37ef7629aaa93ffa6f1bcd11967736f9c8e9a",
+    "outputs/simulations/intervention_scenarios.parquet": "5ac2f9ae02d8027d4c05b194bce1d39dd071e80d8215c4453db51f67496da234",
+    "outputs/simulations/vaccine_scenarios.parquet": "973c80ae37bf6bb589f75881f13f858ca2035dab1d903512f65e525319ba0852",
+    "outputs/summaries/figure2_programme_reference_summary.csv": "ddebe9753293b2418e87ae1784f69364972dc4c6dfa8c178df997a1f4e7583b4",
+    "outputs/summaries/figure2_programme_reference_summary.parquet": "b0312ce1b2a85628b85161df9a3c0678ae657f27e3ef517f80d8d4a9bb05bb3e",
+    "outputs/summaries/intervention_scenarios_summary.csv": "f3d1dc14c4564d545a7fdf6b121fb8de998fc248c9138a4699ccdd033cecca94",
+    "outputs/summaries/intervention_scenarios_summary.parquet": "11a9c455b5bf9f5f12a98baaedc27ad9090deb2f2305e0fe7a6fe6fe25c560f1",
+    "outputs/summaries/vaccine_scenarios_summary.csv": "ab7bb3fb730ccb5b539819371661ba3338e1a55d51d5f8f5913828ec1de6f8a5",
+    "outputs/summaries/vaccine_scenarios_summary.parquet": "79040a85c882eaad59af5c1d34c8aea18d851497bc97ffb8271f0faa98d83523"
+  },
+  "output_artifact_sha256": {
+    "decision_frontier": "5c04b3bb4d8a83b10235151091b070102f553a0bf02e6447b6e08ad7eb08fda2"
+  },
+  "programme_strategies": [
+    "timeliness_only",
+    "maternal_immunization",
+    "pregnancy_tdap_scaleup",
+    "adolescent_booster",
+    "cocooning_adjunct",
+    "targeted_pep_high_risk"
+  ],
+  "publication_path": true,
+  "reads_bootstrap_artifact": false,
+  "row_counts": {
+    "decision_frontier": 261
+  },
+  "schema_version": 1,
+  "source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+  "source_hash_reattestation": {
+    "attested_at_utc": "2026-07-22T00:32:28.958887+00:00",
+    "change_class": "validation_contract_and_fingerprint_scope_no_numerical_change",
+    "changed_source_paths": [
+      "src_python/utils/validation.py",
+      "src_python/simulation/common.py",
+      "Makefile"
+    ],
+    "new_common_file_sha256": "f2013608cacb158e80dd138c0003228bab0a3e98cd42520d22cf4e76b65be845",
+    "new_makefile_sha256": "6fb613b2f04c0bb304f20849acab1ce3d304a8fce53404bd4c8dc68778bcdd9f",
+    "new_source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+    "new_validation_file_sha256": "e53bb5c63197063bcb45a1b020b0d5662f8d2855c2d6d33310a4f27786243f16",
+    "numerical_artifacts_regenerated": false,
+    "old_common_file_sha256": "271d625b719f7f5364a90a57e69488ad5ff091601b35c5ce4e0dd7dce9a899e3",
+    "old_makefile_sha256": "4f920081b277eaabbb0088ce5507676363703344081305fa8aea3b5c09a2c5cd",
+    "old_source_code_hash": "ba497202d4e1ede62d2c1a8500cff7ecee3ba54aecc2d558e44ac80fa19aac74",
+    "old_validation_file_sha256": "40bef8420b07823ff83d7209c23660194201c6bb247a5c5f95bfb6abb7c50f82",
+    "reason": "Removed retired posterior publication requirements, added the active Figure 1b and Figure 2 publication stems, unified the generic and manuscript publication inventories, and excluded the non-generating validator from numerical fingerprints/prerequisites."
+  },
+  "stem": "lancet_child_adolescent_decision_frontier"
+}

@@ -1,7 +1,13 @@
+"""Optional non-publication legacy paired-posterior research runner.
+
+This module is not a Figure 2c interval source and is not part of the
+publication pipeline.  Publication Figure 2c uses the separate parametric
+bootstrap estimation-confidence-interval runner.
+"""
+
 from __future__ import annotations
 
 import argparse
-from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -9,12 +15,10 @@ import numpy as np
 import pandas as pd
 
 from src_python.simulation.common import (
-    apply_intervention_definition,
     current_run_metadata,
     execute_scenario_summary_list,
     file_sha256,
     load_configs,
-    make_intervention_config,
     publication_country_names,
     read_run_metadata,
     write_run_metadata,
@@ -25,49 +29,53 @@ from src_python.simulation.check_bayesian_quality import (
 )
 from src_python.simulation.run_bayesian_uncertainty import (
     RETIRED_MISLABELED_OUTPUT_STEMS,
-    _apply_sample,
-    _sample_columns,
 )
-from src_python.simulation.run_routine_timeliness_sensitivity import _apply_timeliness
+from src_python.simulation.programme_uncertainty_helpers import (
+    INTERVENTION_UNCERTAINTY_DEFAULTS,
+    INTERVENTION_UNCERTAINTY_PREFIX,
+    PRIMARY_RATE,
+    PRIMARY_REDUCTION,
+    PRIMARY_TOTAL,
+    PROGRAMME_STRATEGIES as FIGURE2C_STRATEGIES,
+    PROGRAMME_STRATEGY_LABELS as STRATEGY_LABELS,
+    PROPAGATED_UNCERTAINTY_PARAMETERS,
+    _beta_ab,
+    _draw_beta_prior,
+    _sample_from_row as _posterior_sample_from_row,
+    _strategy_config_from_sampled_current,
+    _triangular_parameters,
+    apply_intervention_inputs as _apply_intervention_uncertainty,
+    attach_intervention_inputs as _attach_intervention_uncertainty,
+    build_programme_scenarios as _build_programme_scenarios,
+    draw_intervention_inputs as _intervention_uncertainty_draw,
+    pair_programme_draws as _paired_draws,
+    posterior_stem_from_sample_path as _posterior_stem_from_sample_path,
+)
 from src_python.utils.io import project_path, write_dataframe
-from src_python.validation.publication_gate import (
-    require_predictive_publication_gate,
-)
 
 
 STEM = "figure2c_paired_programme_uncertainty"
-FULL_CRI_POSTERIOR_STEM = "bayesian_uncertainty_figure2c_conditional"
+ANALYSIS_ROLE = "optional_nonpublication_legacy_research"
+PUBLICATION_PATH = False
+FIGURE2C_INTERVAL_SOURCE = False
+FULL_CRI_POSTERIOR_STEM = "bayesian_uncertainty_figure2c_joint"
 RETIRED_POSTERIOR_STEMS = RETIRED_MISLABELED_OUTPUT_STEMS
 DEFAULT_POSTERIOR_SAMPLE_PATH = project_path(
     "outputs", "simulations", f"{FULL_CRI_POSTERIOR_STEM}_posterior_samples.parquet"
 )
 SCENARIO_SUMMARY_PATH = project_path("outputs", "summaries", f"{STEM}_summary.csv")
-DRAW_PATH = project_path("outputs", "tables", "figure2c_programme_paired_conditional_interval_draws.csv")
-INTERVAL_PATH = project_path("outputs", "summaries", "figure2c_programme_paired_conditional_intervals.csv")
+DRAW_PATH = project_path("outputs", "tables", "figure2c_programme_paired_credible_interval_draws.csv")
+INTERVAL_PATH = project_path("outputs", "summaries", "figure2c_programme_paired_credible_intervals.csv")
 POSTERIOR_AUDIT_PATH = project_path("outputs", "metadata", f"{STEM}_uncertainty_parameter_audit.csv")
 RETIRED_INTERVAL_PATHS = (
-    project_path("outputs", "tables", "figure2c_programme_paired_credible_interval_draws.csv"),
-    project_path("outputs", "summaries", "figure2c_programme_paired_credible_intervals.csv"),
+    project_path("outputs", "tables", "figure2c_programme_paired_conditional_interval_draws.csv"),
+    project_path("outputs", "summaries", "figure2c_programme_paired_conditional_intervals.csv"),
     project_path("outputs", "metadata", f"{STEM}_posterior_parameter_audit.csv"),
 )
 
-PRIMARY_RATE = "annualized_child_adolescent_cases_per_100k"
-PRIMARY_TOTAL = "total_child_adolescent_cases"
-PRIMARY_REDUCTION = "relative_reduction_child_adolescent_cases"
-PROPAGATED_UNCERTAINTY_PARAMETERS = (
-    "beta_S",
-    "reporting_multiplier",
-    "VE_sus",
-    "VE_inf",
-    "VE_dur",
-    "relative_infectiousness_asymptomatic",
-    "infectious_duration_symptomatic",
-    "infectious_duration_asymptomatic",
-    "fitness_R",
-)
-# Backward-compatible import alias. These parameters no longer all represent a
-# country posterior: only beta/reporting are state-target coordinates; the
-# remaining dimensions are a shared external-prior sensitivity design.
+# Backward-compatible import alias. Beta/reporting are country-specific posterior
+# coordinates; the remaining dimensions are shared across countries and updated
+# by the product of country likelihoods in this legacy joint research route.
 JOINT_POSTERIOR_PARAMETERS = PROPAGATED_UNCERTAINTY_PARAMETERS
 EXTERNAL_STRUCTURAL_PRIOR_PARAMETERS = tuple(
     parameter
@@ -80,46 +88,12 @@ MODULAR_INFERENCE_STRUCTURES = {
     "modular_hierarchical_cut",
     "reference_structure_state_space_exact_importance_cut",
 }
-
-INTERVENTION_UNCERTAINTY_DEFAULTS = {
-    "adolescent_coverage_floor": {"low": 0.75, "mode": 0.90, "high": 0.98},
-    "maternal_coverage_floor": {"low": 0.55, "mode": 0.75, "high": 0.90},
-    "young_adult_coverage_floor": {"low": 0.35, "mode": 0.55, "high": 0.75},
-    "contact_reduction_fraction": {"low": 0.05, "mode": 0.15, "high": 0.30},
-    "targeted_pep_coverage": {"low": 0.05, "mode": 0.45, "high": 0.60},
-    "maternal_protection_duration_days": {"low": 90.0, "mode": 180.0, "high": 270.0},
-}
-INTERVENTION_UNCERTAINTY_PREFIX = "intervention_uncertainty_"
-
-FIGURE2C_STRATEGIES = (
-    "current",
-    "timeliness_only",
-    "adolescent_booster",
-    "pregnancy_tdap_scaleup",
-    "cocooning_adjunct",
-    "maternal_immunization",
-    "targeted_pep_high_risk",
-)
-
-STRATEGY_LABELS = {
-    "current": "Current practice",
-    "timeliness_only": "Routine timeliness",
-    "adolescent_booster": "Adolescent booster",
-    "pregnancy_tdap_scaleup": "Pregnancy Tdap",
-    "cocooning_adjunct": "Close-contact adjunct",
-    "maternal_immunization": "Infant exposure",
-    "targeted_pep_high_risk": "Targeted PEP",
+FULL_JOINT_INFERENCE_STRUCTURES = {
+    "cross_country_joint_state_space_exact_importance",  # retired numerical route
+    "cross_country_joint_state_space_tempered_smc",
 }
 
-
-def _posterior_stem_from_sample_path(path: str | Path) -> str | None:
-    name = Path(path).name
-    if name == "bayesian_posterior_samples.parquet":
-        return "bayesian_uncertainty"
-    suffix = "_posterior_samples.parquet"
-    if name.endswith(suffix):
-        return name[: -len(suffix)]
-    return None
+MINIMUM_CREDIBLE_INTERVAL_DRAWS = 2000
 
 
 def _posterior_metadata(path: str | Path) -> tuple[str | None, dict[str, Any]]:
@@ -200,7 +174,7 @@ def _validate_structural_source_pairing(
 
     The modular sampler emits the same ``(chain, draw, structural_draw_id)``
     design for every country. Country surveillance changes only the
-    conditional beta/reporting draw. Figure 2c must therefore subsample those
+    conditional beta/reporting draw. This legacy analysis must therefore subsample those
     source positions jointly rather than construct unrelated country draws.
     """
 
@@ -305,12 +279,16 @@ def _validate_joint_posterior_samples(
 
     if not posterior_metadata:
         raise ValueError(
-            "Audited Figure 2c uncertainty requires posterior run metadata. "
+            "Audited legacy paired-posterior research requires run metadata. "
             f"No metadata found for posterior sample stem {posterior_stem!r}."
         )
     sampler = str(posterior_metadata.get("sampler", "")).lower()
     scope = str(posterior_metadata.get("uncertainty_scope", "")).lower()
-    if sampler == "state_space_exact_importance_cut":
+    if sampler in {
+        "state_space_exact_importance_cut",
+        "multi_country_joint_state_importance",
+        "multi_country_joint_tempered_smc",
+    }:
         process_columns = sorted(
             column
             for column in samples.columns
@@ -407,7 +385,7 @@ def _validate_joint_posterior_samples(
                 )
     if sampler == "beta_grid" or scope == "conditional_beta_grid":
         raise ValueError(
-            "Refusing to compute Figure 2c paired uncertainty from one-parameter "
+            "Refusing to compute legacy paired uncertainty from one-parameter "
             "conditional beta-grid samples. "
             f"sampler={posterior_metadata.get('sampler')!r}, "
             f"uncertainty_scope={posterior_metadata.get('uncertainty_scope')!r}."
@@ -418,13 +396,13 @@ def _validate_joint_posterior_samples(
         and samples["sampling_method"].astype(str).str.lower().eq("beta_grid").all()
     ):
         raise ValueError(
-            "Refusing to compute Figure 2c paired uncertainty from rows labelled "
+            "Refusing to compute legacy paired uncertainty from rows labelled "
             "sampling_method=beta_grid."
         )
     fixed_parameters = sorted(str(parameter) for parameter in posterior_metadata.get("fixed_parameters", []) or [])
     if fixed_parameters or bool(posterior_metadata.get("fix_durations", False)):
         raise ValueError(
-            "Figure 2c paired uncertainty requires all registered dimensions to vary. "
+            "Legacy paired uncertainty requires all registered dimensions to vary. "
             f"fixed_parameters={fixed_parameters}, fix_durations={posterior_metadata.get('fix_durations')}."
         )
 
@@ -434,7 +412,7 @@ def _validate_joint_posterior_samples(
     )
     if quality_failures:
         raise ValueError(
-            "Figure 2c paired uncertainty requires samples that pass the recommended "
+            "Legacy paired uncertainty requires samples that pass the recommended "
             "quality gate: " + "; ".join(quality_failures)
         )
 
@@ -447,125 +425,6 @@ def _validate_joint_posterior_samples(
             f"Variable parameter counts: {details}."
         )
     return audit
-
-
-def _triangular_parameters(settings: dict[str, Any], name: str) -> dict[str, float]:
-    configured = settings.get("intervention_priors", {}).get(name, {})
-    values = {**INTERVENTION_UNCERTAINTY_DEFAULTS[name], **configured}
-    low = float(values["low"])
-    mode = float(values["mode"])
-    high = float(values["high"])
-    if not low <= mode <= high:
-        raise ValueError(f"Invalid triangular prior for {name}: low <= mode <= high is required")
-    return {"low": low, "mode": mode, "high": high}
-
-
-def _beta_ab(mean: float, sd: float) -> tuple[float, float]:
-    mean = float(np.clip(mean, 1e-6, 1.0 - 1e-6))
-    sd = max(float(sd), 1e-6)
-    variance = min(sd**2, mean * (1.0 - mean) * 0.95)
-    common = mean * (1.0 - mean) / variance - 1.0
-    return max(mean * common, 1e-3), max((1.0 - mean) * common, 1e-3)
-
-
-def _draw_beta_prior(rng: np.random.Generator, prior: dict[str, Any]) -> float:
-    alpha, beta = _beta_ab(float(prior["mean"]), float(prior["sd"]))
-    return float(rng.beta(alpha, beta))
-
-
-def _intervention_uncertainty_draw(
-    configs: dict[str, Any],
-    rng: np.random.Generator,
-    *,
-    stochastic: bool,
-) -> dict[str, float]:
-    settings = configs["baseline"].get("bayesian_uncertainty", {}).get("figure2c_conditional_uncertainty", {})
-    priors = configs["baseline"].get("bayesian_uncertainty", {}).get("priors", {})
-
-    def triangular(name: str) -> float:
-        params = _triangular_parameters(settings, name)
-        if not stochastic:
-            return float(params["mode"])
-        return float(rng.triangular(params["low"], params["mode"], params["high"]))
-
-    maternal_sus_prior = priors.get("maternal_VE_sus", {"mean": 0.55, "sd": 0.12})
-    maternal_sym_prior = priors.get("maternal_VE_sym", {"mean": 0.92, "sd": 0.05})
-    return {
-        "adolescent_coverage_floor": triangular("adolescent_coverage_floor"),
-        "maternal_coverage_floor": triangular("maternal_coverage_floor"),
-        "young_adult_coverage_floor": triangular("young_adult_coverage_floor"),
-        "contact_reduction_fraction": triangular("contact_reduction_fraction"),
-        "targeted_pep_coverage": triangular("targeted_pep_coverage"),
-        "maternal_protection_duration_days": triangular("maternal_protection_duration_days"),
-        "maternal_VE_sus": (
-            _draw_beta_prior(rng, maternal_sus_prior)
-            if stochastic
-            else float(maternal_sus_prior.get("mean", 0.55))
-        ),
-        "maternal_VE_sym": (
-            _draw_beta_prior(rng, maternal_sym_prior)
-            if stochastic
-            else float(maternal_sym_prior.get("mean", 0.92))
-        ),
-    }
-
-
-def _attach_intervention_uncertainty(
-    selected_samples: pd.DataFrame,
-    configs: dict[str, Any],
-    *,
-    seed: int,
-    enabled: bool,
-) -> pd.DataFrame:
-    out = selected_samples.copy()
-    rng = np.random.default_rng(seed)
-    draws = [
-        _intervention_uncertainty_draw(configs, rng, stochastic=enabled)
-        for _ in range(len(out))
-    ]
-    for key in draws[0].keys() if draws else ():
-        out[f"{INTERVENTION_UNCERTAINTY_PREFIX}{key}"] = [float(draw[key]) for draw in draws]
-    return out
-
-
-def _apply_intervention_uncertainty(intervention: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
-    out = deepcopy(intervention)
-    coverage = out.setdefault("coverage_min_updates", {}) if "coverage_min_updates" in out else None
-    if coverage is not None:
-        if "adolescent_10_17y" in coverage:
-            coverage["adolescent_10_17y"] = float(
-                row[f"{INTERVENTION_UNCERTAINTY_PREFIX}adolescent_coverage_floor"]
-            )
-        if "infant_0_2m" in coverage:
-            coverage["infant_0_2m"] = float(
-                row[f"{INTERVENTION_UNCERTAINTY_PREFIX}maternal_coverage_floor"]
-            )
-        if "young_adult_18_39y" in coverage:
-            coverage["young_adult_18_39y"] = float(
-                row[f"{INTERVENTION_UNCERTAINTY_PREFIX}young_adult_coverage_floor"]
-            )
-
-    vaccine = out.setdefault("vaccine_overrides", {}) if "vaccine_overrides" in out else None
-    if vaccine is not None:
-        if "maternal_VE_sus" in vaccine:
-            vaccine["maternal_VE_sus"] = float(row[f"{INTERVENTION_UNCERTAINTY_PREFIX}maternal_VE_sus"])
-        if "maternal_VE_sym" in vaccine:
-            vaccine["maternal_VE_sym"] = float(row[f"{INTERVENTION_UNCERTAINTY_PREFIX}maternal_VE_sym"])
-
-    natural_history = out.setdefault("natural_history_overrides", {}) if "natural_history_overrides" in out else None
-    if natural_history is not None and "maternal_protection_duration" in natural_history:
-        natural_history["maternal_protection_duration"] = float(
-            row[f"{INTERVENTION_UNCERTAINTY_PREFIX}maternal_protection_duration_days"]
-        )
-
-    pep = out.setdefault("pep_updates", {}) if "pep_updates" in out else None
-    if pep is not None and "coverage_household_contacts" in pep:
-        pep["coverage_household_contacts"] = float(row[f"{INTERVENTION_UNCERTAINTY_PREFIX}targeted_pep_coverage"])
-
-    contact = out.setdefault("contact_matrix_reduction", {}) if "contact_matrix_reduction" in out else None
-    if contact is not None and "reduction_fraction" in contact:
-        contact["reduction_fraction"] = float(row[f"{INTERVENTION_UNCERTAINTY_PREFIX}contact_reduction_fraction"])
-    return out
 
 
 def _balanced_group_quotas(
@@ -697,7 +556,7 @@ def _select_structurally_paired_samples(
     )
     if len(source_positions) < draws_per_country:
         raise ValueError(
-            "Not enough aligned conditional-state/external-design positions for Figure 2c: "
+            "Not enough aligned conditional-state/external-design positions for the legacy analysis: "
             f"available={len(source_positions)}, requested={draws_per_country}"
         )
 
@@ -821,191 +680,20 @@ def _select_posterior_samples(
     return pd.concat(selected_frames, ignore_index=True)
 
 
-def _posterior_sample_from_row(row: pd.Series) -> dict[str, float]:
-    missing = [name for name in _sample_columns() if name != "reporting_trend_end_multiplier" and name not in row.index]
-    if missing:
-        raise KeyError(f"Posterior sample row is missing required columns: {', '.join(missing)}")
-    sample: dict[str, float] = {}
-    for name in _sample_columns():
-        if name in row.index and pd.notna(row[name]):
-            sample[name] = float(row[name])
-        elif name == "reporting_trend_end_multiplier":
-            sample[name] = 1.0
-        else:
-            raise ValueError(f"Posterior sample value is missing for required column: {name}")
-    sample.update(
-        {
-            str(name): float(value)
-            for name, value in row.items()
-            if str(name).startswith("log_beta_process_") and pd.notna(value)
-        }
-    )
-    return sample
-
-
-def _strategy_config_from_sampled_current(
-    configs: dict[str, Any],
-    *,
-    sampled_current: dict[str, Any],
-    vaccine_name: str,
-    strategy: str,
-    sample_row: dict[str, Any],
-) -> tuple[dict[str, Any], str]:
-    if strategy == "current":
-        return deepcopy(sampled_current), vaccine_name
-    if strategy == "timeliness_only":
-        return _apply_timeliness(sampled_current), vaccine_name
-
-    intervention = configs["interventions"][strategy]
-    if intervention.get("vaccine_scenario") not in {None, vaccine_name}:
-        raise ValueError(
-            "Figure 2c paired uncertainty currently expects program strategies "
-            f"without vaccine_scenario swaps; got {strategy!r}."
-        )
-    intervention = _apply_intervention_uncertainty(intervention, sample_row)
-    return apply_intervention_definition(sampled_current, intervention), vaccine_name
-
-
 def _build_scenarios(
     configs: dict[str, Any],
     selected_samples: pd.DataFrame,
     *,
     strategies: tuple[str, ...],
 ) -> list[dict[str, Any]]:
-    scenarios: list[dict[str, Any]] = []
-    resistance_name = configs["baseline"].get("baseline_resistance_scenario", "country_timeline")
-    base_configs: dict[str, tuple[dict[str, Any], str]] = {
-        country: make_intervention_config("current", country_profile=country)
-        for country in sorted(selected_samples["country"].astype(str).unique())
-    }
-    for row in selected_samples.to_dict(orient="records"):
-        country = str(row["country"])
-        posterior_draw = int(row["posterior_draw"])
-        sample = _posterior_sample_from_row(pd.Series(row))
-        base_config, current_vaccine_name = base_configs[country]
-        sampled_current = _apply_sample(base_config, sample)
-        posterior_metadata = {
-            f"posterior_{parameter}": float(sample[parameter])
-            for parameter in JOINT_POSTERIOR_PARAMETERS
-            if parameter in sample
-        }
-        posterior_metadata.update(
-            {
-                f"posterior_{parameter}": float(value)
-                for parameter, value in sample.items()
-                if str(parameter).startswith("log_beta_process_")
-            }
-        )
-        intervention_metadata = {
-            key: float(value)
-            for key, value in row.items()
-            if str(key).startswith(INTERVENTION_UNCERTAINTY_PREFIX)
-            and pd.notna(value)
-        }
-        for strategy in strategies:
-            config, vaccine_name = _strategy_config_from_sampled_current(
-                configs,
-                sampled_current=sampled_current,
-                vaccine_name=current_vaccine_name,
-                strategy=strategy,
-                sample_row=row,
-            )
-            metadata = {
-                "country": country,
-                "strategy": strategy,
-                "strategy_label": STRATEGY_LABELS.get(strategy, strategy),
-                "posterior_draw": posterior_draw,
-                "posterior_chain": int(row["chain"]) if "chain" in row and pd.notna(row["chain"]) else -1,
-                "posterior_source_draw": int(row["draw"]) if "draw" in row and pd.notna(row["draw"]) else -1,
-                "posterior_log_prob": (
-                    float(row["posterior_log_prob"])
-                    if "posterior_log_prob" in row and pd.notna(row["posterior_log_prob"])
-                    else np.nan
-                ),
-            } | posterior_metadata | intervention_metadata
-            if "structural_draw_id" in row and pd.notna(row["structural_draw_id"]):
-                metadata["structural_draw_id"] = int(row["structural_draw_id"])
-            if "inference_structure" in row and pd.notna(row["inference_structure"]):
-                metadata["inference_structure"] = str(row["inference_structure"])
-            scenarios.append(
-                {
-                    "config": config,
-                    "analysis": STEM,
-                    "scenario": f"{country}_draw_{posterior_draw:03d}_{strategy}",
-                    "vaccine_scenario": vaccine_name,
-                    "resistance_scenario": resistance_name,
-                    "intervention": strategy,
-                    "metadata": metadata,
-                }
-            )
-    return scenarios
+    """Backward-compatible legacy wrapper around the shared scenario builder."""
 
-
-def _paired_draws(summary: pd.DataFrame) -> pd.DataFrame:
-    data = summary.copy()
-    data["posterior_draw"] = pd.to_numeric(data["posterior_draw"], errors="raise").astype(int)
-    data["strategy"] = data["strategy"].astype(str)
-
-    pair_keys = ["country", "posterior_draw"]
-    if "structural_draw_id" in data.columns:
-        structural_ids = pd.to_numeric(data["structural_draw_id"], errors="coerce")
-        if structural_ids.isna().any() or not np.equal(structural_ids, np.floor(structural_ids)).all():
-            raise ValueError("Scenario summaries contain invalid structural_draw_id values")
-        data["structural_draw_id"] = structural_ids.astype(np.int64)
-        draw_alignment = data.groupby("posterior_draw")["structural_draw_id"].nunique()
-        if not draw_alignment.eq(1).all():
-            bad_draws = draw_alignment.index[~draw_alignment.eq(1)].astype(int).tolist()[:10]
-            raise ValueError(
-                "Scenario summaries lost cross-country structural pairing for "
-                f"posterior draws: {bad_draws}"
-            )
-        pair_keys.append("structural_draw_id")
-
-    current = data.loc[
-        data["strategy"].eq("current"),
-        [*pair_keys, PRIMARY_RATE, PRIMARY_TOTAL],
-    ].rename(
-        columns={
-            PRIMARY_RATE: "current_rate",
-            PRIMARY_TOTAL: "current_total_cases",
-        }
+    return _build_programme_scenarios(
+        configs,
+        selected_samples,
+        strategies=strategies,
+        analysis=STEM,
     )
-    intervention = data.loc[~data["strategy"].eq("current")].copy()
-    paired = intervention.merge(current, on=pair_keys, how="left", validate="many_to_one")
-    if paired["current_rate"].isna().any():
-        missing = paired.loc[paired["current_rate"].isna(), ["country", "posterior_draw"]].drop_duplicates()
-        raise ValueError(f"Missing paired current rows for {len(missing)} country-draw combination(s)")
-
-    paired["intervention_rate"] = pd.to_numeric(paired[PRIMARY_RATE], errors="coerce")
-    paired["intervention_total_cases"] = pd.to_numeric(paired[PRIMARY_TOTAL], errors="coerce")
-    paired[PRIMARY_REDUCTION] = 1.0 - paired["intervention_rate"] / paired["current_rate"].replace(0, np.nan)
-    keep = [
-        "country",
-        "posterior_draw",
-        *(["structural_draw_id"] if "structural_draw_id" in paired.columns else []),
-        "posterior_chain",
-        "posterior_source_draw",
-        "posterior_log_prob",
-        "strategy",
-        "strategy_label",
-        "current_rate",
-        "intervention_rate",
-        "current_total_cases",
-        "intervention_total_cases",
-        PRIMARY_REDUCTION,
-    ]
-    if "inference_structure" in paired.columns:
-        keep.append("inference_structure")
-    keep.extend(
-        sorted(
-            column
-            for column in paired.columns
-            if column.startswith("posterior_")
-            or column.startswith(INTERVENTION_UNCERTAINTY_PREFIX)
-        )
-    )
-    keep = list(dict.fromkeys(keep))
-    return paired.loc[:, keep].sort_values(["country", "strategy", "posterior_draw"]).reset_index(drop=True)
 
 
 def _q(values: pd.Series, quantile: float) -> float:
@@ -1017,7 +705,15 @@ def _interval_summary(draws: pd.DataFrame) -> pd.DataFrame:
     for (country, strategy), group in draws.groupby(["country", "strategy"], sort=True):
         first = group.iloc[0]
         inference_structure = str(first.get("inference_structure", ""))
-        if inference_structure == "reference_structure_state_space_exact_importance_cut":
+        if inference_structure in FULL_JOINT_INFERENCE_STRUCTURES:
+            interval_type = "95% joint posterior credible interval"
+            interval_basis = (
+                "Paired current/intervention outcomes propagated from the same "
+                "multi-country full-feedback posterior draw. Shared biological "
+                "parameters, country beta/reporting, and annual latent transmission "
+                "states are updated jointly by all included surveillance likelihoods."
+            )
+        elif inference_structure == "reference_structure_state_space_exact_importance_cut":
             interval_type = "95% conditional uncertainty interval"
             interval_basis = (
                 "Paired exact-target importance-corrected state draws plus a shared "
@@ -1078,9 +774,9 @@ def main(
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     if allow_conditional_posterior:
         raise ValueError(
-            "--allow-conditional-posterior is retired for the canonical Figure 2c "
-            "paths because it bypassed quality checks. Use a separate diagnostic "
-            "runner/output stem for exploratory inputs."
+            "--allow-conditional-posterior is retired because it bypassed the legacy "
+            "research quality checks. Use a separate diagnostic runner/output stem "
+            "for exploratory inputs."
         )
     configs = load_configs()
     settings = configs["baseline"].get("bayesian_uncertainty", {})
@@ -1092,19 +788,24 @@ def main(
         outside_publication_scope = sorted(requested.difference(countries))
         if outside_publication_scope:
             raise ValueError(
-                "Figure 2c excludes countries outside the prespecified publication "
-                "set: " + ", ".join(outside_publication_scope)
+                "Legacy paired-posterior research is restricted to the configured "
+                "country set: " + ", ".join(outside_publication_scope)
             )
         countries = [country for country in countries if country in requested]
 
-    require_predictive_publication_gate(expected_countries=countries)
-
-    figure_settings = settings.get("figure2c_conditional_uncertainty", {})
+    figure_settings = settings.get("figure2c_joint_credible_interval", {})
     draws = int(
         draws_per_country
         or figure_settings.get("posterior_draws_per_country")
         or settings.get("posterior_predictive_draws_per_country", 100)
     )
+    if draws < MINIMUM_CREDIBLE_INTERVAL_DRAWS:
+        raise ValueError(
+            "Legacy paired-posterior research requires at least "
+            f"{MINIMUM_CREDIBLE_INTERVAL_DRAWS} paired posterior draws per country "
+            "so each 2.5% credible-interval tail has at least 50 empirical draws; "
+            f"received {draws}."
+        )
     seed = int(settings.get("random_seed", 20260510)) + 917
     posterior_stem, metadata = _posterior_metadata(posterior_samples_path)
     samples = pd.read_parquet(Path(posterior_samples_path))
@@ -1160,7 +861,9 @@ def main(
         if str(column).startswith("log_beta_process_")
     )
     interval_basis = (
-        "paired_conditional_state_space_exact_importance_process_and_structural_uncertainty"
+        "paired_multi_country_joint_posterior_credible_interval"
+        if inference_structure in FULL_JOINT_INFERENCE_STRUCTURES
+        else "paired_conditional_state_space_exact_importance_process_and_structural_uncertainty"
         if inference_structure == "reference_structure_state_space_exact_importance_cut"
         else "paired_modular_or_joint_parameter_and_intervention_uncertainty"
     )
@@ -1183,6 +886,9 @@ def main(
             },
         )
         | {
+            "analysis_role": ANALYSIS_ROLE,
+            "publication_path": PUBLICATION_PATH,
+            "figure2c_interval_source": FIGURE2C_INTERVAL_SOURCE,
             "posterior_samples_path": str(posterior_samples_path),
             "posterior_samples_sha256": file_sha256(posterior_samples_path),
             "paired_draws_sha256": file_sha256(DRAW_PATH),
@@ -1225,7 +931,10 @@ def main(
                 int(selected["structural_draw_id"].nunique()) if structural_pairing else 0
             ),
             "uncertainty_sample_selection": (
-                "state_importance_resample_balanced_by_batch_and_structural_draw_without_replacement"
+                "equal_mass_joint_smc_particles_balanced_by_island_without_replacement"
+                if inference_structure
+                == "cross_country_joint_state_space_tempered_smc"
+                else "state_importance_resample_balanced_by_batch_and_structural_draw_without_replacement"
                 if structural_pairing
                 else "balanced_by_synthetic_batch_without_replacement"
             ),
@@ -1241,7 +950,10 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Run paired conditional uncertainty intervals for Figure 2c programme reductions."
+        description=(
+            "Run optional_nonpublication_legacy_research paired-posterior "
+            "programme uncertainty; this is not a Figure 2c interval source."
+        )
     )
     parser.add_argument("--n-jobs", type=int, default=None)
     parser.add_argument("--draws-per-country", type=int, default=None)

@@ -728,7 +728,7 @@
       }
     }
   ],
-  "config_hash": "e07d2d9623bba63452e5939f83db5c87901a902d0a71c99df08b4ecdc3550c54",
+  "config_hash": "fe4b0945dbc60905bca91e1dac7a67bb5863846eea9d42ff0fc0dbee6b1fb742",
   "countries_included": [
     "Australia",
     "China",
@@ -829,7 +829,7 @@
   },
   "forecast_mode": "block",
   "full_compartment_pomp_claimed": false,
-  "generated_at_utc": "2026-07-14T01:08:37.430145+00:00",
+  "generated_at_utc": "2026-07-20T05:54:59.629792+00:00",
   "git": {
     "branch": "main",
     "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
@@ -839,12 +839,12 @@
     "pertussis_incidence_timeseries": "a1ae3f663dabd3e7129073fdcdc3454e98a58dffafd12c408f1e09ffafb302d3"
   },
   "mc_replicates": 3,
-  "n_jobs": 96,
+  "n_jobs": 9,
   "output_artifact_sha256": {
     "observation_source_reconciliation": "a03a90db8b88dcf86bee52729dd9a84e7c92baf7827876be6b4400cfabdecf58",
     "observation_source_reconciliation_summary": "d44026db2517eed42559055fef7da5136703d9e2a07927c37eb77bffd991e12c",
     "panel_pomp_block_stress_candidate_selection": "f8584b73de90c3675ec70708afe0c50270d152d4134ca75294a3b76d13fe6b70",
-    "panel_pomp_block_stress_evidence_cutoff_audit": "82f144d92df67b88980fdebc706084216a617810b79657a02d788235b02ed4d8",
+    "panel_pomp_block_stress_evidence_cutoff_audit": "b9f5d3f1d1b54acaedfbe2c7a78243561c287996f344ad575da932295efba935",
     "panel_pomp_block_stress_folds": "8cd059f14be6f96cd1345e04571e5ab87fdd10ffb68e2d52bff959e05a3d1435",
     "panel_pomp_block_stress_gate": "b8f16762358f74181ad55bb83688663ed3165217c44b14aa0cdfee7ecc583e64",
     "panel_pomp_block_stress_intervals": "28d51f47acd17106127ffcb0995bf78d5b7bdfb0eeee1736e5510c4882e55c40",
@@ -868,7 +868,26 @@
   "schema_version": 1,
   "scope": "semi_mechanistic_discrepancy_pomp_not_full_compartment_pomp",
   "seed": 20260713,
-  "source_code_hash": "1b39feb5574028211a6cbd5c7ef247152b81925a64cd082bcab52ffa09d72af1",
+  "source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+  "source_hash_reattestation": {
+    "attested_at_utc": "2026-07-22T00:32:28.958887+00:00",
+    "change_class": "validation_contract_and_fingerprint_scope_no_numerical_change",
+    "changed_source_paths": [
+      "src_python/utils/validation.py",
+      "src_python/simulation/common.py",
+      "Makefile"
+    ],
+    "new_common_file_sha256": "f2013608cacb158e80dd138c0003228bab0a3e98cd42520d22cf4e76b65be845",
+    "new_makefile_sha256": "6fb613b2f04c0bb304f20849acab1ce3d304a8fce53404bd4c8dc68778bcdd9f",
+    "new_source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+    "new_validation_file_sha256": "e53bb5c63197063bcb45a1b020b0d5662f8d2855c2d6d33310a4f27786243f16",
+    "numerical_artifacts_regenerated": false,
+    "old_common_file_sha256": "271d625b719f7f5364a90a57e69488ad5ff091601b35c5ce4e0dd7dce9a899e3",
+    "old_makefile_sha256": "4f920081b277eaabbb0088ce5507676363703344081305fa8aea3b5c09a2c5cd",
+    "old_source_code_hash": "ba497202d4e1ede62d2c1a8500cff7ecee3ba54aecc2d558e44ac80fa19aac74",
+    "old_validation_file_sha256": "40bef8420b07823ff83d7209c23660194201c6bb247a5c5f95bfb6abb7c50f82",
+    "reason": "Removed retired posterior publication requirements, added the active Figure 1b and Figure 2 publication stems, unified the generic and manuscript publication inventories, and excluded the non-generating validator from numerical fingerprints/prerequisites."
+  },
   "stem": "panel_pomp_block_stress",
   "test_years": [
     2023,

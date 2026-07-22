@@ -6,10 +6,7 @@ load_extended_data_figure_12_baseline <- function() {
 }
 
 extended_data_figure_12_with_burden_order <- function(df, baseline) {
-  baseline_order <- baseline %>%
-    arrange(desc(annualized_infant_cases_per_100k)) %>%
-    pull(country_label) %>%
-    as.character()
+  baseline_order <- main_figure_country_order(as.character(baseline$country_label))
 
   df %>%
     mutate(country_burden_order = factor(as.character(country_label), levels = rev(baseline_order)))

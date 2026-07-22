@@ -40,7 +40,7 @@ prepare_extended_data_figure_8_data <- function(inputs = load_extended_data_figu
   scores <- inputs$scores %>%
     mutate(
       fitness_label = sprintf("%.2f", fitness_R),
-      country_label = factor(country, levels = c("China", "Japan", "Australia"))
+      country_label = factor(country, levels = c("Australia", "China", "Japan"))
     )
 
   best_fitness <- scores %>%

@@ -95,6 +95,17 @@ prepare_figure_3_data <- function(inputs = load_figure_3_inputs()) {
   endpoint_axis_labels <- figure_3_endpoint_axis_labels()
 
   burden <- inputs$burden %>%
+    required_columns(
+      c(
+        "country", "strategy", "primary_cases_per_100k",
+        "infant_cases_per_100k", "infant_hospitalizations_per_100k",
+        "infant_deaths_per_100k", "child_1_9_cases_per_100k",
+        "adolescent_cases_per_100k", "primary_case_reduction",
+        "relative_reduction_infant_hospitalizations",
+        "relative_reduction_infant_deaths"
+      ),
+      "Lancet child/adolescent strategy burden"
+    ) %>%
     mutate(
       country = stringr::str_replace_all(country, " ", "_"),
       country_label_text = format_country(country),
@@ -107,31 +118,75 @@ prepare_figure_3_data <- function(inputs = load_figure_3_inputs()) {
       ),
       primary_cases_per_100k = as.numeric(primary_cases_per_100k),
       infant_cases_per_100k = as.numeric(infant_cases_per_100k),
+      infant_hospitalizations_per_100k = as.numeric(infant_hospitalizations_per_100k),
+      infant_deaths_per_100k = as.numeric(infant_deaths_per_100k),
       child_1_9_cases_per_100k = as.numeric(child_1_9_cases_per_100k),
       adolescent_cases_per_100k = as.numeric(adolescent_cases_per_100k),
       primary_case_reduction = as.numeric(primary_case_reduction),
       relative_reduction_infant_hospitalizations = as.numeric(relative_reduction_infant_hospitalizations),
       relative_reduction_infant_deaths = as.numeric(relative_reduction_infant_deaths)
+    )
+
+  current_burden <- burden %>%
+    filter(strategy == "current") %>%
+    select(
+      country,
+      current_primary_cases_per_100k = primary_cases_per_100k,
+      current_infant_cases_per_100k = infant_cases_per_100k,
+      current_infant_hospitalizations_per_100k = infant_hospitalizations_per_100k,
+      current_infant_deaths_per_100k = infant_deaths_per_100k,
+      current_child_1_9_cases_per_100k = child_1_9_cases_per_100k,
+      current_adolescent_cases_per_100k = adolescent_cases_per_100k
+    )
+
+  if (
+    nrow(current_burden) != 9L ||
+      anyDuplicated(current_burden$country) > 0L ||
+      any(!is.finite(as.matrix(select(current_burden, -country)))) ||
+      any(as.matrix(select(current_burden, -country)) <= 0)
+  ) {
+    stop("Figure 3 requires one positive common-current comparator for each of nine profiles.", call. = FALSE)
+  }
+
+  burden <- burden %>%
+    select(
+      -any_of(c(
+        "current_primary_cases_per_100k",
+        "current_infant_cases_per_100k",
+        "current_infant_hospitalizations_per_100k",
+        "current_infant_deaths_per_100k",
+        "current_child_1_9_cases_per_100k",
+        "current_adolescent_cases_per_100k"
+      ))
     ) %>%
-    group_by(country) %>%
+    left_join(current_burden, by = "country") %>%
     mutate(
-      current_primary_cases_per_100k = primary_cases_per_100k[strategy == "current"][[1]],
-      current_infant_cases_per_100k = infant_cases_per_100k[strategy == "current"][[1]],
-      current_child_1_9_cases_per_100k = child_1_9_cases_per_100k[strategy == "current"][[1]],
-      current_adolescent_cases_per_100k = adolescent_cases_per_100k[strategy == "current"][[1]],
+      all_under18_case_reduction = 1 - primary_cases_per_100k / current_primary_cases_per_100k,
       infant_case_reduction = 1 - infant_cases_per_100k / pmax(current_infant_cases_per_100k, 1e-9),
+      infant_hospitalization_reduction = 1 - infant_hospitalizations_per_100k /
+        pmax(current_infant_hospitalizations_per_100k, 1e-9),
+      infant_death_reduction = 1 - infant_deaths_per_100k /
+        pmax(current_infant_deaths_per_100k, 1e-9),
       child_1_9_case_reduction = 1 - child_1_9_cases_per_100k / pmax(current_child_1_9_cases_per_100k, 1e-9),
-      adolescent_case_reduction = 1 - adolescent_cases_per_100k / pmax(current_adolescent_cases_per_100k, 1e-9)
-    ) %>%
-    ungroup()
+      adolescent_case_reduction = 1 - adolescent_cases_per_100k / pmax(current_adolescent_cases_per_100k, 1e-9),
+      stored_primary_comparator_drift_pp = 100 * (primary_case_reduction - all_under18_case_reduction),
+      stored_hospitalization_comparator_drift_pp = 100 *
+        (relative_reduction_infant_hospitalizations - infant_hospitalization_reduction),
+      stored_death_comparator_drift_pp = 100 *
+        (relative_reduction_infant_deaths - infant_death_reduction)
+    )
 
   programme_burden <- burden %>%
     filter(strategy %in% programme_strategies)
 
-  country_order <- burden %>%
-    filter(strategy == "current") %>%
-    arrange(desc(current_primary_cases_per_100k)) %>%
+  available_country_labels <- current_burden %>%
+    transmute(country_label_text = format_country(country)) %>%
     pull(country_label_text)
+  country_order <- main_figure_country_order(available_country_labels)
+  if (length(country_order) != length(main_figure_country_label_levels) ||
+      !setequal(country_order, available_country_labels)) {
+    stop("Figure 3 countries do not match the fixed main-figure order.", call. = FALSE)
+  }
 
   programme_burden <- programme_burden %>%
     mutate(country_label = factor(country_label_text, levels = rev(country_order)))
@@ -145,11 +200,11 @@ prepare_figure_3_data <- function(inputs = load_figure_3_inputs()) {
       strategy_label,
       strategy_label_plot,
       `Infant cases` = infant_case_reduction,
-      `Infant hospitalisations` = relative_reduction_infant_hospitalizations,
-      `Infant deaths` = relative_reduction_infant_deaths,
+      `Infant hospitalisations` = infant_hospitalization_reduction,
+      `Infant deaths` = infant_death_reduction,
       `Children cases` = child_1_9_case_reduction,
       `Adolescent cases` = adolescent_case_reduction,
-      `All <18 cases` = primary_case_reduction
+      `All <18 cases` = all_under18_case_reduction
     ) %>%
     pivot_longer(
       cols = all_of(endpoint_levels),
@@ -187,12 +242,12 @@ prepare_figure_3_data <- function(inputs = load_figure_3_inputs()) {
         lancet_percent(median_relative_case_reduction, accuracy = 0.1),
         paste0(lancet_percent(median_relative_case_reduction, accuracy = 0.1), "\n", interval_label)
       ),
-      effect_text_colour = if_else(median_relative_case_reduction >= 0.30, "white", lancet_text_colour)
+      effect_text_colour = if_else(median_relative_case_reduction >= 0.28, "white", lancet_text_colour)
     )
 
   endpoint_gap <- programme_burden %>%
     mutate(
-      infant_minus_child_adolescent_gap_pp = 100 * (infant_case_reduction - primary_case_reduction)
+      infant_minus_child_adolescent_gap_pp = 100 * (infant_case_reduction - all_under18_case_reduction)
     )
 
   endpoint_gap_summary <- endpoint_gap %>%
@@ -296,7 +351,7 @@ prepare_figure_3_data <- function(inputs = load_figure_3_inputs()) {
       country,
       country_label_text,
       country_code,
-      all_under18_symptomatic_case_reduction = primary_case_reduction,
+      all_under18_symptomatic_case_reduction = all_under18_case_reduction,
       adolescent_case_reduction,
       all_under18_cases_per_100k = primary_cases_per_100k,
       adolescent_cases_per_100k,
@@ -306,8 +361,8 @@ prepare_figure_3_data <- function(inputs = load_figure_3_inputs()) {
     arrange(desc(adolescent_case_reduction), country_label_text) %>%
     mutate(
       adolescent_effect_rank = row_number(),
-      country_label_booster = factor(country_label_text, levels = rev(country_label_text)),
-      china_profile = country == "China"
+      country_label_booster = factor(country_label_text, levels = rev(country_order)),
+      highlight_profile = adolescent_effect_rank == 1L
     )
 
   booster_effect_long <- booster_effect_profile %>%
@@ -316,7 +371,7 @@ prepare_figure_3_data <- function(inputs = load_figure_3_inputs()) {
       country_label_text,
       country_code,
       country_label_booster,
-      china_profile,
+      highlight_profile,
       all_under18_symptomatic_case_reduction,
       adolescent_case_reduction
     ) %>%
@@ -334,8 +389,8 @@ prepare_figure_3_data <- function(inputs = load_figure_3_inputs()) {
       outcome_label = factor(outcome_label, levels = c("All <18 symptomatic cases", "Adolescent cases"))
     )
 
-  booster_china_labels <- booster_effect_long %>%
-    filter(china_profile) %>%
+  booster_highlight_labels <- booster_effect_long %>%
+    filter(highlight_profile) %>%
     mutate(
       label = lancet_percent(case_reduction, accuracy = 0.1),
       label_nudge_x = if_else(outcome == "adolescent_case_reduction", 0.018, -0.018),
@@ -380,7 +435,7 @@ prepare_figure_3_data <- function(inputs = load_figure_3_inputs()) {
     age_contribution_x_upper = p3c_x_upper,
     booster_effect_profile = booster_effect_profile,
     booster_effect_long = booster_effect_long,
-    booster_china_labels = booster_china_labels,
+    booster_highlight_labels = booster_highlight_labels,
     booster_x_limits = booster_x_limits,
     booster_x_breaks = booster_x_breaks
   )

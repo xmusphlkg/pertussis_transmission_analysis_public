@@ -1,10 +1,7 @@
 ## Figure 1 data preparation ---------------------------------------------------
 
 figure_1_selected_regions <- function() {
-  c(
-    "Western Pacific Region", "European Region",
-    "Region of the Americas", "African Region", "South-East Asia Region"
-  )
+  country_region_levels
 }
 
 figure_1_region_display_labels <- function() {
@@ -19,21 +16,156 @@ figure_1_region_display_labels <- function() {
 }
 
 figure_1_country_who_region <- function() {
-  c(
-    Australia = "Western Pacific Region",
-    China = "Western Pacific Region",
-    Japan = "Western Pacific Region",
-    New_Zealand = "Western Pacific Region",
-    Sweden = "European Region",
-    United_Kingdom = "European Region",
-    United_States = "Region of the Americas",
-    Brazil = "Region of the Americas",
-    Thailand = "South-East Asia Region",
-    South_Africa = "African Region"
+  country_who_regions
+}
+
+figure_1b_interval_contract <- function() {
+  settings_path <- model_path("config", "model_settings.yaml")
+  if (!file.exists(settings_path)) {
+    stop("Figure 1b intervals require current model settings.", call. = FALSE)
+  }
+  settings <- yaml::read_yaml(settings_path)
+  contract <- settings$runtime$bayesian_uncertainty$figure1b_current_practice_conditional_parametric_bootstrap_confidence_interval
+  bootstrap_replicates <- as.integer(contract$replicates_per_country)
+  minimum_successful_replicates <- as.integer(contract$minimum_successful_replicates)
+  if (length(bootstrap_replicates) != 1L ||
+      length(minimum_successful_replicates) != 1L ||
+      is.na(bootstrap_replicates) ||
+      is.na(minimum_successful_replicates) ||
+      minimum_successful_replicates <= 0L ||
+      bootstrap_replicates < minimum_successful_replicates) {
+    stop("Figure 1b interval replicate settings are invalid.", call. = FALSE)
+  }
+  list(
+    bootstrap_replicates = bootstrap_replicates,
+    minimum_successful_replicates = minimum_successful_replicates
   )
 }
 
+validate_figure_1b_parent_metadata <- function(intervention_metadata, interval_metadata) {
+  required_fields <- c("config_hash", "source_code_hash")
+  missing_intervention <- setdiff(required_fields, names(intervention_metadata))
+  missing_interval <- setdiff(required_fields, names(interval_metadata))
+  if (length(missing_intervention) > 0L || length(missing_interval) > 0L) {
+    stop("Figure 1b parent metadata are missing config/source-code hashes.", call. = FALSE)
+  }
+  intervention_values <- unlist(intervention_metadata[required_fields], use.names = TRUE)
+  interval_values <- unlist(interval_metadata[required_fields], use.names = TRUE)
+  if (length(intervention_values) != length(required_fields) ||
+      length(interval_values) != length(required_fields) ||
+      any(is.na(intervention_values)) ||
+      any(is.na(interval_values)) ||
+      any(!nzchar(intervention_values)) ||
+      any(!nzchar(interval_values)) ||
+      !identical(unname(intervention_values), unname(interval_values))) {
+    stop(
+      "Figure 1b deterministic points and bootstrap intervals do not share current parent hashes.",
+      call. = FALSE
+    )
+  }
+  list(
+    config_hash = unname(intervention_values[["config_hash"]]),
+    source_code_hash = unname(intervention_values[["source_code_hash"]])
+  )
+}
+
+validate_figure_1b_interval_metadata <- function(interval_metadata) {
+  if (!identical(
+        interval_metadata$bootstrap_data_generation,
+        "conditional_fitted_AR1_path_plus_NB2_measurement"
+      ) ||
+      !isTRUE(interval_metadata$conditional_on_fitted_latent_process_path) ||
+      !identical(interval_metadata$latent_process_path_regenerated, FALSE) ||
+      !identical(
+        interval_metadata$bootstrap_refit,
+        "country_state_space_MAP_full_refit_per_replicate"
+      )) {
+    stop(
+      "Figure 1b bootstrap metadata do not identify the conditional fitted-path route.",
+      call. = FALSE
+    )
+  }
+  invisible(interval_metadata)
+}
+
+load_figure_1b_parent_metadata <- function() {
+  intervention_path <- model_path("outputs", "metadata", "intervention_scenarios_run_metadata.json")
+  interval_path <- model_path(
+    "outputs", "metadata",
+    "figure1b_current_practice_conditional_parametric_bootstrap_run_metadata.json"
+  )
+  if (!file.exists(intervention_path) || !file.exists(interval_path)) {
+    stop("Figure 1b requires deterministic and bootstrap run metadata.", call. = FALSE)
+  }
+  intervention_metadata <- jsonlite::read_json(intervention_path, simplifyVector = TRUE)
+  interval_metadata <- jsonlite::read_json(interval_path, simplifyVector = TRUE)
+  validate_figure_1b_interval_metadata(interval_metadata)
+  validate_figure_1b_parent_metadata(intervention_metadata, interval_metadata)
+}
+
+prepare_figure_1b_endpoint_intervals <- function(
+  interval_audit,
+  publication_countries,
+  bootstrap_replicates,
+  minimum_successful_replicates
+) {
+  require_columns(
+    interval_audit,
+    c(
+      "country", "outcome", "rate_q025", "rate_q975",
+      "bootstrap_replicates", "interval_type", "interval_basis",
+      "confidence_interval_method"
+    ),
+    "figure1b_current_practice_conditional_confidence_intervals.csv"
+  )
+  outcome_order <- c("Reports", "Symptomatic", "Infections")
+  intervals <- interval_audit %>%
+    transmute(
+      country = stringr::str_replace_all(as.character(country), " ", "_"),
+      outcome = as.character(outcome),
+      interval_lower_per_100k = as.numeric(rate_q025),
+      interval_upper_per_100k = as.numeric(rate_q975),
+      bootstrap_replicates = as.integer(bootstrap_replicates),
+      interval_type = as.character(interval_type),
+      interval_basis = as.character(interval_basis),
+      confidence_interval_method = as.character(confidence_interval_method)
+    )
+
+  expected_countries <- unique(stringr::str_replace_all(as.character(publication_countries), " ", "_"))
+  if (!setequal(unique(intervals$country), expected_countries) ||
+      !setequal(unique(intervals$outcome), outcome_order) ||
+      nrow(intervals) != length(expected_countries) * length(outcome_order) ||
+      anyDuplicated(intervals[c("country", "outcome")]) > 0L ||
+      any(!is.finite(intervals$interval_lower_per_100k)) ||
+      any(!is.finite(intervals$interval_upper_per_100k)) ||
+      any(intervals$interval_lower_per_100k < 0) ||
+      any(intervals$interval_lower_per_100k > intervals$interval_upper_per_100k) ||
+      any(intervals$bootstrap_replicates < minimum_successful_replicates) ||
+      any(intervals$bootstrap_replicates > bootstrap_replicates)) {
+    stop("Figure 1b requires complete current-practice confidence intervals for all endpoints.", call. = FALSE)
+  }
+  if (!identical(unique(intervals$interval_type),
+                 "95% parametric-bootstrap confidence interval") ||
+      !identical(unique(intervals$confidence_interval_method),
+                 "percentile_parametric_bootstrap") ||
+      any(!stringr::str_detect(stringr::str_to_lower(intervals$interval_basis), "parametric bootstrap")) ||
+      any(!stringr::str_detect(stringr::str_to_lower(intervals$interval_basis), "conditional")) ||
+      any(!stringr::str_detect(stringr::str_to_lower(intervals$interval_basis), "fitted annual latent transmission path")) ||
+      any(!stringr::str_detect(stringr::str_to_lower(intervals$interval_basis), "fully refitted")) ||
+      any(stringr::str_detect(
+        stringr::str_to_lower(intervals$interval_basis),
+        "marginal|regenerates a complete annual latent transmission path|posterior|credible|prediction interval|predictive interval"
+      ))) {
+    stop("Figure 1b interval provenance is not the audited conditional full-refit parametric bootstrap.", call. = FALSE)
+  }
+
+  intervals %>%
+    arrange(match(country, expected_countries), match(outcome, outcome_order))
+}
+
 load_figure_1_inputs <- function() {
+  interval_contract <- figure_1b_interval_contract()
+  parent_metadata <- load_figure_1b_parent_metadata()
   list(
     regional_incidence = readr::read_csv(
       model_path("data", "processed", "who_pertussis_region_incidence.csv"),
@@ -43,7 +175,12 @@ load_figure_1_inputs <- function() {
     intervention_summary = readr::read_csv(
       model_path("outputs", "summaries", "intervention_scenarios_summary.csv"),
       show_col_types = FALSE
-    )
+    ),
+    primary_interval_audit = read_summary("figure1b_current_practice_conditional_confidence_intervals.csv"),
+    bootstrap_replicates = interval_contract$bootstrap_replicates,
+    minimum_successful_replicates = interval_contract$minimum_successful_replicates,
+    parent_config_hash = parent_metadata$config_hash,
+    parent_source_code_hash = parent_metadata$source_code_hash
   )
 }
 
@@ -82,10 +219,12 @@ prepare_figure_1_data <- function(inputs = load_figure_1_inputs()) {
     ) %>%
     mutate(country = stringr::str_replace_all(country, " ", "_"))
 
-  country_order <- pediatric_burden %>%
-    arrange(desc(primary_cases_per_100k)) %>%
-    mutate(country_label_text = format_country(country)) %>%
-    pull(country_label_text)
+  available_country_labels <- unique(format_country(pediatric_burden$country))
+  country_order <- main_figure_country_order(available_country_labels)
+  if (length(country_order) != length(main_figure_country_label_levels) ||
+      !setequal(country_order, available_country_labels)) {
+    stop("Figure 1 countries do not match the fixed main-figure order.", call. = FALSE)
+  }
 
   country_who_region <- figure_1_country_who_region()
 
@@ -185,6 +324,11 @@ prepare_figure_1_data <- function(inputs = load_figure_1_inputs()) {
     ) %>%
     filter(!is.na(country_label)) %>%
     distinct(country, .keep_all = TRUE)
+  if (nrow(baseline_endpoints) != length(country_order) ||
+      anyDuplicated(baseline_endpoints$country) > 0L ||
+      !setequal(format_country(baseline_endpoints$country), country_order)) {
+    stop("Figure 1b requires one current-practice row per publication profile.", call. = FALSE)
+  }
 
   baseline_endpoint_long <- baseline_endpoints %>%
     select(
@@ -231,6 +375,61 @@ prepare_figure_1_data <- function(inputs = load_figure_1_inputs()) {
       country_y = country_y_base + outcome_offset
     ) %>%
     filter(positive_rate(rate_per_100k))
+  if (nrow(baseline_endpoint_long) != 3L * length(country_order) ||
+      anyDuplicated(baseline_endpoint_long[c("country", "outcome")]) > 0L ||
+      any(!is.finite(baseline_endpoint_long$rate_per_100k))) {
+    stop("Figure 1b requires three finite current-practice point indices per profile.", call. = FALSE)
+  }
+
+  endpoint_intervals <- prepare_figure_1b_endpoint_intervals(
+    inputs$primary_interval_audit,
+    publication_countries = baseline_endpoints$country,
+    bootstrap_replicates = inputs$bootstrap_replicates,
+    minimum_successful_replicates = inputs$minimum_successful_replicates
+  ) %>%
+    left_join(
+      baseline_endpoint_long %>%
+        mutate(outcome = as.character(outcome)) %>%
+        select(country, outcome, country_label_text, country_y, rate_per_100k),
+      by = c("country", "outcome")
+    )
+  if (nrow(endpoint_intervals) != 3L * length(country_order) ||
+      anyDuplicated(endpoint_intervals[c("country", "outcome")]) > 0L ||
+      any(!is.finite(endpoint_intervals$country_y)) ||
+      any(!is.finite(endpoint_intervals$rate_per_100k)) ||
+      any(endpoint_intervals$rate_per_100k < endpoint_intervals$interval_lower_per_100k) ||
+      any(endpoint_intervals$rate_per_100k > endpoint_intervals$interval_upper_per_100k)) {
+    stop("Figure 1b deterministic endpoint indices are not covered by valid matched intervals.", call. = FALSE)
+  }
+
+  baseline_endpoint_long <- baseline_endpoint_long %>%
+    left_join(
+      endpoint_intervals %>%
+        select(
+          country,
+          outcome,
+          interval_lower_per_100k,
+          interval_upper_per_100k,
+          bootstrap_replicates,
+          interval_type,
+          interval_basis,
+          confidence_interval_method
+        ),
+      by = c("country", "outcome")
+    ) %>%
+    mutate(
+      parent_config_hash = inputs$parent_config_hash,
+      parent_source_code_hash = inputs$parent_source_code_hash,
+      interval_applies = TRUE,
+      across(
+        c(interval_lower_per_100k, interval_upper_per_100k, bootstrap_replicates),
+        ~ if_else(interval_applies, ., NA_real_)
+      ),
+      across(
+        c(interval_type, interval_basis, confidence_interval_method),
+        ~ if_else(interval_applies, ., NA_character_)
+      )
+    )
 
   endpoint_spans <- baseline_endpoint_long %>%
     group_by(country, country_label_text, country_y_base) %>%
@@ -251,6 +450,7 @@ prepare_figure_1_data <- function(inputs = load_figure_1_inputs()) {
     decision_medians = decision_medians,
     baseline_composition = baseline_composition,
     baseline_endpoint_long = baseline_endpoint_long,
-    endpoint_spans = endpoint_spans
+    endpoint_spans = endpoint_spans,
+    endpoint_intervals = endpoint_intervals
   )
 }

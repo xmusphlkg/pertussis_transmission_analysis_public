@@ -1,0 +1,55 @@
+{
+  "audit": "exact_complete_state_mode_bank_independence_mh",
+  "config_hash": "60c5de6f402f35a1616f91df67d6fcf33a2b7f5d37b9e8a6d23895f7076a02d3",
+  "covariance_floor_fraction": 0.01,
+  "covariance_inflation": 0.75,
+  "degrees_of_freedom": 100.0,
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "generated_at_utc": "2026-07-15T12:52:22.770578+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
+    "dirty": true
+  },
+  "mean_mh_acceptance": 0.3671875,
+  "mode_bank_dimension": 80,
+  "mode_bank_source_hashes": [
+    "2975ab090d81db0f0d30685285478e3b0030ba8dcc1e3d7131fa67ade906d5ea",
+    "ce20f31cc14df4a31ed57ea64c3d9cf8fc66f145a5185b8695cd2121bd4d6be3",
+    "7301f663b3441271cd844bb422b715c972aed544f2113aa851da12adec26721b",
+    "936e2ca4087df5292b6cb903d82b251a53e99e77cf0986cdd1ebb22907da4f88"
+  ],
+  "mode_bank_source_stems": [
+    "modebank64_wide5_exact_pilot_r1",
+    "modebank64_wide5_exact_pilot_r2",
+    "modebank64_wide5_exact_pilot_r3",
+    "modebank64_wide5_exact_pilot_r4"
+  ],
+  "n_jobs": 20,
+  "origin_stems": [
+    "modebank64_wide5_exact_pilot_r1",
+    "modebank64_wide5_exact_pilot_r2",
+    "modebank64_wide5_exact_pilot_r3",
+    "modebank64_wide5_exact_pilot_r4"
+  ],
+  "output_sha256": "e076b1db81ed1ade47130c70d1b4850cb5392d2b10497c95e4e39118c2a76730",
+  "particles_per_origin": 32,
+  "process_support_bound": 5.0,
+  "row_counts": {
+    "mode_bank_origin_audits": 4
+  },
+  "schema_version": 1,
+  "seed": 20260922,
+  "source_code_hash": "038f9d6d8f76bcf202a1f6334b85ff7b2b01bac4d4d86d67a9bcfb28adbb94be",
+  "stem": "modebank2_audit_floor01_infl075_df100",
+  "total_accepted_cross_mode_count": 40
+}

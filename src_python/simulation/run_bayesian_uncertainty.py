@@ -1,14 +1,18 @@
 from __future__ import annotations
 
-"""Uncertainty analysis for the pertussis transmission model.
+"""Optional nonpublication uncertainty research for the transmission model.
 
-The default publication route uses each surveillance series once to construct
+The default research route uses each surveillance series once to construct
 a regularized annual state-space MAP. A bounded multi-scale Gauss-Newton
 mixture proposes beta, reporting, and latent-path states; exact NB2 and AR(1)
 target weights correct that proposal before resampling. Those draws are paired
 with a shared Latin-hypercube design from external structural priors. This is
 deliberately labelled conditional state uncertainty plus structural
 sensitivity—not a full joint/hierarchical posterior or MCMC.
+
+This module is not a Figure 2c interval source and is not part of the
+publication pipeline. Publication Figure 2c uses the separate full-refit
+parametric-bootstrap estimation-CI route.
 
 Legacy beta-grid, importance, SMC, and Metropolis engines remain available for
 diagnostics and alternative targets.  They are prevented from reusing the same
@@ -94,7 +98,12 @@ from src_python.simulation.common import (
     write_run_metadata,
     write_outputs,
 )
-from src_python.simulation.bayesian_priors import resolve_bayesian_prior_specs
+from src_python.simulation.bayesian_priors import (
+    BAYESIAN_LOCAL_STATE_PARAMETER_NAMES,
+    BAYESIAN_PARAMETER_NAMES,
+    BAYESIAN_SHARED_PARAMETER_NAMES,
+    resolve_bayesian_prior_specs,
+)
 from src_python.simulation.parameter_distributions import (
     inverse_cdf_from_validated_spec,
     log_pdf_from_validated_spec,
@@ -107,9 +116,6 @@ from src_python.simulation.stochastic_overlay import (
 )
 from src_python.utils.io import project_path, write_dataframe
 from src_python.utils.parallel import available_cpus, configure_worker_thread_limits, parallel_map
-from src_python.validation.publication_gate import (
-    require_predictive_publication_gate,
-)
 
 
 # ---------------------------------------------------------------------------
@@ -129,8 +135,15 @@ PARAMETER_NAMES = (
 )
 
 N_PARAMS = len(PARAMETER_NAMES)
-DEFAULT_OUTPUT_STEM = "bayesian_uncertainty"
-RETIRED_MISLABELED_OUTPUT_STEMS = frozenset({"bayesian_uncertainty_full_joint"})
+LEGACY_CANONICAL_OUTPUT_STEM = "bayesian_uncertainty"
+DEFAULT_OUTPUT_STEM = "bayesian_uncertainty_conditional_research"
+RETIRED_MISLABELED_OUTPUT_STEMS = frozenset(
+    {
+        "bayesian_uncertainty_full_joint",
+        "bayesian_uncertainty_figure2c_conditional",
+        "bayesian_uncertainty_figure2c_joint",
+    }
+)
 MAX_CASE_EXPOSURE_CACHE_ENTRIES = 32
 MAX_SCALAR_LIKELIHOOD_CACHE_ENTRIES = 256
 MCMC_SAMPLERS = {"adaptive_mh", "componentwise_mh", "slice"}
@@ -426,15 +439,15 @@ def _log_jacobian_scaled_logit(x: float, lower: float, upper: float) -> float:
 
 
 def _artifact_stem(output_stem: str, canonical_stem: str, suffix: str) -> str:
-    """Return canonical artifact names for production and isolated names for pilots."""
+    """Return historical artifact names only for the explicit legacy stem."""
     output_stem = str(output_stem or DEFAULT_OUTPUT_STEM)
-    if output_stem == DEFAULT_OUTPUT_STEM:
+    if output_stem == LEGACY_CANONICAL_OUTPUT_STEM:
         return canonical_stem
     return f"{output_stem}_{suffix}"
 
 
 def _mcmc_progress_dir(output_stem: str) -> Any:
-    if str(output_stem or DEFAULT_OUTPUT_STEM) == DEFAULT_OUTPUT_STEM:
+    if str(output_stem or DEFAULT_OUTPUT_STEM) == LEGACY_CANONICAL_OUTPUT_STEM:
         return project_path("outputs", "metadata", "mcmc_progress")
     return project_path("outputs", "metadata", f"mcmc_progress_{output_stem}")
 
@@ -5597,9 +5610,26 @@ def _run_chain(task: ChainTask) -> pd.DataFrame:
             settings["priors"].get("VE_dur", {}).get("mean", 0.10),
         )
     )
+    if (
+        sampler == STATE_SPACE_LAPLACE_CUT_SAMPLER
+        and (
+            task.beta_prior_log_sd is not None
+            or task.reporting_prior_log_sd is not None
+        )
+    ):
+        raise ValueError(
+            "beta/reporting prior-width overrides cannot modify a stored state-space "
+            "posterior approximation; recalibrate with explicit process_model priors"
+        )
+    registry_parameter_names = (
+        BAYESIAN_SHARED_PARAMETER_NAMES
+        if sampler == STATE_SPACE_LAPLACE_CUT_SAMPLER
+        else BAYESIAN_PARAMETER_NAMES
+    )
     settings["priors"]["_distribution_specs"] = resolve_bayesian_prior_specs(
         configs.get("parameter_distributions", {}),
         runtime_base,
+        parameter_names=registry_parameter_names,
         prior_sd_scale=task.prior_sd_scale,
         beta_prior_log_sd=task.beta_prior_log_sd,
         reporting_prior_log_sd=task.reporting_prior_log_sd,
@@ -6489,11 +6519,29 @@ def _compute_smc_diagnostics(
     parameter_columns: tuple[str, ...],
 ) -> pd.DataFrame:
     try:
-        rank_diagnostics = compute_diagnostics(
-            samples,
-            parameter_columns=tuple(parameter_columns),
-            chain_column="chain",
-            country_column="country",
+        rank_frames: list[pd.DataFrame] = []
+        for _, country_samples in samples.groupby("country", sort=False):
+            country_parameters = tuple(
+                parameter
+                for parameter in parameter_columns
+                if parameter in country_samples.columns
+                and pd.to_numeric(
+                    country_samples[parameter], errors="coerce"
+                ).notna().any()
+            )
+            if country_parameters:
+                rank_frames.append(
+                    compute_diagnostics(
+                        country_samples,
+                        parameter_columns=country_parameters,
+                        chain_column="chain",
+                        country_column="country",
+                    )
+                )
+        rank_diagnostics = (
+            pd.concat(rank_frames, ignore_index=True)
+            if rank_frames
+            else pd.DataFrame()
         )
     except Exception:
         rank_diagnostics = pd.DataFrame()
@@ -7006,7 +7054,7 @@ def _write_convergence_diagnostics(
                 f"{STATE_IMPORTANCE_FATAL_MIN_TAIL_ESS:.0f}\n"
             )
             f.write("    * Structural design draws >= 50 and output draws >= 100\n")
-            f.write("  - Recommended publication conditional-interval standard:\n")
+            f.write("  - Recommended optional nonpublication research standard:\n")
             f.write(
                 "    * Bounded-proposal rejection fraction < "
                 f"{STATE_LAPLACE_RECOMMENDED_MAX_BOUNDARY_REJECTION:.2f}\n"
@@ -7423,9 +7471,9 @@ def _clear_previous_sampler_artifacts(
     stem = str(output_stem or DEFAULT_OUTPUT_STEM).strip()
     if stem in RETIRED_MISLABELED_OUTPUT_STEMS:
         raise ValueError(
-            f"Output stem {stem!r} is retired because it mislabeled conditional "
-            "uncertainty as a full joint posterior; use "
-            "'bayesian_uncertainty_figure2c_conditional'."
+            f"Output stem {stem!r} is retired because it mislabeled a legacy "
+            "research route as Figure 2c or as a full joint posterior; use "
+            f"{DEFAULT_OUTPUT_STEM!r}."
         )
     if not stem or Path(stem).name != stem or stem in {".", ".."}:
         raise ValueError(f"Output stem must be a single safe path component: {output_stem!r}")
@@ -7607,9 +7655,9 @@ def main(
     """
     if str(output_stem) in RETIRED_MISLABELED_OUTPUT_STEMS:
         raise ValueError(
-            f"Output stem {output_stem!r} is retired because it mislabeled conditional "
-            "uncertainty as a full joint posterior; use "
-            "'bayesian_uncertainty_figure2c_conditional'."
+            f"Output stem {output_stem!r} is retired because it mislabeled a legacy "
+            "research route as Figure 2c or as a full joint posterior; use "
+            f"{DEFAULT_OUTPUT_STEM!r}."
         )
     configs = load_configs()
     settings = deepcopy(configs["baseline"]["bayesian_uncertainty"])
@@ -7671,14 +7719,6 @@ def main(
         countries = [c for c in countries_filter if c in available]
         if not countries:
             raise ValueError(f"No valid countries in filter: {countries_filter}. Available: {sorted(available)}")
-
-    if output_stem == "bayesian_uncertainty_figure2c_conditional":
-        if countries != publication_country_names(configs):
-            raise ValueError(
-                "The canonical Figure 2c uncertainty stem requires the complete "
-                "prespecified publication country set"
-            )
-        require_predictive_publication_gate(expected_countries=countries)
 
     if (
         sampler == STATE_SPACE_LAPLACE_CUT_SAMPLER
@@ -8089,6 +8129,19 @@ def main(
             if sampler == STATE_SPACE_LAPLACE_CUT_SAMPLER
             else "config/parameter_distributions.yaml::bayesian_joint"
         ),
+        "registry_prior_parameter_names": list(
+            BAYESIAN_SHARED_PARAMETER_NAMES
+            if sampler == STATE_SPACE_LAPLACE_CUT_SAMPLER
+            else BAYESIAN_PARAMETER_NAMES
+        ),
+        "calibration_state_prior_parameter_names": (
+            [
+                *BAYESIAN_LOCAL_STATE_PARAMETER_NAMES,
+                "annual_log_beta_process",
+            ]
+            if sampler == STATE_SPACE_LAPLACE_CUT_SAMPLER
+            else []
+        ),
         "uncertainty_config_hash": uncertainty_config_fingerprint(configs),
         "prior_width_overrides": {
             "prior_sd_scale": prior_sd_scale,
@@ -8098,6 +8151,11 @@ def main(
             "rel_asym_prior_sd": rel_asym_prior_sd,
             "fitness_prior_log_sd": fitness_prior_sd,
         },
+        "prior_sd_scale_scope": (
+            "seven shared structural registry priors only"
+            if sampler == STATE_SPACE_LAPLACE_CUT_SAMPLER
+            else "all nine registry priors"
+        ),
         "prior_density_contract": (
             "state block uses the calibration.process_model Gaussian priors stored in each "
             "artifact; the seven structural quantities use normalized external-prior "
@@ -8152,6 +8210,9 @@ def main(
         "countries_included": list(countries),
         "convergence_summary": convergence_summary,
         "interpretation_note": interpretation_note,
+        "analysis_role": "optional_nonpublication_legacy_research",
+        "publication_path": False,
+        "figure2c_interval_source": False,
     }
 
     if skip_posterior_predictive:
@@ -8193,6 +8254,7 @@ def main(
         summary,
         output_stem,
         extra_metadata=posterior_metadata | {"posterior_predictive_skipped": False},
+        require_calibrated=False,
     )
     _write_interval_summaries(summary, samples, output_stem=output_stem)
 
@@ -8209,8 +8271,9 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=(
-            "Run the conditional state-space exact-target importance route, or an "
-            "explicitly selected legacy beta-grid/MCMC/SMC sensitivity engine."
+            "Run optional nonpublication conditional state-space uncertainty research, "
+            "or an explicitly selected legacy beta-grid/MCMC/SMC sensitivity engine. "
+            "This entry point is not a Figure 2c interval source."
         )
     )
     parser.add_argument("--n-jobs", type=int, default=None,
@@ -8220,7 +8283,7 @@ if __name__ == "__main__":
     parser.add_argument("--n-chains", type=int, default=None,
                         help="Number of chains to run")
     parser.add_argument("--draws", type=int, default=None,
-                        help="Output draws per synthetic batch/chain (configured publication default: 128)")
+                        help="Output draws per synthetic batch/chain (configured research default: 128)")
     parser.add_argument("--warmup", type=int, default=None,
                         help="Warmup steps for legacy MCMC engines (state exact-importance route: 0)")
     parser.add_argument("--thin", type=int, default=None,
@@ -8234,14 +8297,14 @@ if __name__ == "__main__":
     parser.add_argument("--sampler", type=str, default=STATE_SPACE_LAPLACE_CUT_SAMPLER,
                         choices=("adaptive_mh", "componentwise_mh", "slice", "beta_grid", JOINT_IMPORTANCE_SAMPLER, SMC_SAMPLER, STATE_SPACE_LAPLACE_CUT_SAMPLER, LEGACY_STATE_SPACE_LAPLACE_CUT_SAMPLER),
                         help=(
-                            "Uncertainty engine; state_space_exact_importance_cut is the publication route "
+                            "Uncertainty engine; state_space_exact_importance_cut is the default research route "
                             "(state_space_laplace_cut is accepted only as a legacy input alias): "
                             "one-use conditional state inference, exact-target importance correction, "
                             "and shared external structural priors"
                         ))
     parser.add_argument("--solver-mode", type=str, default="calibration",
                         choices=("mcmc_fast", "calibration", "production"),
-                        help="Solver/runtime fidelity for likelihood evaluations; the publication state-space exact-target route requires calibration")
+                        help="Solver/runtime fidelity for likelihood evaluations; the state-space exact-target research route requires calibration")
     parser.add_argument("--prior-sd-scale", type=float, default=None,
                         help="Scale all Bayesian prior standard deviations for pilot testing")
     parser.add_argument("--beta-prior-log-sd", type=float, default=None,
@@ -8255,7 +8318,10 @@ if __name__ == "__main__":
     parser.add_argument("--fitness-prior-sd", type=float, default=None,
                         help="Override fitness_R log-scale prior SD in the central Bayesian registry")
     parser.add_argument("--output-stem", type=str, default=DEFAULT_OUTPUT_STEM,
-                        help="Artifact stem; non-default values isolate pilot outputs")
+                        help=(
+                            f"Artifact stem for optional nonpublication research "
+                            f"(default: {DEFAULT_OUTPUT_STEM}); never a Figure 2c source"
+                        ))
     parser.add_argument("--initial-samples", type=str, default=None,
                         help="Posterior sample parquet used for warm-start pilots")
     parser.add_argument("--initial-strategy", type=str, default="calibrated",

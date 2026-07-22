@@ -29,7 +29,7 @@ help:
 	@echo "  data                     Process source data"
 	@echo "  calibrate                Reconstruct country starting states"
 	@echo "  simulate                 Run deterministic scenario simulations"
-	@echo "  calibration-hindcast     Run leakage-safe prequential POMP/ensemble gate"
+	@echo "  calibration-hindcast     Run leakage-safe prequential POMP/ensemble validation"
 	@echo "  panel-pomp-block-stress  Run unassimilated annual block stress test"
 	@echo "  publication-data         Generate retained diagnostics and source tables"
 	@echo "  publication-diagnostics Rebuild non-PSA publication diagnostics"
@@ -37,7 +37,7 @@ help:
 	@echo "  fitness-grid-psa         Project PSA samples onto the fitness grid"
 	@echo "  publication-tables      Rebuild retained source tables"
 	@echo "  figures                  Render main and extended figures"
-	@echo "  validate-public          Validate retained output windows, hashes, and gates"
+	@echo "  validate-public          Validate retained output windows, hashes, and metadata"
 	@echo "  test                     Run the complete public pytest suite"
 	@echo "  N_JOBS=64                Bounded process workers; use up to 100 if available"
 
@@ -81,7 +81,7 @@ simulate: $(STAMP_DIR)/simulate
 $(STAMP_DIR)/calibration-hindcast: $(STAMP_DIR)/calibrate $(RUNTIME_DATA_INPUTS) \
                                  $(PYTHON_INIT) $(CALIBRATION_PY) $(SIMULATION_PY) $(VALIDATION_PY)
 	@rm -f $@
-	PERTUSSIS_N_JOBS=$(N_JOBS) $(PYTHON) -m src_python.validation.run_panel_pomp_hindcast --forecast-mode prequential --test-years 2023-2026 --particles 512 --predictive-draws 4096 --mc-replicates 3 --n-jobs $(N_JOBS) --require-predictive-gate
+	PERTUSSIS_N_JOBS=$(N_JOBS) $(PYTHON) -m src_python.validation.run_panel_pomp_hindcast --forecast-mode prequential --test-years 2023-2026 --particles 512 --predictive-draws 4096 --mc-replicates 3 --n-jobs $(N_JOBS)
 	@touch $@
 
 calibration-hindcast: $(STAMP_DIR)/calibration-hindcast

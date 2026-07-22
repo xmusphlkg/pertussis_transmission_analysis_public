@@ -70,8 +70,11 @@ PUBLICATION_METADATA_STEMS = (
     "treatment_implementation_sensitivity",
     "individual_stochastic_toy",
     "joint_psa_rank_acceptability",
-    "fitness_resistance_grid_posterior_sample_diagnostics",
-    "fitness_resistance_grid_posterior_benefit",
+    "resistance_management_psa",
+    "figure1b_current_practice_conditional_parametric_bootstrap",
+    "figure2_programme_reference",
+    "figure2c_parametric_bootstrap",
+    "figure2c_parametric_bootstrap_quality_audit",
     "fitness_resistance_grid_psa_benefit",
     "health_utility_analysis",
     "vaccine_pipeline_mapping",
@@ -96,11 +99,28 @@ PUBLICATION_REQUIRED_TABLES = {
         "outputs/tables/joint_psa_under18_programme_rank_acceptability.csv",
         "outputs/summaries/joint_psa_under18_programme_rank_acceptability_summary.csv",
     ),
-    "fitness_resistance_grid_posterior_sample_diagnostics": (
-        "outputs/summaries/fitness_resistance_grid_posterior_sample_diagnostics.csv",
+    "resistance_management_psa": (
+        "outputs/tables/resistance_management_psa_parameter_samples.csv",
+        "outputs/tables/resistance_management_psa_effect_samples.csv",
+        "outputs/summaries/resistance_management_psa_summary.csv",
     ),
-    "fitness_resistance_grid_posterior_benefit": (
-        "outputs/summaries/fitness_resistance_grid_posterior_benefit_summary.csv",
+    "figure1b_current_practice_conditional_parametric_bootstrap": (
+        "outputs/summaries/figure1b_current_practice_conditional_confidence_intervals.csv",
+        "outputs/tables/figure1b_current_practice_conditional_bootstrap_draws.csv",
+        "outputs/diagnostics/figure1b_current_practice_conditional_parametric_bootstrap_fit_diagnostics.csv",
+        "outputs/diagnostics/figure1b_current_practice_conditional_parametric_bootstrap_interval_stability.csv",
+    ),
+    "figure2_programme_reference": (
+        "outputs/summaries/figure2_programme_reference_summary.csv",
+    ),
+    "figure2c_parametric_bootstrap": (
+        "outputs/summaries/figure2c_programme_paired_confidence_intervals.csv",
+        "outputs/tables/figure2c_programme_paired_bootstrap_draws.csv",
+        "outputs/diagnostics/figure2c_parametric_bootstrap_fit_diagnostics.csv",
+        "outputs/diagnostics/figure2c_parametric_bootstrap_interval_stability.csv",
+    ),
+    "figure2c_parametric_bootstrap_quality_audit": (
+        "outputs/tables/figure2c_parametric_bootstrap_quality_audit.csv",
     ),
     "fitness_resistance_grid_psa_benefit": (
         "outputs/tables/fitness_resistance_grid_psa_benefit_summary.csv",

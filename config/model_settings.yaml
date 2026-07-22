@@ -557,7 +557,10 @@ runtime:
         log_beta_prior_sd: 1.00
         log_reporting_prior_sd: 0.50
         beta_S_bounds: [0.0005, 0.50]
-        reporting_multiplier_bounds: [0.50, 1.50]
+        # Numerical support only. The Gaussian prior and age-specific
+        # literature-range penalty regularize reporting; a narrow [0.5, 1.5]
+        # box previously truncated the Brazil posterior at its upper edge.
+        reporting_multiplier_bounds: [0.10, 10.0]
         max_abs_log_beta_deviation: 2.50
         max_posterior_condition_number: 1.0e8
         # The New Zealand profile can require more than 96 evaluations even
@@ -1177,34 +1180,41 @@ runtime:
         Retain as an exploratory deterministic scenario, but exclude it from
         calibrated policy uncertainty until additional surveillance data or a
         separately justified external calibration model is supplied.
-    # Sparse country surveillance is allowed to update country transmission
-    # and reporting only. Vaccine/natural-history/fitness uncertainty is drawn
-    # once from the shared external-evidence priors and propagated with a
-    # modular cut, preventing six annual counts from spuriously identifying a
-    # nine-dimensional country-specific mechanism vector.
-    inference_structure: reference_structure_state_space_exact_importance_cut
+    # Shared biological parameters are learned from the product of all country
+    # likelihoods, while beta, reporting, and annual latent transmission states
+    # remain country-specific. This partial pooling avoids fitting a separate
+    # nine-dimensional mechanism vector to each sparse country series.
+    inference_structure: cross_country_joint_state_space_tempered_smc
     shared_structural_seed: 20260712
     n_chains: 4
     warmup: 0
-    # Four synthetic batches x 128 draws give 512 output rows: exactly four
-    # complete passes through the 128-point equal-mass structural design.
-    # Increasing this only duplicates the finite importance/design support.
-    draws: 128
+    # Four SMC islands are retained as diagnostic groups. Each island contains
+    # 1,024 equal-mass particles at the full posterior.
+    draws: 1024
     thin: 1
     proposal_scale: 1.0
     smc_particles: 1024
-    smc_ess_fraction: 0.65
+    smc_islands: 4
+    smc_ess_fraction: 0.70
     smc_move_steps: 4
+    smc_global_covariance_fraction: 0.25
+    smc_guided_state_covariance_scale: 4.0
+    smc_guided_bridge_temperature_scale: 0.0001
+    smc_shared_population_guide_switch_temperature: 0.001
     smc_max_stages: 100
+    smc_final_move_rounds: 4
     posterior_predictive_draws_per_country: 100
     dispersion: 50.0
     enable_time_varying_reporting: false
     # Use annual aggregation for posterior calibration: the deterministic ODE
     # does not represent within-year reporting autocorrelation, delays, or
     # seasonal surveillance artefacts, so monthly points should not be treated as
-    # independent likelihood contributions for the Figure 2c conditional interval.
+    # independent likelihood contributions for the legacy joint-posterior route.
     likelihood_observation_frequency: annual
     require_calibrated_start: true
+    # Retained only for reproducibility of rejected numerical pilots. The legacy
+    # joint-posterior route does not use independent importance weights and is not
+    # the publication Figure 2c interval source.
     state_space_importance:
       adaptation_candidate_count: 512
       adaptation_round_candidate_count: 512
@@ -1224,24 +1234,67 @@ runtime:
       initial_proposal_covariance_scales: [0.0625, 0.25, 1.0, 4.0]
       proposal_covariance_scales: [0.25, 0.5, 1.0, 2.0, 4.0]
       note: >
-        The multi-scale Gauss-Newton Gaussian mixture is only a normalized
-        proposal. Candidate states are reweighted by the exact NB2 plus AR(1)
-        plus beta/reporting-prior target before stratified resampling. Final
-        acceptance requires adequate exact-target importance ESS, maximum
-        normalized weight, Pareto-tail shape, coordinate-wise 2.5%/97.5% tail
-        effective support, and bounded-proposal support. Failure writes a full
-        candidate audit but no posterior sample or publication interval.
-    figure2c_conditional_uncertainty:
-      posterior_draws_per_country: 512
+        Legacy rejected route. Multi-scale exact-target importance tests showed
+        severe local and global weight collapse and cannot generate the
+        publication 95% credible interval. These controls are not consumed by
+        run_hierarchical_joint_smc.
+    figure2c_parametric_bootstrap_confidence_interval:
+      replicates_per_country: 1024
+      minimum_successful_replicates: 1000
+      minimum_success_fraction: 0.95
+      maximum_tail_probability_mcse: 0.005
+      stability_blocks: 8
+      parallel_workers: 100
+      checkpoint_chunk_size: 100
+      # The production max_nfev floor is 256. Failed full refits are retried
+      # on the identical synthetic data with 512 and then 1,024 evaluations.
+      retry_maxiter_schedule: [64, 128]
+      seed: 20260716
       note: >
-        Figure 2c uses paired conditional uncertainty draws. Surveillance is
-        used once in the annual latent-log-beta state reconstruction; beta,
-        reporting, and historical states are proposed by a bounded multi-scale
-        Gauss-Newton mixture and corrected against the exact NB2 plus AR(1)
-        target before resampling. Future AR(1) innovations, shared external
-        structural-prior draws, and intervention implementation/effect draws
-        are then paired across current practice and interventions. These are
-        conditional intervals, not full joint Bayesian credible intervals.
+        Canonical Figure 2c uncertainty route. Each replicate regenerates a
+        complete annual latent transmission path from the prespecified bounded
+        AR(1) process and grouped surveillance counts from the fitted NB2 model,
+        fully refits the country state-space MAP model, and propagates that same
+        refit through current practice and every intervention strategy. The
+        2.5% and 97.5% percentile endpoints are paired parametric-bootstrap 95%
+        confidence intervals for the fitted scenario-reduction estimand. They
+        are neither posterior credible intervals nor future-observation
+        prediction intervals. Biological quantities, intervention definitions,
+        AR(1) hyperparameters, and NB2 dispersion remain fixed at prespecified
+        reference values.
+    figure1b_current_practice_conditional_parametric_bootstrap_confidence_interval:
+      replicates_per_country: 1024
+      minimum_successful_replicates: 1000
+      minimum_success_fraction: 0.95
+      maximum_tail_probability_mcse: 0.005
+      stability_blocks: 8
+      parallel_workers: 48
+      checkpoint_chunk_size: 50
+      retry_maxiter_schedule: [64, 128]
+      seed: 20260718
+      note: >
+        Figure 1b current-practice-only conditional uncertainty route. Each
+        replicate holds the accepted fitted annual latent transmission path as
+        the generating trajectory, regenerates grouped NB2 surveillance counts,
+        fully refits the country state-space MAP model, and runs current practice
+        once. The reported-case, symptomatic-case, and infection indices are
+        retained from the same fitted replicate. Percentile endpoints are
+        conditional parametric-bootstrap confidence intervals, not posterior
+        credible intervals or future-observation prediction intervals.
+        Biological quantities, AR(1) hyperparameters, and NB2 dispersion remain
+        fixed at prespecified reference values.
+    figure2c_joint_credible_interval:
+      posterior_draws_per_country: 4096
+      note: >
+        Retired checkpoint-compatible route, retained only for provenance.
+        Figure 2c previously used paired draws from the multi-country full-feedback joint
+        posterior. Shared biological parameters, country beta/reporting, and
+        annual latent transmission states are jointly weighted by the exact NB2
+        plus AR(1) plus mechanistic ODE target. Intervention implementation and
+        effect quantities have prespecified priors and no direct likelihood, so
+        their posterior equals their prior; the same complete draw is propagated
+        through current practice and each intervention. The plotted 2.5% and
+        97.5% quantiles are joint-posterior 95% credible intervals.
       intervention_priors:
         adolescent_coverage_floor:
           low: 0.75
@@ -1280,16 +1333,13 @@ runtime:
           distribution: triangular
           note: Duration of passive maternal protection in early infancy.
     note: >
-      The default route is
-      reference_structure_state_space_exact_importance_cut. The canonical CLI
-      sampler is state_space_exact_importance_cut; state_space_laplace_cut is
-      accepted only as a legacy input alias and is never written to new outputs.
-      Externally informed vaccine, duration, asymptomatic-infectiousness, and
-      resistance-fitness uncertainty is shared across countries and propagated,
-      but sparse surveillance is not allowed to update those structural priors.
-      Legacy grid, Adaptive Metropolis, importance, and SMC engines target a
-      separate deterministic no-process likelihood from pre-surveillance priors
-      and must be labelled as alternative sensitivity analyses.
+      The canonical route is multi-country adaptive tempered SMC over the full
+      joint state: seven shared biological parameters plus country-specific
+      beta, reporting, and annual AR(1) transmission paths. Tempering proceeds
+      from the normalized joint prior to the exact NB2/ODE target, with
+      island-wise resampling and exact-target shared/state rejuvenation moves.
+      The former conditional cut and nested importance routes are retained only
+      as rejected sensitivity implementations and are not publication inputs.
     convergence_criteria:
       rhat_threshold: 1.05
       min_bulk_ess: 100
@@ -1298,13 +1348,11 @@ runtime:
       recommended_min_bulk_ess: 400
       recommended_min_tail_ess: 400
       note: >
-        R-hat/ESS thresholds apply only to genuine MCMC/SMC alternatives. The
-        default state-space route instead gates Hessian rank/conditioning,
-        bounded-mixture rejection mass, exact-target importance ESS, maximum
-        weight, Pareto-tail shape and coordinate-tail support, state-draw count,
-        structural design size, complete annual process paths, cross-country
-        structural pairing, and rolling-origin predictive checks. Synthetic
-        chain labels are output batching, not Markov chains.
+        SMC islands are independent diagnostic chains. Publication acceptance
+        requires final temperature 1, stage-wise island ESS control, active
+        rejuvenation, adequate particle and island diversity, rank-normalized
+        cross-island R-hat/bulk/tail ESS, complete annual process paths,
+        cross-country shared-draw pairing, and rolling-origin predictive checks.
     adaptive_metropolis:
       adaptation_start: 50
       mixing_fraction: 0.95

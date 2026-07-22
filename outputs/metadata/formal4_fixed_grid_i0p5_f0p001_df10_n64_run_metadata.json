@@ -1,0 +1,61 @@
+{
+  "audit": "exact_complete_state_mode_bank_independence_mh",
+  "config_hash": "60c5de6f402f35a1616f91df67d6fcf33a2b7f5d37b9e8a6d23895f7076a02d3",
+  "convergence_diagnostics_sha256": null,
+  "convergence_summary": null,
+  "covariance_floor_fraction": 0.001,
+  "covariance_inflation": 0.5,
+  "crossfit_current_population": false,
+  "degrees_of_freedom": 10.0,
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "final_posterior_sha256": null,
+  "final_posterior_written": false,
+  "generated_at_utc": "2026-07-16T02:10:09.592179+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
+    "dirty": true
+  },
+  "mean_mh_acceptance": 0.1328125,
+  "mode_bank_dimension": 80,
+  "mode_bank_source_hashes": [
+    "a435d225a9cb8d427f5a5f98b61e09648fea636b1240844bf9454cf9d4393578",
+    "f802092d98de4a15a7c9dfab56b4b431c4eb1387e6eb606b00204c8a0089a1fe",
+    "9e8062cc107474d3fd4d21d7dc185d7bb42b3ab4586714c0fb4a462f0650f81b",
+    "b68eb2458fa4aec571a679fa97b6931e1e8917712b27a4ae04bc5ab3cddcee5d"
+  ],
+  "mode_bank_source_stems": [
+    "formal_crossfit_weighted75_512_wide5_r1",
+    "formal_crossfit_weighted75_512_wide5_r2",
+    "formal_crossfit_weighted75_512_wide5_r3",
+    "formal_crossfit_weighted75_512_wide5_r4"
+  ],
+  "n_jobs": 8,
+  "origin_stems": [
+    "formal_crossfit_weighted75_512_wide5_r1",
+    "formal_crossfit_weighted75_512_wide5_r2",
+    "formal_crossfit_weighted75_512_wide5_r3",
+    "formal_crossfit_weighted75_512_wide5_r4"
+  ],
+  "output_sha256": "148a891bd9545d05aa262ee174f4b3f8e267e54a42a8f24c4d14ed4a418d5814",
+  "particles_per_origin": 64,
+  "process_support_bound": 5.0,
+  "rounds": 1,
+  "row_counts": {
+    "mode_bank_origin_audits": 4
+  },
+  "schema_version": 1,
+  "seed": 20261401,
+  "source_code_hash": "1aacd16b3e63141ecbb0ea899b83f46a6c9294d32e3d71c15aa9721e43b9cd75",
+  "stem": "formal4_fixed_grid_i0p5_f0p001_df10_n64",
+  "total_accepted_cross_mode_count": 29
+}

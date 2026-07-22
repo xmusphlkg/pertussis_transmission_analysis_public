@@ -1,116 +1,73 @@
 ## Figure 4 source data --------------------------------------------------------
 
 figure_4_source_filenames <- c(
-  mechanism_contrasts = "figure4a_resistance_mechanism_contrasts.csv",
-  management_tradeoff = "figure4b_resistance_management_tradeoff.csv",
-  preference_weight_summary = "figure4c_resistance_preference_weight_summary.csv",
-  preference_country_thresholds = "figure4c_resistance_preference_country_thresholds.csv",
-  implementation_sensitivity = "figure4_resistance_implementation_sensitivity_appendix.csv",
-  future_vaccine_residual_burden = "figure4e_future_vaccine_residual_burden.csv",
-  future_veinf_thresholds = "figure4f_future_veinf_thresholds.csv",
-  future_veinf_attainment = "figure4f_future_veinf_attainment.csv",
-  future_veinf_seeded_attainment_summary = "figure4f_future_veinf_seeded_attainment_summary.csv"
+  management_pairwise = "figure4a_resistance_guided_vs_timeliness.csv",
+  vaccine_residual = "figure4b_vaccine_setting_residual_index.csv"
 )
 
 make_figure_4_source_data <- function(data) {
   list(
-    mechanism_contrasts = data$mechanism_delta %>%
+    management_pairwise = data$management_pairwise %>%
+      left_join(data$management_summary, by = "endpoint") %>%
+      transmute(
+        country,
+        country_name,
+        outcome = as.character(endpoint),
+        routine_timeliness_raw_burden = routine_burden,
+        resistance_guided_raw_burden = guided_burden,
+        guided_residual_index_vs_routine = residual_index,
+        guided_reduction_vs_routine = reduction_vs_routine,
+        direction,
+        profiles_guided_lower,
+        profiles_routine_lower,
+        median_residual_index,
+        q25_residual_index,
+        q75_residual_index,
+        min_residual_index,
+        max_residual_index,
+        burden_unit = "annualised per 100,000 endpoint-specific population",
+        analysis_horizon = "2027-01-01 to 2050-12-31",
+        contrast_definition
+      ),
+    vaccine_residual = data$vaccine_outcomes %>%
       left_join(
-        data$mechanism_delta_summary %>%
+        data$vaccine_summary_matrix %>%
           select(
-            scenario,
-            mechanism_label,
-            metric,
-            median_reduction_vs_baseline,
-            q25_reduction_vs_baseline,
-            q75_reduction_vs_baseline
+            scenario, endpoint, profiles_evaluated, profiles_above_current,
+            median_residual_index, q25_residual_index, q75_residual_index,
+            min_residual_index, max_residual_index
           ),
-        by = c("scenario", "mechanism_label", "metric")
+        by = c("scenario", "endpoint")
       ) %>%
+      left_join(data$vaccine_parameters, by = "scenario") %>%
       transmute(
         country,
-        scenario,
-        mechanism_label = as.character(mechanism_label),
-        mechanism_axis_label = unname(data$mechanism_axis_labels[as.character(mechanism_label)]),
-        metric = as.character(metric),
-        mechanism_y,
-        mechanism_y_metric,
-        reduction_vs_baseline,
-        median_reduction_vs_baseline,
-        q25_reduction_vs_baseline,
-        q75_reduction_vs_baseline,
-        resistant_infections_per_100k,
-        baseline_resistant_infections_per_100k,
-        child_adolescent_cases_per_100k,
-        baseline_child_adolescent_cases_per_100k,
-        end_resistant_fraction = resistant_fraction_end,
-        resistant_importation,
-        treatment_differential,
-        pep_differential,
-        fitness_R,
-        interpretation = mechanism_interpretation
-      ),
-    management_tradeoff = data$resistance_management %>%
-      transmute(
-        country,
-        country_code,
-        current_resistant_infections_per_100k,
-        remaining_resistant_infections_per_100k,
-        absolute_resistant_infections_averted_per_100k =
-          current_resistant_infections_per_100k - remaining_resistant_infections_per_100k,
-        remaining_child_adolescent_cases_per_100k = primary_cases_per_100k,
-        primary_case_reduction,
-        relative_reduction_resistant_infections,
-        resistance_reduction_estimable
-      ),
-    preference_weight_summary = data$preference_summary %>%
-      transmute(
-        resistance_weight_lambda,
-        strategy,
-        strategy_label = as.character(strategy_label),
-        countries_preferred,
-        median_preference_score,
-        median_infant_case_reduction,
-        median_resistant_infection_reduction
-      ),
-    preference_country_thresholds = data$preference_thresholds,
-    implementation_sensitivity = data$implementation_plot %>%
-      mutate(
-        pep_assumption = as.character(pep_assumption),
-        reach_status = as.character(reach_status),
-        implementation_group = as.character(implementation_group),
-        metric = as.character(metric)
-      ),
-    future_vaccine_residual_burden = data$vaccine_residual %>%
-      mutate(scenario_label = as.character(scenario_label)) %>%
-      left_join(data$vaccine_burden_summary, by = "scenario_label") %>%
-      transmute(
-        country,
-        country_code,
-        country_label_text,
-        scenario,
-        scenario_label,
-        outcome_type = as.character(outcome_type),
-        primary_cases_per_100k,
-        min_primary_cases_per_100k,
-        max_primary_cases_per_100k,
-        median,
-        q25,
-        q75,
-        q025,
-        q975
-      ),
-    future_veinf_thresholds = data$veinf_threshold_source,
-    future_veinf_attainment = data$veinf_attainment_source,
-    future_veinf_seeded_attainment_summary = data$veinf_attainment_plot_summary %>%
-      transmute(
-        comparator,
-        comparator_label = as.character(comparator_label),
-        starting_resistant_fraction,
-        seed_label = as.character(seed_label),
-        infectiousness_reduction,
-        profiles_matching_comparator,
-        countries_evaluated
+        country_name = format_country(country),
+        vaccine_setting = scenario,
+        vaccine_setting_label = scenario_label_text,
+        VE_sus,
+        VE_sym,
+        VE_inf,
+        VE_dur,
+        history_vaccine_scenario,
+        vaccine_transition_design,
+        vaccine_transition_interpretation,
+        outcome = as.character(endpoint),
+        current_ap_like_raw_burden = current_burden,
+        scenario_raw_burden = scenario_burden,
+        residual_index_vs_current = residual_index,
+        reduction_vs_current,
+        above_current,
+        profiles_evaluated,
+        profiles_above_current,
+        median_residual_index,
+        q25_residual_index,
+        q75_residual_index,
+        min_residual_index,
+        max_residual_index,
+        burden_unit = "cumulative event count",
+        analysis_horizon = "2027-01-01 to 2050-12-31",
+        contrast_definition
       )
   )
 }

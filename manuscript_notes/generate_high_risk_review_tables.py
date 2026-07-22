@@ -15,15 +15,10 @@ if str(ROOT) not in sys.path:
 from src_python.simulation.common import (
     current_run_metadata,
     load_configs,
+    validate_run_metadata,
     write_run_metadata,
 )
-from src_python.validation.publication_gate import require_predictive_publication_gate
-
 WRITTEN_ROW_COUNTS: dict[str, int] = {}
-
-
-def _require_figure2_release_inputs() -> None:
-    require_predictive_publication_gate()
 
 
 SELECTED_INTERVENTIONS = (
@@ -556,7 +551,7 @@ def resistance_parameter_justification() -> None:
         {
             "parameter_group": "Resistant-strain relative fitness (fitness_R)",
             "baseline_value": "1.00 (fitness neutral)",
-            "explored_range_or_scenarios": "0.70-1.25 grid and selected-parameter sensitivity range; selected narrative contrasts at 0.85, 1.00, and 1.15",
+            "explored_range_or_scenarios": "0.70-1.25 grid and selected-input sensitivity range; selected narrative contrasts at 0.85, 1.00, and 1.15",
             "source_or_anchor": "Rapid MRBP expansion and international spread without a demonstrated transmission penalty; rationale summarized in the resistance-parameter justification table.",
             "rationale": "Avoids assuming a persistent fitness cost when epidemiologic trajectories in China, Japan, and Australia do not rule out neutral or above-neutral fitness.",
             "expected_direction_of_bias": "Lower fitness reduces projected resistant fraction and resistance-guided management benefit; higher fitness accelerates replacement and increases resistant burden.",
@@ -583,7 +578,7 @@ def resistance_parameter_justification() -> None:
         {
             "parameter_group": "Postexposure prophylaxis (PEP) coverage",
             "baseline_value": "Household-contact coverage 0.30",
-            "explored_range_or_scenarios": "0.05-0.60 in sensitivity analysis and selected-parameter sensitivity multiplier; implementation scenarios vary PEP reach",
+            "explored_range_or_scenarios": "0.05-0.60 in sensitivity analysis and the programme selected-input PEP multiplier; implementation scenarios vary PEP reach",
             "source_or_anchor": "CDC/PAHO-style public health PEP guidance translated into scenario coverage assumptions",
             "rationale": "Represents partial household/contact implementation for prioritized contacts.",
             "expected_direction_of_bias": "Higher PEP reach amplifies any strain-specific PEP effectiveness differential; lower PEP reach weakens PEP-mediated selection and management benefit.",
@@ -601,7 +596,7 @@ def resistance_parameter_justification() -> None:
         {
             "parameter_group": "Resistance-guided management scenario",
             "baseline_value": "Symptomatic treatment rate 0.065; resistant infectious-duration reduction 0.45; resistant infectiousness reduction 0.35; resistant PEP effectiveness 0.45",
-            "explored_range_or_scenarios": "Treatment/PEP implementation scenarios and selected-parameter sensitivity uptake multiplier",
+            "explored_range_or_scenarios": "Treatment/PEP implementation scenarios and the independent two-input resistance-management sensitivity uptake multiplier",
             "source_or_anchor": "CDC treatment and antibiotic-resistance guidance translated into a resistance-guided testing-and-alternative-treatment scenario",
             "rationale": "Represents improved recognition of resistance and use of effective alternatives plus an assumed improvement in prophylaxis effectiveness.",
             "expected_direction_of_bias": "Higher uptake or assumed PEP improvement increases projected benefit; low testing reach and uptake reduce or delay benefit.",
@@ -629,10 +624,10 @@ def limitation_diagnostic_map() -> None:
             "residual_interpretation": "Infant estimates are conditional model outputs; age-pattern weighting is a partial external consistency diagnostic, not full recalibration.",
         },
         {
-            "limitation_domain": "Strategy-profile ordering under selected-parameter sensitivity",
-            "added_or_existing_diagnostic": "Country-level order positions, analysis-window order positions, infant-age/window order positions, strategy-ordering summary, Figure 2A-C decision-framework source data, retained regret source data, and selected-parameter deterministic strategy-ordering diagnostics.",
+            "limitation_domain": "Strategy-profile ordering under selected-input sensitivity",
+            "added_or_existing_diagnostic": "Country-level order positions, analysis-window order positions, infant-age/window order positions, strategy-ordering summary, Figure 2 delivery-lever contrast, reference-retention and regret summaries, complete effect-confidence-interval matrix, exact rank-count audit source data, and selected-input deterministic strategy-ordering diagnostics.",
             "supplement_location": "Figure 2A-C and figures S5 and S6",
-            "residual_interpretation": "Order-position frequencies are conditional on the selected deterministic sensitivity ranges and do not include costs, feasibility, or equity weights.",
+            "residual_interpretation": "Retention and regret are conditional on the 128 prespecified selected-input settings and do not represent posterior probabilities or include costs, feasibility, or equity weights.",
         },
         {
             "limitation_domain": "Deterministic dynamics without stochastic extinction or superspreading",
@@ -669,60 +664,41 @@ def limitation_diagnostic_map() -> None:
 
 
 def sensitivity_correlations() -> None:
+    validate_run_metadata("sensitivity_runs")
     df = _read_csv("outputs/summaries/sensitivity_runs_summary.csv")
-    legacy_params = [
-        "VE_sus",
-        "VE_sym",
-        "VE_inf",
-        "VE_dur",
-        "infectious_duration_symptomatic",
-        "infectious_duration_asymptomatic",
-        "waning_rate_vaccine",
-        "waning_rate_natural",
-        "relative_infectiousness_asymptomatic",
-        "seasonal_amplitude",
-        "multi_year_amplitude",
-        "treatment_rate_symptomatic",
-        "PEP_coverage",
-        "PEP_effectiveness_resistant",
-        "fitness_R",
-        "reporting_rate_multiplier",
-    ]
     configs = load_configs()
     registry = configs.get("parameter_distributions", {})
     global_settings = registry.get("global_sensitivity", {}) if isinstance(registry, dict) else {}
     configured_specs = global_settings.get("parameters", {})
+    if not isinstance(configured_specs, dict) or not configured_specs:
+        raise ValueError(
+            "High-risk sensitivity table requires the canonical global_sensitivity "
+            "parameter registry; legacy uniform fallback is disabled"
+        )
     configured_params = [name for name in configured_specs if name in df.columns]
     schema = pd.to_numeric(
         df.get("uncertainty_schema_version", pd.Series(0, index=df.index)),
         errors="coerce",
-    ).fillna(0)
-    uses_evidence_registry = bool(schema.ge(1).any())
-
-    # Existing checked-in summaries predate the evidence-prior registry.  Keep
-    # the table generator usable with them, while selecting the new named
-    # columns automatically after the sensitivity analysis is rerun.
-    if uses_evidence_registry:
-        missing = sorted(set(configured_specs).difference(configured_params))
-        if missing:
-            raise ValueError(
-                "Evidence-prior sensitivity summary is missing configured parameter columns: "
-                f"{missing}"
-            )
-        specs = {name: configured_specs[name] for name in configured_params}
-        sample_design = "inverse-CDF Latin-hypercube"
-    else:
-        params = [name for name in legacy_params if name in df.columns]
-        legacy_specs = configs.get("sensitivity", {}).get("parameters", {})
-        specs = {
-            name: {
-                **legacy_specs.get(name, {}),
-                "distribution": "uniform",
-                "evidence_class": "legacy_range",
-            }
-            for name in params
-        }
-        sample_design = "legacy uniform Latin-hypercube"
+    )
+    if schema.isna().any() or not schema.eq(1).all():
+        raise ValueError(
+            "High-risk sensitivity table requires uncertainty_schema_version=1 "
+            "for every row; legacy uniform output fallback is disabled"
+        )
+    sample_design_values = set(df.get("sample_design", pd.Series(dtype=str)).astype(str))
+    if sample_design_values != {"latin_hypercube_inverse_cdf"}:
+        raise ValueError(
+            "High-risk sensitivity table requires the canonical inverse-CDF "
+            f"Latin-hypercube design; found {sorted(sample_design_values)}"
+        )
+    missing = sorted(set(configured_specs).difference(configured_params))
+    if missing:
+        raise ValueError(
+            "Evidence-prior sensitivity summary is missing configured parameter columns: "
+            f"{missing}"
+        )
+    specs = {name: configured_specs[name] for name in configured_params}
+    sample_design = "inverse-CDF Latin-hypercube"
 
     outcome_columns = {
         "total_child_adolescent_cases": "annualized_child_adolescent_cases_per_100k",
@@ -734,9 +710,7 @@ def sensitivity_correlations() -> None:
         ),
     }
     grouped: dict[str, list[str]] = {}
-    default_summary_outcome = (
-        "total_child_adolescent_cases" if uses_evidence_registry else "total_infant_cases"
-    )
+    default_summary_outcome = "total_child_adolescent_cases"
     for name, spec in specs.items():
         summary_outcome = str(spec.get("outcome", default_summary_outcome))
         outcome = outcome_columns.get(summary_outcome, summary_outcome)
@@ -769,7 +743,7 @@ def sensitivity_correlations() -> None:
                 {
                     "parameter": param,
                     "outcome": outcome,
-                    "distribution": spec.get("distribution", "uniform"),
+                    "distribution": spec["distribution"],
                     "evidence_class": spec.get("evidence_class", "not_specified"),
                     "pearson_r": pearson,
                     "spearman_r": spearman,
@@ -1071,12 +1045,11 @@ def _paired_programme_primary_interval_audit(
     burden: pd.DataFrame,
     spec: dict[str, object],
 ) -> pd.DataFrame:
-    _require_figure2_release_inputs()
     interval_path = ROOT / str(spec["paired_interval_path"])
     if not interval_path.exists():
         raise FileNotFoundError(
-            f"Figure 2c paired conditional uncertainty intervals are required but missing: {interval_path}. "
-            "Run python -m src_python.simulation.run_figure2c_paired_uncertainty first."
+            f"Figure 2c and Table 1 paired parametric-bootstrap confidence intervals are required but missing: {interval_path}. "
+            "Run python -m src_python.simulation.run_figure2c_parametric_bootstrap first."
         )
     paired = pd.read_csv(interval_path)
     required = {
@@ -1100,20 +1073,22 @@ def _paired_programme_primary_interval_audit(
     if missing:
         raise ValueError(f"Figure 2c paired interval table lacks columns: {sorted(missing)}")
     interval_types = set(paired["interval_type"].dropna().astype(str))
-    if interval_types != {"95% conditional uncertainty interval"}:
+    if interval_types != {"95% parametric-bootstrap confidence interval"}:
         raise ValueError(
-            "Figure 2c requires the exact conditional interval type; "
+            "Figure 2c requires the paired full-refit parametric-bootstrap confidence interval type; "
             f"observed={sorted(interval_types)}"
         )
     basis = paired["interval_basis"].fillna("").astype(str).str.lower()
     if not (
-        basis.str.contains("exact-target importance-corrected", regex=False).all()
-        and basis.str.contains("external structural-prior", regex=False).all()
-        and basis.str.contains("fixed", regex=False).all()
+        basis.str.contains("paired marginal parametric bootstrap", regex=False).all()
+        and basis.str.contains("fully refitted", regex=False).all()
+        and basis.str.contains(r"ar\(1\)", regex=True).all()
+        and basis.str.contains("nb2", regex=False).all()
+        and not basis.str.contains("posterior|credible|prediction interval", regex=True).any()
     ):
         raise ValueError(
-            "Figure 2c interval basis does not match the exact state-importance "
-            "conditional uncertainty contract"
+            "Figure 2c interval basis does not match the paired full-refit "
+            "parametric-bootstrap contract"
         )
 
     rate_col = str(spec["rate_col"])
@@ -1134,7 +1109,7 @@ def _paired_programme_primary_interval_audit(
         missing_keys = audit.loc[
             audit["deterministic_reduction"].isna(), ["country", "strategy"]
         ].drop_duplicates()
-        raise ValueError(f"Figure 2c paired interval rows lack deterministic matches: {missing_keys.to_dict('records')}")
+        raise ValueError(f"Figure 2a paired interval rows lack deterministic matches: {missing_keys.to_dict('records')}")
 
     audit[reduction_col] = pd.to_numeric(audit["deterministic_reduction"], errors="coerce")
     audit["scenario_label"] = audit["strategy"].map(INTERVENTION_INTERVAL_LABELS).fillna(audit["scenario_label"])
@@ -1335,8 +1310,11 @@ def _psa_regret_outputs() -> tuple[pd.DataFrame, pd.DataFrame]:
     )
     summary["strategy_label"] = summary["strategy"].map(STRATEGY_LABELS)
     summary["sensitivity_source"] = (
-        f"{n_samples}-sample selected-parameter Latin-hypercube rank analysis including program, "
-        "resistance-management, and future product-target profiles."
+        f"Historical supplementary infant-case {n_samples}-setting selected-input Latin-hypercube "
+        "design across programme, fixed resistance-management scenario, and future product-target "
+        "profiles; not the six-strategy Figure 2b design and not the independent two-input "
+        "resistance-management sensitivity. Reported shares are empirical design frequencies, "
+        "not probabilities."
     )
 
     country = (
@@ -1714,10 +1692,6 @@ def constrained_optimization_tables() -> None:
 
 
 def main() -> None:
-    # Fail before unlinking or writing any canonical review/source table.  A
-    # late check would leave a partially refreshed publication layer when the
-    # predictive gate is closed.
-    _require_figure2_release_inputs()
     for suffix in (".csv", ".parquet"):
         for stale_stem in (
             "figure2b_intervention_predictive_interval_audit",

@@ -30,11 +30,16 @@ Supported distribution specifications are:
 ``spike_and_slab``
     ``spike_probability``, a numeric point ``spike`` (or a nested
     distribution specification), and a nested ``slab`` specification.
+``constant``
+    An explicit ``value`` point mass, primarily for mapping-valued nested
+    spike components. A bare numeric nested component remains shorthand for a
+    point mass.
 
-A specification with bounds but no ``distribution`` remains backward
-compatible and is interpreted as uniform.  Additional metadata fields such as
+Every mapping-valued specification must explicitly name its ``distribution``;
+bound-only mappings are never inferred to be uniform, and ``{"value": ...}``
+is not inferred to be a point mass. Additional metadata fields such as
 ``note``, ``source`` and ``path`` are retained by validation and ignored by the
-transform.  :func:`log_pdf` evaluates the matching normalized density (or
+transform. :func:`log_pdf` evaluates the matching normalized density (or
 probability mass for a constant/spike component), so proposal generation and
 Bayesian prior evaluation can share one distribution contract.
 """
@@ -62,6 +67,7 @@ NamedDistributionSpecs: TypeAlias = (
 
 SUPPORTED_DISTRIBUTIONS = frozenset(
     {
+        "constant",
         "uniform",
         "beta",
         "beta_pert",
@@ -73,6 +79,8 @@ SUPPORTED_DISTRIBUTIONS = frozenset(
         "spike_and_slab",
     }
 )
+
+UNCERTAINTY_REGISTRY_SCHEMA_VERSION = 1
 
 _DISTRIBUTION_ALIASES = {
     "beta-pert": "beta_pert",
@@ -109,20 +117,50 @@ def _finite_float(value: Any, *, field: str, context: str) -> float:
 
 def _canonical_name(spec: Mapping[str, Any], *, context: str) -> str:
     if "distribution" not in spec:
-        if any(key in spec for key in ("low", "high", "min", "max")):
-            return "uniform"
-        if "value" in spec:
-            # Point masses are primarily useful as nested spike components.
-            return "constant"
         raise ValueError(
-            f"{context}: missing 'distribution'; legacy specifications must provide "
-            "both 'min' and 'max' (or 'low' and 'high')"
+            f"{context}: missing required 'distribution'; mapping-valued "
+            "specifications must explicitly declare their distribution"
         )
     raw_name = spec["distribution"]
     if not isinstance(raw_name, str) or not raw_name.strip():
         raise ValueError(f"{context}: 'distribution' must be a non-empty string")
     cleaned = raw_name.strip().lower()
     return _DISTRIBUTION_ALIASES.get(cleaned, cleaned)
+
+
+def validate_uncertainty_registry_schema(
+    registry: Mapping[str, Any],
+    *,
+    context: str = "parameter_distributions",
+) -> int:
+    """Require the one supported uncertainty-registry schema exactly.
+
+    Missing versions, booleans, strings, floats, older versions, and future
+    versions are rejected rather than coerced or assigned a default.
+    """
+
+    if not isinstance(registry, Mapping):
+        raise ValueError(f"{context} must be a mapping")
+    if "schema_version" not in registry:
+        raise ValueError(
+            f"{context} must explicitly declare integer schema_version="
+            f"{UNCERTAINTY_REGISTRY_SCHEMA_VERSION}"
+        )
+    raw_version = registry["schema_version"]
+    if isinstance(raw_version, (bool, np.bool_)) or not isinstance(
+        raw_version, Integral
+    ):
+        raise ValueError(
+            f"{context}.schema_version must be the integer "
+            f"{UNCERTAINTY_REGISTRY_SCHEMA_VERSION}; got {raw_version!r}"
+        )
+    version = int(raw_version)
+    if version != UNCERTAINTY_REGISTRY_SCHEMA_VERSION:
+        raise ValueError(
+            f"Unsupported {context}.schema_version {version}; only version "
+            f"{UNCERTAINTY_REGISTRY_SCHEMA_VERSION} is supported"
+        )
+    return version
 
 
 def _bounds(
@@ -301,7 +339,7 @@ def validate_distribution_spec(
         raise ValueError(f"{context}: specification must be a mapping")
     normalized = deepcopy(dict(spec))
     name = _canonical_name(normalized, context=context)
-    if name not in SUPPORTED_DISTRIBUTIONS and name != "constant":
+    if name not in SUPPORTED_DISTRIBUTIONS:
         supported = ", ".join(sorted(SUPPORTED_DISTRIBUTIONS))
         raise ValueError(
             f"{context}: unsupported distribution {name!r}; supported distributions are {supported}"
@@ -1143,8 +1181,10 @@ latin_hypercube_draws = latin_hypercube_draw_table
 
 __all__ = [
     "SUPPORTED_DISTRIBUTIONS",
+    "UNCERTAINTY_REGISTRY_SCHEMA_VERSION",
     "inverse_cdf",
     "latin_hypercube_draw_table",
     "latin_hypercube_draws",
     "validate_distribution_spec",
+    "validate_uncertainty_registry_schema",
 ]

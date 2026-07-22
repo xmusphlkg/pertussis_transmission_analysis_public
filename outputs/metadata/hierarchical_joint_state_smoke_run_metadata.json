@@ -1,0 +1,145 @@
+{
+  "adaptation_draws": 32,
+  "adaptation_raw_ess": 1.0628114859340245,
+  "adaptation_tempering_exponent": 2.583782233306353e-11,
+  "chain_labels_are_batches": true,
+  "config_hash": "e07d2d9623bba63452e5939f83db5c87901a902d0a71c99df08b4ecdc3550c54",
+  "convergence_summary": {
+    "all_converged": false,
+    "all_recommended_converged": false,
+    "diagnostic_method": "nested_exact_target_importance_support",
+    "importance_quality": {
+      "all_recommended_converged": false,
+      "checks": {
+        "global_effective_sample_size": false,
+        "global_maximum_weight": false,
+        "global_minimum_tail_ess": false,
+        "global_pareto_k": false,
+        "local_failed_posterior_mass": false,
+        "local_relevant_maximum_pareto_k": false,
+        "local_relevant_maximum_weight": false,
+        "local_relevant_minimum_ess": false,
+        "local_relevant_minimum_tail_ess": false,
+        "state_proposal_in_bounds_fraction": true
+      },
+      "global_importance_effective_sample_size": 1.0000000000001967,
+      "global_importance_ess_fraction": 0.0625000000000123,
+      "global_importance_maximum_weight": 0.9999999999999016,
+      "global_importance_minimum_tail_ess": 1.0,
+      "global_importance_pareto_k": Infinity,
+      "local_failed_posterior_mass": 1.0,
+      "local_relevant_maximum_pareto_k": Infinity,
+      "local_relevant_maximum_weight": 0.9999999999999976,
+      "local_relevant_minimum_ess": 1.0000000000000049,
+      "local_relevant_minimum_tail_ess": 1.0,
+      "posterior_relevant_structural_candidates": 1,
+      "state_proposal_minimum_in_bounds_fraction": 0.5625
+    },
+    "method_note": "R-hat is not applicable to independent nested importance samples. Validity is determined by global shared-parameter and posterior-relevant country-state ESS, maximum weight, Pareto-k, tail support, and proposal boundary coverage.",
+    "min_bulk_ess": 1.0000000000000049,
+    "min_tail_ess": 1.0,
+    "n_parameters_converged": 0,
+    "n_parameters_recommended_converged": 0,
+    "n_parameters_total": 15,
+    "rhat_applicable": false,
+    "worst_rhat": null
+  },
+  "countries": [
+    "Australia"
+  ],
+  "country_specific_parameters": [
+    "beta_S",
+    "reporting_multiplier",
+    "annual_log_beta_process"
+  ],
+  "defensive_prior_fraction": 0.2,
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "draws_per_chain": 8,
+  "final_importance_draws": 16,
+  "generated_at_utc": "2026-07-14T06:58:24.020267+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
+    "dirty": true
+  },
+  "inference_structure": "cross_country_joint_state_space_exact_importance",
+  "n_chains": 2,
+  "n_jobs": 8,
+  "parameter_source_roles": {
+    "VE_dur": "shared_joint_posterior",
+    "VE_inf": "shared_joint_posterior",
+    "VE_sus": "shared_joint_posterior",
+    "annual_log_beta_process": "country_joint_posterior",
+    "beta_S": "country_joint_posterior",
+    "fitness_R": "shared_joint_posterior",
+    "infectious_duration_asymptomatic": "shared_joint_posterior",
+    "infectious_duration_symptomatic": "shared_joint_posterior",
+    "relative_infectiousness_asymptomatic": "shared_joint_posterior",
+    "reporting_multiplier": "country_joint_posterior"
+  },
+  "posterior_interpretation": "Joint posterior under the prespecified multi-country mechanistic NB2/AR(1) model. Shared biological parameters, country beta/reporting, and annual latent transmission states are updated together by all included surveillance likelihoods.",
+  "quality": {
+    "all_recommended_converged": false,
+    "checks": {
+      "global_effective_sample_size": false,
+      "global_maximum_weight": false,
+      "global_minimum_tail_ess": false,
+      "global_pareto_k": false,
+      "local_failed_posterior_mass": false,
+      "local_relevant_maximum_pareto_k": false,
+      "local_relevant_maximum_weight": false,
+      "local_relevant_minimum_ess": false,
+      "local_relevant_minimum_tail_ess": false,
+      "state_proposal_in_bounds_fraction": true
+    },
+    "global_importance_effective_sample_size": 1.0000000000001967,
+    "global_importance_ess_fraction": 0.0625000000000123,
+    "global_importance_maximum_weight": 0.9999999999999016,
+    "global_importance_minimum_tail_ess": 1.0,
+    "global_importance_pareto_k": Infinity,
+    "local_failed_posterior_mass": 1.0,
+    "local_relevant_maximum_pareto_k": Infinity,
+    "local_relevant_maximum_weight": 0.9999999999999976,
+    "local_relevant_minimum_ess": 1.0000000000000049,
+    "local_relevant_minimum_tail_ess": 1.0,
+    "posterior_relevant_structural_candidates": 1,
+    "state_proposal_minimum_in_bounds_fraction": 0.5625
+  },
+  "row_counts": {
+    "local_state_diagnostics": 16,
+    "posterior_samples": 16,
+    "state_proposal_candidates": 64,
+    "structural_candidates": 16
+  },
+  "sampler": "multi_country_joint_state_importance",
+  "schema_version": 1,
+  "seed": 20260715,
+  "shared_parameters": [
+    "VE_sus",
+    "VE_inf",
+    "VE_dur",
+    "relative_infectiousness_asymptomatic",
+    "infectious_duration_symptomatic",
+    "infectious_duration_asymptomatic",
+    "fitness_R"
+  ],
+  "source_code_hash": "c2859860fe2decd9c920d2592138ae1effb5341bafa5a55f2f834419e1b28b72",
+  "state_candidates_per_country": 64,
+  "state_covariance_scales": [
+    0.25,
+    1.0,
+    4.0,
+    9.0
+  ],
+  "stem": "hierarchical_joint_state_smoke",
+  "uncertainty_scope": "multi_country_full_feedback_joint_state_space_posterior"
+}

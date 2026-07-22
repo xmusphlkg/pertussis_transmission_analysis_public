@@ -46,7 +46,7 @@ make_figure_3_source_data <- function(data) {
         strategy,
         strategy_label,
         infant_case_reduction,
-        overall_case_reduction = primary_case_reduction,
+        overall_case_reduction = all_under18_case_reduction,
         infant_minus_overall_gap_pp = infant_minus_child_adolescent_gap_pp,
         median_gap_pp,
         q25_gap_pp,

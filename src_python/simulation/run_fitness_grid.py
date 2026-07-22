@@ -9,19 +9,24 @@ import numpy as np
 import pandas as pd
 
 from src_python.simulation.common import (
+    attach_prospective_policy_history,
     current_run_metadata,
+    enforce_calibration_status,
     execute_scenario_summary_list,
+    file_sha256,
     load_configs,
     make_config,
     publication_country_names,
     run_scenario_list,
+    uncertainty_config_fingerprint,
+    validated_calibration_artifact_path_hashes,
     validate_run_metadata,
     write_run_metadata,
 )
 from src_python.simulation.check_bayesian_quality import check_bayesian_quality
 from src_python.simulation.run_bayesian_uncertainty import _apply_sample, _sample_columns
-from src_python.simulation.run_figure2c_paired_uncertainty import (
-    _posterior_stem_from_sample_path,
+from src_python.simulation.programme_uncertainty_helpers import (
+    posterior_stem_from_sample_path as _posterior_stem_from_sample_path,
 )
 from src_python.simulation.run_joint_psa_rank_acceptability import (
     EXPECTED_PARAMETER_NAMES as JOINT_PSA_PARAMETER_NAMES,
@@ -30,7 +35,6 @@ from src_python.simulation.run_joint_psa_rank_acceptability import (
     _clip_probability,
 )
 from src_python.utils.io import project_path, write_dataframe
-from src_python.validation.publication_gate import require_predictive_publication_gate
 
 
 POSTERIOR_BENEFIT_STEM = "fitness_resistance_grid_posterior_benefit"
@@ -40,17 +44,22 @@ DEFAULT_PSA_SAMPLE_PATH = project_path("outputs", "tables", "joint_psa_parameter
 DEFAULT_POSTERIOR_SAMPLE_PATH = project_path(
     "outputs",
     "simulations",
-    "bayesian_uncertainty_figure2c_conditional_posterior_samples.parquet",
+    "bayesian_uncertainty_conditional_research_posterior_samples.parquet",
 )
 FITNESS_TARGETS = (
     ("Fitness cost (0.85)", 0.85),
     ("Neutral (1.00)", 1.00),
     ("Advantage (1.10)", 1.10),
 )
-UNCERTAINTY_SOURCE = "conditional_state_process_plus_external_prior_design"
+POSTERIOR_ANALYSIS_ROLE = "optional_nonpublication_legacy_research"
+POSTERIOR_PUBLICATION_PATH = False
+POSTERIOR_FIGURE2C_INTERVAL_SOURCE = False
+UNCERTAINTY_SOURCE = (
+    "optional_nonpublication_conditional_state_process_plus_external_prior_design"
+)
 UNCERTAINTY_SCOPE = (
-    "Paired low/high VE_inf comparison propagating the selected conditional state/process "
-    "and external-prior design file; "
+    "Optional nonpublication paired low/high VE_inf research comparison propagating "
+    "the selected conditional state/process and external-prior design file; "
     "grid_fitness_R and grid_VE_inf are fixed overrides for Figure 3D."
 )
 GRID_OVERRIDE_PARAMETERS = frozenset({"VE_inf", "fitness_R"})
@@ -70,11 +79,21 @@ PSA_IGNORED_GRID_COLUMNS = frozenset(
 )
 PSA_UNCERTAINTY_SOURCE = "targeted_latin_hypercube_psa"
 PSA_UNCERTAINTY_SCOPE = (
-    "Targeted Figure 3D probabilistic sensitivity analysis varying infant-contact, "
-    "asymptomatic infectiousness/duration, and PEP nuisance parameters while holding "
-    "grid_fitness_R and grid_VE_inf fixed for paired low/high VE_inf comparisons; "
+    "Targeted Figure 3D probabilistic sensitivity analysis applying infant-contact and "
+    "asymptomatic infectiousness/duration draws to both pre-policy history and policy, "
+    "applying the PEP coverage multiplier only to the prospective policy, and applying "
+    "fixed grid_fitness_R and grid_VE_inf overrides to both phases for paired low/high "
+    "VE_inf comparisons; "
     "observation-only reporting uncertainty is excluded from the true-case endpoint."
 )
+PSA_PARAMETER_TIME_SCOPES = {
+    "infant_contact_multiplier": "structural_all_time",
+    "relative_infectiousness_asymptomatic": "structural_all_time",
+    "infectious_duration_asymptomatic": "structural_all_time",
+    "PEP_coverage_multiplier": "prospective_implementation",
+    "grid_fitness_R": "structural_all_time_fixed_override",
+    "grid_VE_inf": "structural_all_time_fixed_override",
+}
 
 
 def _grid_values(settings: dict[str, Any], key: str, default: list[float]) -> list[float]:
@@ -377,12 +396,34 @@ def _load_psa_samples(path: str | Path, *, sample_limit: int | None = None) -> p
     if not sample_path.exists():
         raise FileNotFoundError(f"PSA sample file not found: {sample_path}")
     if sample_path.resolve() == Path(DEFAULT_PSA_SAMPLE_PATH).resolve():
-        validate_run_metadata(JOINT_PSA_STEM)
+        upstream_metadata = validate_run_metadata(JOINT_PSA_STEM)
+        output_hashes = upstream_metadata.get("output_artifact_sha256")
+        expected_digest = (
+            output_hashes.get("parameter_samples")
+            if isinstance(output_hashes, dict)
+            else None
+        )
+        if not isinstance(expected_digest, str) or not expected_digest:
+            raise ValueError(
+                "Canonical joint-PSA metadata is missing the finalized parameter-"
+                "sample SHA-256 digest"
+            )
+        actual_digest = file_sha256(sample_path)
+        if actual_digest != expected_digest:
+            raise ValueError(
+                "Canonical joint-PSA parameter samples do not match their finalized "
+                f"metadata digest ({expected_digest}); current SHA-256 is "
+                f"{actual_digest}"
+            )
 
     samples = pd.read_parquet(sample_path) if sample_path.suffix == ".parquet" else pd.read_csv(sample_path)
     missing = sorted(PSA_REQUIRED_COLUMNS - set(samples.columns))
-    if missing:
-        raise ValueError(f"PSA sample file is missing required column(s): {', '.join(missing)}")
+    extra = sorted(set(samples.columns) - PSA_REQUIRED_COLUMNS)
+    if missing or extra:
+        raise ValueError(
+            "PSA sample columns must exactly match the six-dimensional joint-PSA "
+            f"contract; missing={missing}, extra={extra}"
+        )
     samples = samples.copy()
     samples["psa_sample_id"] = pd.to_numeric(samples["psa_sample_id"], errors="raise").astype(int)
     samples = samples.sort_values("psa_sample_id").reset_index(drop=True)
@@ -393,10 +434,22 @@ def _load_psa_samples(path: str | Path, *, sample_limit: int | None = None) -> p
     return samples
 
 
-def _apply_fig3d_psa_nuisance_sample(
+def _metadata_artifact_path(path: Path) -> str:
+    """Return a portable project-relative path where possible."""
+
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(project_path().resolve()).as_posix()
+    except ValueError:
+        return str(resolved)
+
+
+def _apply_fig3d_psa_structural_nuisance_sample(
     config: dict[str, Any],
     sample: dict[str, Any],
 ) -> dict[str, Any]:
+    """Apply Figure-3D structural nuisance draws to one model phase."""
+
     out = deepcopy(config)
     _apply_infant_contact_multiplier(out, float(sample["infant_contact_multiplier"]))
     out["transmission"]["relative_infectiousness_asymptomatic"] = float(
@@ -405,12 +458,55 @@ def _apply_fig3d_psa_nuisance_sample(
     out["natural_history"]["infectious_duration_asymptomatic"] = float(
         sample["infectious_duration_asymptomatic"]
     )
+    out.setdefault("metadata", {})["fig3d_psa_sample_id"] = int(sample["psa_sample_id"])
+    return out
+
+
+def _apply_fig3d_psa_prospective_implementation_sample(
+    config: dict[str, Any],
+    sample: dict[str, Any],
+) -> dict[str, Any]:
+    """Apply Figure-3D implementation draws to the prospective policy only."""
+
+    out = deepcopy(config)
     pep = out.setdefault("PEP", {})
     pep["coverage_household_contacts"] = _clip_probability(
         float(pep.get("coverage_household_contacts", 0.0)) * float(sample["PEP_coverage_multiplier"])
     )
     out.setdefault("metadata", {})["fig3d_psa_sample_id"] = int(sample["psa_sample_id"])
     return out
+
+
+def _build_scoped_fig3d_psa_config(
+    base_config: dict[str, Any],
+    sample: dict[str, Any],
+    *,
+    resistance_name: str,
+    fitness_r: float,
+    ve_inf: float,
+) -> dict[str, Any]:
+    """Build one PSA policy with an explicit, scope-correct common history."""
+
+    history_config = _apply_fig3d_psa_structural_nuisance_sample(base_config, sample)
+    policy_config = _apply_fig3d_psa_structural_nuisance_sample(base_config, sample)
+    policy_config = _apply_fig3d_psa_prospective_implementation_sample(policy_config, sample)
+
+    history_config = _apply_grid_overrides(
+        history_config,
+        fitness_r=float(fitness_r),
+        ve_inf=float(ve_inf),
+    )
+    policy_config = _apply_grid_overrides(
+        policy_config,
+        fitness_r=float(fitness_r),
+        ve_inf=float(ve_inf),
+    )
+    return attach_prospective_policy_history(
+        policy_config,
+        history_config,
+        history_vaccine_scenario="symptom_protective",
+        history_resistance_scenario=resistance_name,
+    )
 
 
 def _optional_float(sample: dict[str, Any], key: str) -> float | None:
@@ -435,14 +531,15 @@ def _build_psa_benefit_scenarios(
             for target in fitness_targets:
                 grid_fitness = float(target["grid_fitness_R"])
                 for endpoint, ve_inf in (("low", low_ve_inf), ("high", high_ve_inf)):
-                    config = make_config(
+                    base_config = make_config(
                         vaccine_scenario="symptom_protective",
                         resistance_scenario=resistance_name,
                         country_profile=country,
                     )
-                    config = _apply_fig3d_psa_nuisance_sample(config, row)
-                    config = _apply_grid_overrides(
-                        config,
+                    config = _build_scoped_fig3d_psa_config(
+                        base_config,
+                        row,
+                        resistance_name=resistance_name,
                         fitness_r=grid_fitness,
                         ve_inf=float(ve_inf),
                     )
@@ -543,7 +640,6 @@ def _run_posterior_benefit_intervals(
 
     samples = pd.read_parquet(sample_path) if sample_path.suffix == ".parquet" else pd.read_csv(sample_path)
     countries = publication_country_names(configs)
-    require_predictive_publication_gate(expected_countries=countries)
     selected = _select_posterior_draws(
         samples,
         countries=countries,
@@ -563,6 +659,9 @@ def _run_posterior_benefit_intervals(
     )
     diagnostic_metadata.update(
         {
+            "analysis_role": POSTERIOR_ANALYSIS_ROLE,
+            "publication_path": POSTERIOR_PUBLICATION_PATH,
+            "figure2c_interval_source": POSTERIOR_FIGURE2C_INTERVAL_SOURCE,
             "posterior_sample_path": str(sample_path),
             "posterior_sample_stem": posterior_stem,
             "posterior_sampler": str(posterior_metadata.get("sampler", "")),
@@ -571,8 +670,8 @@ def _run_posterior_benefit_intervals(
             "posterior_seed": int(posterior_seed),
             "uncertainty_source": UNCERTAINTY_SOURCE,
             "uncertainty_scope": (
-                "Parameter variation audit for the posterior samples selected for "
-                "Figure 3D paired low/high VE_inf benefit intervals."
+                "Optional nonpublication parameter-variation audit for conditional "
+                "research samples selected for the Figure 3D low/high VE_inf analysis."
             ),
         }
     )
@@ -614,6 +713,9 @@ def _run_posterior_benefit_intervals(
     )
     metadata.update(
         {
+            "analysis_role": POSTERIOR_ANALYSIS_ROLE,
+            "publication_path": POSTERIOR_PUBLICATION_PATH,
+            "figure2c_interval_source": POSTERIOR_FIGURE2C_INTERVAL_SOURCE,
             "posterior_sample_path": str(sample_path),
             "posterior_sample_stem": posterior_stem,
             "posterior_sampler": str(posterior_metadata.get("sampler", "")),
@@ -647,17 +749,27 @@ def _run_psa_benefit_intervals(
     samples = _load_psa_samples(psa_sample_path, sample_limit=psa_sample_limit)
     targets = _fitness_targets(fitness_values)
     countries = publication_country_names(configs)
+    calibration_input_hashes = validated_calibration_artifact_path_hashes(
+        countries,
+        context="Fitness-grid selected-input PSA",
+    )
     low_ve_inf = float(min(ve_inf_values))
     high_ve_inf = float(max(ve_inf_values))
 
     sample_path = Path(psa_sample_path)
     if not sample_path.is_absolute():
         sample_path = project_path(sample_path)
+    sample_path = sample_path.resolve()
+    input_sample_digest = file_sha256(sample_path)
 
+    used_sample_path = project_path(
+        "outputs", "tables", f"{PSA_BENEFIT_STEM}_parameter_samples_used.csv"
+    )
     write_dataframe(
         samples,
-        project_path("outputs", "tables", f"{PSA_BENEFIT_STEM}_parameter_samples_used.csv"),
+        used_sample_path,
     )
+    used_sample_digest = file_sha256(used_sample_path)
 
     summary_frames: list[pd.DataFrame] = []
     batch_size = max(1, int(psa_batch_size))
@@ -675,6 +787,10 @@ def _run_psa_benefit_intervals(
             scenarios,
             stem=f"{PSA_BENEFIT_STEM}_batch_{batch_start // batch_size + 1:04d}",
             n_jobs=n_jobs,
+        )
+        enforce_calibration_status(
+            summary,
+            stem=f"{PSA_BENEFIT_STEM}_batch_{batch_start // batch_size + 1:04d}",
         )
         summary_frames.append(summary)
 
@@ -700,6 +816,13 @@ def _run_psa_benefit_intervals(
     metadata.update(
         {
             "psa_sample_path": str(sample_path),
+            "uncertainty_config_hash": uncertainty_config_fingerprint(configs),
+            "input_artifact_path_sha256": {
+                _metadata_artifact_path(sample_path): input_sample_digest,
+                **calibration_input_hashes,
+            },
+            "upstream_parameter_samples_sha256": input_sample_digest,
+            "parameter_samples_used_sha256": used_sample_digest,
             "psa_sample_limit": None if psa_sample_limit is None else int(psa_sample_limit),
             "psa_samples_used": int(len(samples)),
             "psa_batch_size": int(batch_size),
@@ -709,6 +832,7 @@ def _run_psa_benefit_intervals(
             "varied_psa_parameters": sorted(PSA_APPLIED_COLUMNS),
             "ignored_grid_parameter_columns": sorted(PSA_IGNORED_GRID_COLUMNS),
             "paired_comparison": True,
+            "parameter_time_scopes": dict(PSA_PARAMETER_TIME_SCOPES),
             "uncertainty_source": PSA_UNCERTAINTY_SOURCE,
             "uncertainty_scope": PSA_UNCERTAINTY_SCOPE,
             "psa_draws": f"outputs/tables/{PSA_BENEFIT_STEM}_draws.csv",
@@ -814,13 +938,19 @@ if __name__ == "__main__":
         "--posterior-draws",
         type=int,
         default=100,
-        help="Conditional uncertainty draws per country for Fig 3D benefit intervals. Use 0 to skip.",
+        help=(
+            "Optional nonpublication conditional-research draws per country for "
+            "Figure 3D diagnostics. Use 0 to skip."
+        ),
     )
     parser.add_argument(
         "--posterior-sample-path",
         type=str,
         default=str(DEFAULT_POSTERIOR_SAMPLE_PATH),
-        help="Path to quality-gated conditional state/external-prior samples used for Fig 3D uncertainty intervals.",
+        help=(
+            "Path to optional nonpublication conditional-research samples used "
+            "for the Figure 3D diagnostic uncertainty analysis."
+        ),
     )
     parser.add_argument("--posterior-seed", type=int, default=20260521)
     parser.add_argument(
@@ -832,7 +962,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--skip-deterministic-grid",
         action="store_true",
-        help="Refresh posterior Fig 3D benefit intervals without rerunning the deterministic full grid.",
+        help=(
+            "Refresh optional nonpublication conditional-research Figure 3D "
+            "intervals without rerunning the deterministic full grid."
+        ),
     )
     parser.add_argument(
         "--psa-benefit-samples",

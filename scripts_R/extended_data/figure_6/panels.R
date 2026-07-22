@@ -27,6 +27,10 @@ plot_extended_data_figure_6_panel_b <- function(data) {
   data$resistant_rate %>%
     ggplot(aes(scenario_label, country_label, fill = resistant_rate)) +
     geom_tile(colour = "white", linewidth = lancet_heatmap_tile_linewidth) +
+    scale_y_discrete(
+      limits = rev(main_figure_country_order(as.character(data$resistant_rate$country_label))),
+      drop = FALSE
+    ) +
     scale_fill_infant_burden(
       labels = label_lancet_number(accuracy = 1),
       guide = guide_colourbar(

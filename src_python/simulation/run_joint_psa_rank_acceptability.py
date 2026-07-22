@@ -9,21 +9,26 @@ import numpy as np
 import pandas as pd
 
 from src_python.simulation.common import (
+    PROSPECTIVE_POLICY_KEY,
     config_fingerprint,
     current_run_metadata,
+    enforce_calibration_status,
     execute_scenario_list,
     load_configs,
-    make_config,
     make_intervention_config,
     publication_country_names,
     read_run_metadata,
+    set_analysis_horizon_years,
     source_code_fingerprint,
     uncertainty_config_fingerprint,
+    validated_calibration_artifact_path_hashes,
     write_run_metadata,
 )
 from src_python.simulation.parameter_distributions import (
+    UNCERTAINTY_REGISTRY_SCHEMA_VERSION,
     latin_hypercube_draw_table,
     validate_distribution_spec,
+    validate_uncertainty_registry_schema,
 )
 from src_python.simulation.run_routine_timeliness_sensitivity import _apply_timeliness
 from src_python.utils.io import project_path, write_dataframe
@@ -59,20 +64,51 @@ HOUSEHOLD_LIKE_SOURCES = (
     "young_adult_18_39y",
     "middle_adult_40_64y",
 )
-GUIDED_MANAGEMENT_STRATEGIES = {"resistance_guided_treatment", "combined_strategy"}
-
 STEM = "joint_psa_rank_acceptability"
-UNCERTAINTY_SCHEMA_VERSION = 1
+UNCERTAINTY_SCHEMA_VERSION = UNCERTAINTY_REGISTRY_SCHEMA_VERSION
 SAMPLE_DESIGN = "latin_hypercube_inverse_cdf"
-EXPECTED_PARAMETER_NAMES = (
+RUNNER_CONSUMER = "src_python.simulation.run_joint_psa_rank_acceptability"
+FITNESS_GRID_CONSUMER = "src_python.simulation.run_fitness_grid"
+STRUCTURAL_ALL_TIME = "structural_all_time"
+PROSPECTIVE_IMPLEMENTATION = "prospective_implementation"
+OBSERVATION_ONLY = "observation_only"
+VALID_PARAMETER_TIME_SCOPES = frozenset(
+    {STRUCTURAL_ALL_TIME, PROSPECTIVE_IMPLEMENTATION, OBSERVATION_ONLY}
+)
+FIGURE2B_PARAMETER_NAMES = (
     "infant_contact_multiplier",
     "VE_inf_baseline",
     "relative_infectiousness_asymptomatic",
     "infectious_duration_asymptomatic",
     "fitness_R",
-    "resistance_management_uptake",
     "PEP_coverage_multiplier",
 )
+# Backward-compatible name used by the rank-table and resumability code.  Its
+# contract is deliberately Figure-2b-specific: a parameter that is inactive for
+# all six programme strategies must not be admitted to this tuple.
+EXPECTED_PARAMETER_NAMES = FIGURE2B_PARAMETER_NAMES
+PARAMETER_TIME_SCOPES = {
+    "infant_contact_multiplier": STRUCTURAL_ALL_TIME,
+    "VE_inf_baseline": STRUCTURAL_ALL_TIME,
+    "relative_infectiousness_asymptomatic": STRUCTURAL_ALL_TIME,
+    "infectious_duration_asymptomatic": STRUCTURAL_ALL_TIME,
+    "fitness_R": STRUCTURAL_ALL_TIME,
+    "PEP_coverage_multiplier": PROSPECTIVE_IMPLEMENTATION,
+}
+PARAMETER_CONSUMERS = {
+    name: (
+        (RUNNER_CONSUMER, FITNESS_GRID_CONSUMER)
+        if name
+        in {
+            "infant_contact_multiplier",
+            "relative_infectiousness_asymptomatic",
+            "infectious_duration_asymptomatic",
+            "PEP_coverage_multiplier",
+        }
+        else (RUNNER_CONSUMER,)
+    )
+    for name in FIGURE2B_PARAMETER_NAMES
+}
 SAMPLE_PATH = project_path("outputs", "tables", "joint_psa_parameter_samples.csv")
 RANK_SAMPLE_PATH = project_path("outputs", "tables", "joint_psa_infant_rank_samples.csv")
 ACCEPTABILITY_PATH = project_path("outputs", "tables", "joint_psa_rank_acceptability.csv")
@@ -88,6 +124,23 @@ UNDER18_PROGRAMME_RUN_SUMMARY_PATH = project_path(
 )
 SIMULATION_SUMMARY_PATH = project_path("outputs", "summaries", "joint_psa_scenario_summary.csv")
 SIMULATION_TS_PATH = project_path("outputs", "simulations", "joint_psa_rank_acceptability.parquet")
+
+
+def _validated_calibration_input_artifact_hashes(
+    countries: tuple[str, ...],
+) -> dict[str, str]:
+    """Require current accepted country calibrations and fingerprint them.
+
+    The custom batched runner calls ``execute_scenario_list`` directly, so it
+    cannot rely only on the generic ``run_scenario_list`` publication guard.
+    Resolve every calibration before any PSA output is written and retain
+    path-keyed digests so a later recalibration invalidates resumable ranks.
+    """
+
+    return validated_calibration_artifact_path_hashes(
+        countries,
+        context="Joint PSA",
+    )
 
 
 def _resume_metadata_compatibility(
@@ -150,9 +203,88 @@ def _clip_probability(value: float) -> float:
     return float(np.clip(value, 0.0, 1.0))
 
 
-def _scale_ve_inf(config: dict[str, Any], sample: dict[str, float]) -> None:
+def _validated_parameter_time_scopes(
+    parameter_specs: dict[str, dict[str, Any]],
+    *,
+    expected_names: tuple[str, ...],
+) -> dict[str, str]:
+    """Validate registry scopes against the implemented temporal semantics.
+
+    Scope metadata is not descriptive decoration: it controls whether a draw
+    changes the shared pre-2027 history, the prospective policy only, or no
+    transmission-model input at all.  The code-side mapping is a fail-closed
+    whitelist so a registry typo cannot silently change a parameter's meaning.
+    """
+
+    if set(parameter_specs) != set(expected_names):
+        raise ValueError(
+            "Parameter registry must match the implemented semantic contract; "
+            f"expected={list(expected_names)}, actual={list(parameter_specs)}"
+        )
+    scopes: dict[str, str] = {}
+    for name in expected_names:
+        spec = parameter_specs[name]
+        declared = spec.get("time_scope")
+        if declared is None:
+            raise ValueError(f"Parameter {name!r} is missing required time_scope metadata")
+        scope = str(declared).strip().lower()
+        if scope not in VALID_PARAMETER_TIME_SCOPES:
+            raise ValueError(
+                f"Parameter {name!r} has unsupported time_scope={declared!r}; "
+                f"expected one of {sorted(VALID_PARAMETER_TIME_SCOPES)}"
+            )
+        implemented = PARAMETER_TIME_SCOPES.get(name)
+        if implemented is None:
+            raise ValueError(f"Parameter {name!r} has no implemented time-scope contract")
+        if scope != implemented:
+            raise ValueError(
+                f"Parameter {name!r} declares time_scope={scope!r}, but its "
+                f"implemented scope is {implemented!r}"
+            )
+        declared_consumers = spec.get("consumers")
+        expected_consumers = PARAMETER_CONSUMERS[name]
+        if not isinstance(declared_consumers, list) or tuple(declared_consumers) != (
+            expected_consumers
+        ):
+            raise ValueError(
+                f"Parameter {name!r} declares consumers={declared_consumers!r}, but "
+                f"its implemented consumers are {list(expected_consumers)!r}"
+            )
+        scopes[name] = scope
+    return scopes
+
+
+def _attached_history_config(config: dict[str, Any]) -> dict[str, Any] | None:
+    spec = config.get(PROSPECTIVE_POLICY_KEY)
+    if spec is None:
+        return None
+    if not isinstance(spec, dict):
+        raise ValueError("Prospective-policy metadata must be a mapping")
+    history = spec.get("history_config")
+    if not isinstance(history, dict):
+        raise ValueError("Prospective-policy metadata is missing a historical config")
+    return history
+
+
+def _model_config_targets_for_scope(
+    config: dict[str, Any],
+    scope: str,
+) -> tuple[dict[str, Any], ...]:
+    """Resolve which transmission-model phases a scoped draw may mutate."""
+
+    if scope == OBSERVATION_ONLY:
+        return ()
+    if scope == PROSPECTIVE_IMPLEMENTATION:
+        return (config,)
+    if scope == STRUCTURAL_ALL_TIME:
+        history = _attached_history_config(config)
+        return (config,) if history is None else (config, history)
+    raise ValueError(f"Unsupported parameter time scope {scope!r}")
+
+
+def _scale_ve_inf(config: dict[str, Any], value: float) -> None:
     baseline_reference = 0.25
-    multiplier = float(sample["VE_inf_baseline"]) / baseline_reference
+    multiplier = float(value) / baseline_reference
     vaccine = config.setdefault("vaccine", {})
     vaccine["VE_inf"] = _clip_probability(float(vaccine.get("VE_inf", baseline_reference)) * multiplier)
 
@@ -171,62 +303,45 @@ def _apply_infant_contact_multiplier(config: dict[str, Any], multiplier: float) 
             rows[target_idx][source_idx] = float(rows[target_idx][source_idx]) * float(multiplier)
 
 
-def _interpolate(base: float, target: float, fraction: float) -> float:
-    fraction = float(np.clip(fraction, 0.0, 1.0))
-    return float(base + fraction * (target - base))
-
-
-def _apply_guided_management_uptake(
+def _apply_parameter_value(
     config: dict[str, Any],
     current_config: dict[str, Any],
     *,
     strategy: str,
-    uptake: float,
+    name: str,
+    value: float,
 ) -> None:
-    if strategy not in GUIDED_MANAGEMENT_STRATEGIES:
-        return
-    for key in ("infectious_duration_reduction", "infectiousness_reduction"):
-        config["treatment"]["resistant"][key] = _clip_probability(
-            _interpolate(
-                float(current_config["treatment"]["resistant"][key]),
-                float(config["treatment"]["resistant"][key]),
-                uptake,
-            )
+    """Apply one implemented draw to one model-config phase."""
+
+    if name == "infant_contact_multiplier":
+        _apply_infant_contact_multiplier(config, value)
+    elif name == "VE_inf_baseline":
+        _scale_ve_inf(config, value)
+    elif name == "relative_infectiousness_asymptomatic":
+        config["transmission"]["relative_infectiousness_asymptomatic"] = value
+    elif name == "infectious_duration_asymptomatic":
+        config["natural_history"]["infectious_duration_asymptomatic"] = value
+    elif name == "fitness_R":
+        config["transmission"]["fitness_R"] = value
+    elif name == "PEP_coverage_multiplier":
+        config["PEP"]["coverage_household_contacts"] = _clip_probability(
+            float(config["PEP"].get("coverage_household_contacts", 0.0)) * value
         )
-    config["treatment"]["treatment_rate_symptomatic"] = max(
-        0.0,
-        _interpolate(
-            float(current_config["treatment"]["treatment_rate_symptomatic"]),
-            float(config["treatment"]["treatment_rate_symptomatic"]),
-            uptake,
-        ),
-    )
-    config["PEP"]["effectiveness_resistant"] = _clip_probability(
-        _interpolate(
-            float(current_config["PEP"]["effectiveness_resistant"]),
-            float(config["PEP"]["effectiveness_resistant"]),
-            uptake,
-        )
-    )
+    else:
+        raise ValueError(f"Parameter {name!r} has no implemented config consumer")
 
 
 def _make_strategy_config(
     strategy: str,
     *,
     country: str,
-    resistance_name: str,
 ) -> tuple[dict[str, Any], str]:
     if strategy == "timeliness_only":
         config, vaccine_name = make_intervention_config("current", country_profile=country)
         return _apply_timeliness(config), vaccine_name
-    if strategy == "transmission_blocking_vaccine":
-        vaccine_name = "transmission_blocking"
-        config = make_config(
-            vaccine_scenario=vaccine_name,
-            resistance_scenario=resistance_name,
-            country_profile=country,
-        )
-        return config, vaccine_name
+    # This scenario used to bypass the intervention constructor and therefore
+    # lacked the baseline history shared by every other 2027 policy.  It is an
+    # ordinary registered prospective intervention now, so use the same path.
     return make_intervention_config(strategy, country_profile=country)
 
 
@@ -236,46 +351,65 @@ def _apply_psa_sample(
     *,
     strategy: str,
     sample: dict[str, float],
+    parameter_specs: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    """Apply the six Figure-2b draws with explicit temporal scope."""
+
+    missing = [name for name in FIGURE2B_PARAMETER_NAMES if name not in sample]
+    if missing:
+        raise ValueError(f"Figure 2b PSA sample is missing parameters: {missing}")
+    if "resistance_management_uptake" in sample:
+        raise ValueError(
+            "resistance_management_uptake is inactive for all Figure 2b programme-only "
+            "strategies; consume it through the independent resistance-management analysis"
+        )
+    if parameter_specs is None:
+        scopes = {name: PARAMETER_TIME_SCOPES[name] for name in FIGURE2B_PARAMETER_NAMES}
+    else:
+        scopes = _validated_parameter_time_scopes(
+            parameter_specs,
+            expected_names=FIGURE2B_PARAMETER_NAMES,
+        )
+
     out = deepcopy(config)
-    _scale_ve_inf(out, sample)
-    _apply_infant_contact_multiplier(out, float(sample["infant_contact_multiplier"]))
-    out["transmission"]["relative_infectiousness_asymptomatic"] = float(
-        sample["relative_infectiousness_asymptomatic"]
-    )
-    out["natural_history"]["infectious_duration_asymptomatic"] = float(
-        sample["infectious_duration_asymptomatic"]
-    )
-    out["transmission"]["fitness_R"] = float(sample["fitness_R"])
-    _apply_guided_management_uptake(
-        out,
-        current_config,
-        strategy=strategy,
-        uptake=float(sample["resistance_management_uptake"]),
-    )
-    out["PEP"]["coverage_household_contacts"] = _clip_probability(
-        float(out["PEP"].get("coverage_household_contacts", 0.0)) * float(sample["PEP_coverage_multiplier"])
-    )
+    for name in FIGURE2B_PARAMETER_NAMES:
+        scope = scopes[name]
+        for target in _model_config_targets_for_scope(out, scope):
+            _apply_parameter_value(
+                target,
+                current_config,
+                strategy=strategy,
+                name=name,
+                value=float(sample[name]),
+            )
     out.setdefault("metadata", {})["joint_psa_sample_id"] = int(sample["psa_sample_id"])
+    out["metadata"]["joint_psa_parameter_time_scopes"] = dict(scopes)
     return out
 
 
 def _default_parameter_specs() -> dict[str, dict[str, Any]]:
+    """Load the canonical Figure 2b registry or fail closed.
+
+    The historical uniform-range fallback was unsafe because a missing YAML
+    block silently changed the statistical design while retaining the same
+    output names.  Keep this helper name for existing callers, but require the
+    registered inverse-CDF specifications.
+    """
+
     registry = load_configs().get("parameter_distributions", {})
+    validate_uncertainty_registry_schema(registry)
     settings = registry.get("joint_rank_psa", {}) if isinstance(registry, dict) else {}
     specs = settings.get("parameters", {}) if isinstance(settings, dict) else {}
-    if specs:
-        return specs
-    # Backward-compatible fallback for installations without the registry.
-    return {
-        "infant_contact_multiplier": {"min": 0.75, "max": 1.50},
-        "VE_inf_baseline": {"min": 0.05, "max": 0.60},
-        "relative_infectiousness_asymptomatic": {"min": 0.25, "max": 0.85},
-        "infectious_duration_asymptomatic": {"min": 7.0, "max": 21.0},
-        "fitness_R": {"min": 0.70, "max": 1.25},
-        "resistance_management_uptake": {"min": 0.40, "max": 1.00},
-        "PEP_coverage_multiplier": {"min": 0.50, "max": 1.50},
-    }
+    if not isinstance(specs, dict) or not specs:
+        raise ValueError(
+            "Current Figure 2b PSA requires parameter_distributions."
+            "joint_rank_psa.parameters; legacy uniform-range fallback is disabled"
+        )
+    _validated_parameter_time_scopes(
+        specs,
+        expected_names=FIGURE2B_PARAMETER_NAMES,
+    )
+    return specs
 
 
 def _sample_table(
@@ -285,19 +419,14 @@ def _sample_table(
     *,
     schema_version: int = UNCERTAINTY_SCHEMA_VERSION,
 ) -> pd.DataFrame:
+    schema_version = validate_uncertainty_registry_schema(
+        {"schema_version": schema_version},
+        context="Figure 2b PSA sample contract",
+    )
     specs = parameter_specs or _default_parameter_specs()
-    if set(specs) != set(EXPECTED_PARAMETER_NAMES):
-        raise ValueError(
-            "Joint rank PSA parameter registry must match the implemented semantic contract; "
-            f"expected={list(EXPECTED_PARAMETER_NAMES)}, actual={list(specs)}"
-        )
+    _validated_parameter_time_scopes(specs, expected_names=FIGURE2B_PARAMETER_NAMES)
     df = latin_hypercube_draw_table(specs, sample_size, seed=seed)
-    if int(schema_version) != UNCERTAINTY_SCHEMA_VERSION:
-        raise ValueError(
-            f"Unsupported uncertainty schema version {schema_version}; "
-            f"this runner implements version {UNCERTAINTY_SCHEMA_VERSION}"
-        )
-    df.insert(0, "uncertainty_schema_version", int(schema_version))
+    df.insert(0, "uncertainty_schema_version", schema_version)
     df["psa_sample_id"] = np.arange(1, sample_size + 1, dtype=int)
     df["sample_design"] = SAMPLE_DESIGN
     return df[
@@ -311,8 +440,7 @@ def _sample_table(
 
 
 def _set_smoke_runtime(config: dict[str, Any], *, output_time_step: float = 90.0) -> None:
-    config.setdefault("calendar", {})["analysis_end_date"] = "2025-12-31"
-    config.setdefault("simulation", {})["end_time"] = 365.0
+    set_analysis_horizon_years(config, 1)
     config["simulation"]["output_time_step"] = float(output_time_step)
     config["simulation"]["rtol"] = max(float(config["simulation"].get("rtol", 1e-5)), 1e-4)
     config["simulation"]["atol"] = max(float(config["simulation"].get("atol", 1e-7)), 1e-6)
@@ -325,6 +453,7 @@ def _build_scenarios_for_sample(
     countries: tuple[str, ...],
     strategies: tuple[str, ...],
     smoke_runtime: bool,
+    parameter_specs: dict[str, dict[str, Any]] | None = None,
     existing_cells: set[tuple[int, str, str]] | None = None,
 ) -> list[dict[str, Any]]:
     scenarios: list[dict[str, Any]] = []
@@ -339,9 +468,14 @@ def _build_scenarios_for_sample(
             config, vaccine_name = _make_strategy_config(
                 strategy,
                 country=country,
-                resistance_name=resistance_name,
             )
-            config = _apply_psa_sample(config, current_config, strategy=strategy, sample=sample)
+            config = _apply_psa_sample(
+                config,
+                current_config,
+                strategy=strategy,
+                sample=sample,
+                parameter_specs=parameter_specs,
+            )
             if smoke_runtime:
                 _set_smoke_runtime(config)
             scenarios.append(
@@ -764,13 +898,9 @@ def run_joint_psa(
     keep_timeseries: bool,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     configs = load_configs()
+    calibration_input_hashes = _validated_calibration_input_artifact_hashes(countries)
     registry = configs.get("parameter_distributions", {})
-    schema_version = int(registry.get("schema_version", UNCERTAINTY_SCHEMA_VERSION))
-    if schema_version != UNCERTAINTY_SCHEMA_VERSION:
-        raise ValueError(
-            f"Unsupported uncertainty schema version {schema_version}; "
-            f"this runner implements version {UNCERTAINTY_SCHEMA_VERSION}"
-        )
+    schema_version = validate_uncertainty_registry_schema(registry)
     joint_settings = registry.get("joint_rank_psa", {}) if isinstance(registry, dict) else {}
     parameter_specs = joint_settings.get("parameters", {}) if isinstance(joint_settings, dict) else {}
     parameter_specs = parameter_specs or _default_parameter_specs()
@@ -829,6 +959,7 @@ def run_joint_psa(
                     countries=countries,
                     strategies=strategies,
                     smoke_runtime=smoke_runtime,
+                    parameter_specs=parameter_specs,
                     existing_cells=existing_cells,
                 )
             )
@@ -846,6 +977,7 @@ def run_joint_psa(
             stem=batch_stem,
             n_jobs=n_jobs,
         )
+        enforce_calibration_status(summary, stem=batch_stem)
         outcome_frames.append(summary)
         summary_frames.append(summary)
         if keep_timeseries:
@@ -923,10 +1055,17 @@ def run_joint_psa(
             "uncertainty_config_hash": uncertainty_config_fingerprint(configs),
             "source_code_hash": source_code_hash,
             "sample_design": SAMPLE_DESIGN,
+            "figure2b_parameter_names": list(FIGURE2B_PARAMETER_NAMES),
+            "parameter_time_scopes": _validated_parameter_time_scopes(
+                parameter_specs,
+                expected_names=FIGURE2B_PARAMETER_NAMES,
+            ),
+            "excluded_dead_dimensions": ["resistance_management_uptake"],
             "parameter_distributions": {
                 name: validate_distribution_spec(spec, context=f"joint PSA parameter {name!r}")
                 for name, spec in parameter_specs.items()
             },
+            "input_artifact_path_sha256": calibration_input_hashes,
         }
     )
     write_run_metadata(STEM, metadata)
@@ -942,9 +1081,13 @@ def _parse_csv_tuple(value: str | None, default: tuple[str, ...]) -> tuple[str, 
 def main() -> tuple[pd.DataFrame, pd.DataFrame]:
     configs = load_configs()
     registry = configs.get("parameter_distributions", {})
+    validate_uncertainty_registry_schema(registry)
     joint_settings = registry.get("joint_rank_psa", {}) if isinstance(registry, dict) else {}
     parser = argparse.ArgumentParser(
-        description="Run selected-parameter joint PSA rank-stability diagnostics for infant-case interventions."
+        description=(
+            "Run the six-parameter Figure 2b programme rank-stability diagnostic "
+            "and its separate infant-endpoint secondary ranking."
+        )
     )
     parser.add_argument(
         "--samples",

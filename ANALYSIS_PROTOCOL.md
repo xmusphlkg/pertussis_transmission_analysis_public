@@ -86,16 +86,19 @@ routine schedule timeliness, adolescent booster scale-up, pregnancy Tdap
 scale-up, close-contact adult adjuncts, the high-intensity infant-exposure
 package, and targeted high-risk post-exposure prophylaxis. Coverage-floor
 contrasts, future mechanisms, and combined upper-bound scenarios are excluded
-from the current programme-only ranking.
+from the current programme-only ranking. Figure 2a uses the production-runtime
+coverage-floor-only contrast as a delivery-lever diagnostic alongside routine
+timeliness; both use the same within-profile current-practice denominator.
 
 The primary policy endpoint is the conditional annualised symptomatic-case
 index per 100 000 people younger than 18 years. Infant hospitalisations and
 deaths are a separate severe-outcome axis. Secondary outcomes include
 age-specific symptomatic cases, reported cases, infections, and resistant
-infections. Rankings use unrounded conditional point estimates. Runner-up
-margins are classified as near-tie (5.0 or less), modest (greater than 5.0 to
-25.0), or clear (greater than 25.0) conditional cases per 100 000 people
-younger than 18 years.
+infections. Rankings use unrounded conditional point estimates. Within each
+profile, the leader is the programme-only strategy with the lowest primary
+burden and the runner-up is the strategy with the second-lowest burden. The
+paired decision margin is defined as runner-up burden minus leader burden, so
+positive values favour the selected leader.
 
 ## Predictive validation
 
@@ -127,14 +130,44 @@ validated age-specific policy effects.
 
 ## Sensitivity and uncertainty
 
-The main policy figures show deterministic conditional point estimates,
-cross-profile heterogeneity, and runner-up margins. They contain no Bayesian
-credible or predictive intervals. A fixed-seed 128-point Latin-hypercube design
-is used as a paired selected-parameter input-sensitivity diagnostic. Programme-
-only scenarios are ranked separately on the primary symptomatic-case endpoint
-among people younger than 18 years; infant ranks are retained as a distinct
-secondary endpoint. The design is not a posterior distribution, and rank
-frequencies are not posterior probabilities or complete decision uncertainty.
+Figure 2a reports the deterministic production-runtime contrast between a
+nominal coverage-floor-only lever and routine timeliness, using relative
+reductions against the same current-practice denominator. It is a configured
+model-lever comparison, not an empirical causal decomposition.
+
+Figure 2b reports consequence-aware fragility across a fixed-seed design of 128
+prespecified paired Latin-hypercube selected-input settings. Its six and only
+six sampled inputs are the infant-contact multiplier, baseline vaccine effect
+on infectiousness, relative infectiousness of asymptomatic infection,
+asymptomatic infectious duration, resistant-strain relative fitness, and the
+programme PEP-coverage multiplier. Every setting compares the same six
+programme-only strategies (routine timeliness, adolescent booster, pregnancy
+Tdap scale-up, close-contact adult adjunct, infant-exposure reduction, and
+targeted high-risk PEP) on the primary symptomatic-case endpoint among people
+younger than 18 years. Figure 2b combines the exact count of settings in which
+the locked reference choice remains lowest-burden with the empirical 95th
+percentile of fixed-reference regret, defined as 100 times reference-choice
+burden minus setting-specific minimum burden, divided by current-practice
+burden. These quantities are deterministic design summaries, not probabilities,
+confidence intervals, or expected regret. Resistance-management uptake and
+guided-pathway PEP reach are not Figure 2b inputs.
+
+The resistance-management sensitivity is a separate five-year, fixed-seed
+design of 128 paired Latin-hypercube settings with exactly two prospective
+implementation inputs: resistance-management uptake and guided-pathway PEP
+reach. Each setting compares resistance-guided management with routine
+timeliness under two prespecified structural strata, restored and not-restored
+PEP effectiveness against resistant infection. Both strata are reported; they
+are not assigned probabilities or used as mixture weights. Results from this
+design are independent resistance-management design summaries and are not part
+of Figure 2b or its six-dimensional programme-only sample.
+
+Figure 2c reports the locked relative reduction for all 54 profile-strategy
+combinations. Cell brackets are paired full-refit parametric-bootstrap 95%
+estimation confidence intervals and are neither Bayesian credible intervals nor
+future-observation prediction intervals. Programme-only scenarios are ranked on
+the primary symptomatic-case endpoint among people younger than 18 years;
+infant ranks remain a distinct secondary endpoint.
 
 Additional diagnostics address age-pattern weighting, schedule coverage versus
 timeliness, analysis window, pandemic shock recovery, infant contacts,
@@ -163,8 +196,8 @@ treated as protocol deviations rather than hidden analytic flexibility.
 2. The main predictive route was replaced by leakage-safe prequential
    discrepancy-POMP validation with prespecified baselines and a separate
    failed annual block stress test.
-3. Policy uncertainty was relabelled as deterministic Latin-hypercube input
-   sensitivity rather than a posterior interval.
+3. Policy uncertainty was relabelled as deterministic Latin-hypercube
+   selected-input sensitivity rather than a posterior interval.
 4. The prospective scenario start was moved to January 1, 2027, after the
    2026 evidence and validation lock.
 5. South Africa was removed from the formal publication set after applying the

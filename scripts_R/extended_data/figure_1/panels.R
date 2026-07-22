@@ -4,6 +4,7 @@ plot_extended_data_figure_1_panel_a <- function(data) {
   ggplot(data$coverage_plot, aes(coverage, country_label, colour = programme, shape = programme)) +
     geom_point(position = position_dodge(width = 0.45), size = 1.8) +
     scale_x_continuous(labels = percent_format(accuracy = 1)) +
+    scale_y_discrete(limits = rev(country_label_levels), drop = FALSE) +
     coord_cartesian(xlim = c(0, 1)) +
     scale_colour_manual(values = manuscript_coverage_colours) +
     labs(x = "Coverage", y = NULL, colour = NULL, shape = NULL) +
@@ -25,6 +26,7 @@ plot_extended_data_figure_1_panel_b <- function(data) {
       stroke = 0.25
     ) +
     scale_x_continuous(labels = label_number(accuracy = 1)) +
+    scale_y_discrete(limits = rev(country_label_levels), drop = FALSE) +
     coord_cartesian(xlim = c(0, 200)) +
     scale_size_continuous(range = c(1.6, 3.8), breaks = c(4, 5, 6), name = "Routine doses") +
     scale_fill_manual(
@@ -48,6 +50,7 @@ plot_extended_data_figure_1_panel_b <- function(data) {
 plot_extended_data_figure_1_panel_c <- function(data) {
   ggplot(data$contacts_summary, aes(source_age_group, country_label, fill = total_contacts)) +
     geom_tile(colour = "white", linewidth = lancet_heatmap_tile_linewidth) +
+    scale_y_discrete(limits = rev(country_label_levels), drop = FALSE) +
     scale_fill_fraction(
       labels = label_lancet_number(accuracy = 0.1),
       guide = guide_colourbar(

@@ -1,0 +1,19 @@
+category,check,status,severity,details
+route,quality_bypass_disabled,pass,fatal,The canonical runner exposes no quality-bypass option.
+route,publication_estimation_ci_metadata_contract,pass,fatal,"analysis_role=publication_estimation_confidence_interval, publication_path=True, figure2c_interval_source=True"
+estimand,interval_type_is_parametric_bootstrap_confidence_interval,pass,fatal,"observed=['95% parametric-bootstrap confidence interval'], expected='95% parametric-bootstrap confidence interval'"
+estimand,interval_basis_matches_marginal_refit_bootstrap,pass,fatal,unique_basis_count=1
+estimand,no_posterior_or_prediction_interval_claim,pass,fatal,"posterior_credible_interval=False, future_observation_prediction_interval=False"
+coverage,country_and_strategy_coverage,pass,fatal,"countries=['Australia', 'Brazil', 'China', 'Japan', 'New_Zealand', 'Sweden', 'Thailand', 'United_Kingdom', 'United_States'], strategies=['adolescent_booster', 'cocooning_adjunct', 'maternal_immunization', 'pregnancy_tdap_scaleup', 'targeted_pep_high_risk', 'timeliness_only']"
+coverage,expected_country_strategy_rows,pass,fatal,"rows=54, expected=54, unique=True"
+refit,fit_diagnostics_complete,pass,fatal,"rows=9216, expected=9216, exact_country_replicate_pairs=9216/9216, missing_columns=[]"
+refit,fit_country_replicate_grid_exact,pass,fatal,"Expected every publication country exactly once at every bootstrap_replicate=1..1024; observed_pairs=9216, expected_pairs=9216"
+refit,minimum_successful_replicates,pass,fatal,"successes={'Australia': 1024, 'Brazil': 1024, 'China': 1024, 'Japan': 1024, 'New_Zealand': 1024, 'Sweden': 1023, 'Thailand': 1022, 'United_Kingdom': 1022, 'United_States': 1024}, minimum=1000"
+refit,bootstrap_refit_success_fraction,pass,fatal,"success_fraction={'Australia': 1.0, 'Brazil': 1.0, 'China': 1.0, 'Japan': 1.0, 'New_Zealand': 1.0, 'Sweden': 0.9990234375, 'Thailand': 0.998046875, 'United_Kingdom': 0.998046875, 'United_States': 1.0}, minimum=0.95"
+intervals,interval_quantiles_ordered,pass,fatal,finite=True
+intervals,interval_width_positive,pass,fatal,cells=54
+intervals,tail_probability_mcse_below_threshold,pass,fatal,"observed_max=0.0048836762323145, threshold=0.005; outcome-scale endpoint sensitivity is retained diagnostically but is not a scale-invariant quality gate"
+pairing,successful_replicate_strategy_grid_exact,pass,fatal,Every successful country-replicate must contain each of the 6 programme strategies exactly once.
+pairing,paired_current_intervention,pass,fatal,"draw_rows=55266, paired_metadata=True"
+provenance,upstream_input_path_digest_contract_exact,pass,fatal,"recorded=['outputs/calibrations/Australia_calibrated_config.yaml', 'outputs/calibrations/Brazil_calibrated_config.yaml', 'outputs/calibrations/China_calibrated_config.yaml', 'outputs/calibrations/Japan_calibrated_config.yaml', 'outputs/calibrations/New_Zealand_calibrated_config.yaml', 'outputs/calibrations/Sweden_calibrated_config.yaml', 'outputs/calibrations/Thailand_calibrated_config.yaml', 'outputs/calibrations/United_Kingdom_calibrated_config.yaml', 'outputs/calibrations/United_States_calibrated_config.yaml', 'outputs/tables/lancet_child_adolescent_decision_frontier.csv'], expected=['outputs/calibrations/Australia_calibrated_config.yaml', 'outputs/calibrations/Brazil_calibrated_config.yaml', 'outputs/calibrations/China_calibrated_config.yaml', 'outputs/calibrations/Japan_calibrated_config.yaml', 'outputs/calibrations/New_Zealand_calibrated_config.yaml', 'outputs/calibrations/Sweden_calibrated_config.yaml', 'outputs/calibrations/Thailand_calibrated_config.yaml', 'outputs/calibrations/United_Kingdom_calibrated_config.yaml', 'outputs/calibrations/United_States_calibrated_config.yaml', 'outputs/tables/lancet_child_adolescent_decision_frontier.csv']"
+provenance,source_output_digests_fresh,pass,fatal,all output digests match

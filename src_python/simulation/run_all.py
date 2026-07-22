@@ -9,7 +9,10 @@ from src_python.simulation.common import (
     write_manuscript_tables,
 )
 from src_python.simulation.run_age_pattern_sensitivity import main as run_age_pattern_sensitivity
-from src_python.simulation.run_bayesian_uncertainty import main as run_bayesian_uncertainty
+from src_python.simulation.run_bayesian_uncertainty import (
+    DEFAULT_OUTPUT_STEM as BAYESIAN_RESEARCH_OUTPUT_STEM,
+    main as run_bayesian_uncertainty,
+)
 from src_python.simulation.run_baseline import main as run_baseline
 from src_python.simulation.run_calibration_diagnostics import run as run_calibration_diagnostics
 from src_python.simulation.run_country_scenarios import main as run_countries
@@ -85,7 +88,7 @@ def main(
             fix_durations=False,
             fixed_parameters=(),
             importance_nuisance_draws=128,
-            output_stem="bayesian_uncertainty_figure2c_conditional",
+            output_stem=BAYESIAN_RESEARCH_OUTPUT_STEM,
         )
     if include_publication_diagnostics:
         configs = load_configs()
@@ -135,8 +138,9 @@ if __name__ == "__main__":
         "--include-bayesian",
         action="store_true",
         help=(
-            "Also run the conditional annual state-space uncertainty route with "
-            "exact-target importance correction and pre-specified quality checks."
+            "Also run the optional nonpublication conditional state-space research "
+            "route with exact-target importance correction. This does not generate "
+            "Figure 2c intervals."
         ),
     )
     parser.add_argument(
@@ -146,7 +150,7 @@ if __name__ == "__main__":
             "Also run the simulation-only publication diagnostics subset of "
             "make publication-data. This does not run manuscript_notes publication "
             "table scripts or the rolling-origin release gate; requires existing "
-            "conditional uncertainty samples unless "
+            "optional research uncertainty samples unless "
             "--include-bayesian is also used."
         ),
     )

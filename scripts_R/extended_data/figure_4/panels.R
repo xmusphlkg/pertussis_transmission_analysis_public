@@ -41,6 +41,10 @@ plot_extended_data_figure_4_timeseries_panel_d <- function(data) {
     ggplot(aes(age_group, country_label, fill = country_share)) +
     geom_tile(colour = "white", linewidth = lancet_heatmap_tile_linewidth) +
     facet_wrap(~strain_label, nrow = 1) +
+    scale_y_discrete(
+      limits = rev(main_figure_country_order(as.character(data$age_strain_contribution$country_label))),
+      drop = FALSE
+    ) +
     scale_fill_infant_burden(
       labels = label_lancet_percent(accuracy = 1),
       guide = guide_colourbar(
@@ -99,6 +103,10 @@ plot_extended_data_figure_4_fallback_panel_d <- function(data) {
   data$origin_share_fallback %>%
     ggplot(aes(origin, country_label, fill = share)) +
     geom_tile(colour = "white", linewidth = lancet_heatmap_tile_linewidth) +
+    scale_y_discrete(
+      limits = rev(main_figure_country_order(as.character(data$origin_share_fallback$country_label))),
+      drop = FALSE
+    ) +
     scale_fill_infant_burden(
       labels = label_lancet_percent(accuracy = 1),
       guide = guide_colourbar(

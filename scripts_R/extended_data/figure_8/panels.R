@@ -32,17 +32,17 @@ extended_data_figure_8_calendar_year_breaks <- function(x) {
 
 extended_data_figure_8_country_linetypes <- function() {
   c(
+    "Australia" = "dotdash",
     "China" = "solid",
-    "Japan" = "dashed",
-    "Australia" = "dotdash"
+    "Japan" = "dashed"
   )
 }
 
 extended_data_figure_8_country_shapes <- function() {
   c(
+    "Australia" = 15,
     "China" = 16,
-    "Japan" = 17,
-    "Australia" = 15
+    "Japan" = 17
   )
 }
 
@@ -126,7 +126,7 @@ plot_extended_data_figure_8_panel_a <- function(data) {
   plot_extended_data_figure_8_country_hindcast(
     data$hindcast,
     data$observed_data,
-    "China",
+    "Australia",
     x_label = "Calendar year"
   )
 }
@@ -135,7 +135,7 @@ plot_extended_data_figure_8_panel_b <- function(data) {
   plot_extended_data_figure_8_country_hindcast(
     data$hindcast,
     data$observed_data,
-    "Japan",
+    "China",
     x_label = "Calendar year"
   )
 }
@@ -144,7 +144,7 @@ plot_extended_data_figure_8_panel_c <- function(data) {
   plot_extended_data_figure_8_country_hindcast(
     data$hindcast,
     data$observed_data,
-    "Australia",
+    "Japan",
     x_label = "Calendar year"
   )
 }
@@ -176,7 +176,7 @@ plot_extended_data_figure_8_panel_d <- function(data) {
       size = 2.0, colour = "black",
       nudge_y = 0.02, segment.size = 0.2
     ) +
-    scale_colour_manual(values = manuscript_country_focus_colours[c("China", "Japan", "Australia")]) +
+    scale_colour_manual(values = manuscript_country_focus_colours[c("Australia", "China", "Japan")]) +
     scale_linetype_manual(values = extended_data_figure_8_country_linetypes()) +
     scale_shape_manual(values = extended_data_figure_8_country_shapes()) +
     scale_x_continuous(breaks = seq(0.85, 1.10, 0.05)) +

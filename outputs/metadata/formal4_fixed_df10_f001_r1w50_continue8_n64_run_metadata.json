@@ -1,0 +1,110 @@
+{
+  "audit": "exact_complete_state_mode_bank_independence_mh",
+  "config_hash": "60c5de6f402f35a1616f91df67d6fcf33a2b7f5d37b9e8a6d23895f7076a02d3",
+  "convergence_diagnostics_sha256": "0910a4a6242acaa63d7e6204a717eb51f0cd6ff6684152c777743abc845cb50e",
+  "convergence_summary": {
+    "all_converged": false,
+    "all_recommended_converged": false,
+    "countries_with_issues": [
+      "Australia",
+      "Brazil",
+      "China",
+      "Japan",
+      "New_Zealand",
+      "Sweden",
+      "Thailand",
+      "United_Kingdom",
+      "United_States"
+    ],
+    "countries_with_recommended_issues": [
+      "Australia",
+      "Brazil",
+      "China",
+      "Japan",
+      "New_Zealand",
+      "Sweden",
+      "Thailand",
+      "United_Kingdom",
+      "United_States"
+    ],
+    "fraction_converged": 0.0,
+    "fraction_recommended_converged": 0.0,
+    "min_bulk_ess": 20.68265517669726,
+    "min_tail_ess": 42.64879364125298,
+    "minimum_thresholds": {
+      "max_rhat": 1.05,
+      "min_bulk_ess": 100.0,
+      "min_tail_ess": 50.0
+    },
+    "n_parameters_converged": 0,
+    "n_parameters_recommended_converged": 0,
+    "n_parameters_total": 354,
+    "recommended_thresholds": {
+      "max_rhat": 1.01,
+      "min_bulk_ess": 400.0,
+      "min_tail_ess": 400.0
+    },
+    "worst_rhat": 1.0479829739960977
+  },
+  "covariance_floor_fraction": 0.001,
+  "covariance_inflation": 1.0,
+  "crossfit_current_population": false,
+  "degrees_of_freedom": 10.0,
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "final_posterior_sha256": "e7f10431d879ad19a9d0f52e16f542b4248c3bb009007af79b55c012cc11c1cc",
+  "final_posterior_written": true,
+  "generated_at_utc": "2026-07-16T02:30:29.579168+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
+    "dirty": true
+  },
+  "mean_mh_acceptance": 0.072265625,
+  "mode_bank_dimension": 80,
+  "mode_bank_source_hashes": [
+    "a435d225a9cb8d427f5a5f98b61e09648fea636b1240844bf9454cf9d4393578",
+    "a435d225a9cb8d427f5a5f98b61e09648fea636b1240844bf9454cf9d4393578",
+    "a435d225a9cb8d427f5a5f98b61e09648fea636b1240844bf9454cf9d4393578",
+    "f802092d98de4a15a7c9dfab56b4b431c4eb1387e6eb606b00204c8a0089a1fe",
+    "9e8062cc107474d3fd4d21d7dc185d7bb42b3ab4586714c0fb4a462f0650f81b",
+    "b68eb2458fa4aec571a679fa97b6931e1e8917712b27a4ae04bc5ab3cddcee5d"
+  ],
+  "mode_bank_source_stems": [
+    "formal_crossfit_weighted75_512_wide5_r1",
+    "formal_crossfit_weighted75_512_wide5_r1",
+    "formal_crossfit_weighted75_512_wide5_r1",
+    "formal_crossfit_weighted75_512_wide5_r2",
+    "formal_crossfit_weighted75_512_wide5_r3",
+    "formal_crossfit_weighted75_512_wide5_r4"
+  ],
+  "n_jobs": 32,
+  "origin_stems": [
+    "formal4_fixed_df10_f001_i1_audit16_n128::chain=1",
+    "formal4_fixed_df10_f001_i1_audit16_n128::chain=2",
+    "formal4_fixed_df10_f001_i1_audit16_n128::chain=3",
+    "formal4_fixed_df10_f001_i1_audit16_n128::chain=4"
+  ],
+  "output_sha256": "7341988c92d7be13a35d44e851bb22571eb62638802cd6db1ef6fa085a768654",
+  "particles_per_origin": 64,
+  "process_support_bound": 5.0,
+  "rounds": 8,
+  "row_counts": {
+    "convergence_diagnostics": 354,
+    "final_posterior_samples": 2304,
+    "mode_bank_origin_audits": 32
+  },
+  "schema_version": 1,
+  "seed": 20261512,
+  "source_code_hash": "1aacd16b3e63141ecbb0ea899b83f46a6c9294d32e3d71c15aa9721e43b9cd75",
+  "stem": "formal4_fixed_df10_f001_r1w50_continue8_n64",
+  "total_accepted_cross_mode_count": 28
+}

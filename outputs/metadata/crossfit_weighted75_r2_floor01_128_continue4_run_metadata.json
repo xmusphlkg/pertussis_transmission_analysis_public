@@ -1,0 +1,128 @@
+{
+  "audit": "exact_complete_state_mode_bank_independence_mh",
+  "config_hash": "60c5de6f402f35a1616f91df67d6fcf33a2b7f5d37b9e8a6d23895f7076a02d3",
+  "convergence_diagnostics_sha256": "74c2a9263ff86f86601a41120988d8a34be1e5a35e9b4d512903939643b28f44",
+  "convergence_summary": {
+    "all_converged": false,
+    "all_recommended_converged": false,
+    "countries_with_issues": [
+      "Australia",
+      "Brazil",
+      "China",
+      "Japan",
+      "New_Zealand",
+      "Sweden",
+      "Thailand",
+      "United_Kingdom",
+      "United_States"
+    ],
+    "countries_with_recommended_issues": [
+      "Australia",
+      "Brazil",
+      "China",
+      "Japan",
+      "New_Zealand",
+      "Sweden",
+      "Thailand",
+      "United_Kingdom",
+      "United_States"
+    ],
+    "fraction_converged": 0.0,
+    "fraction_recommended_converged": 0.0,
+    "min_bulk_ess": 14.75622146067933,
+    "min_tail_ess": 22.29232560039821,
+    "minimum_thresholds": {
+      "max_rhat": 1.05,
+      "min_bulk_ess": 100.0,
+      "min_tail_ess": 50.0
+    },
+    "n_parameters_converged": 0,
+    "n_parameters_recommended_converged": 0,
+    "n_parameters_total": 354,
+    "recommended_thresholds": {
+      "max_rhat": 1.01,
+      "min_bulk_ess": 400.0,
+      "min_tail_ess": 400.0
+    },
+    "worst_rhat": 1.0992646283949294
+  },
+  "covariance_floor_fraction": 0.01,
+  "covariance_inflation": 1.0,
+  "crossfit_current_population": true,
+  "degrees_of_freedom": 50.0,
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "final_posterior_sha256": "58ff2ac927f6bbeb438ee2248ebf5af0f8fbd69e79b77d24112e90f506165f20",
+  "final_posterior_written": true,
+  "generated_at_utc": "2026-07-15T17:44:24.900133+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
+    "dirty": true
+  },
+  "mean_mh_acceptance": 0.04638671875,
+  "mode_bank_dimension": 80,
+  "mode_bank_source_hashes": [
+    "0e03fba3796f7431440e8ed4f9ddbe312b0db2d24392ff9f52aeb6996ed10861",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "77736722b324906cfed5ddd25198214a1aac01586647f410c740424e5f0f1154",
+    "26d5bd57106dcdf50cf8db22659438a732e5f2faeec054fdb40475a59ff9d64c",
+    "d00e84c000eb224c28de4dc01e15b7893481bed56afadfbb07897d344f63777c"
+  ],
+  "mode_bank_source_stems": [
+    "crossfit_union8_128_wide5_pilot_r1",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r2",
+    "crossfit_union8_128_wide5_pilot_r3",
+    "crossfit_union8_128_wide5_pilot_r4"
+  ],
+  "n_jobs": 100,
+  "origin_stems": [
+    "crossfit_weighted_r2_128_continue8::chain=1",
+    "crossfit_weighted_r2_128_continue8::chain=2",
+    "crossfit_weighted_r2_128_continue8::chain=3",
+    "crossfit_weighted_r2_128_continue8::chain=4"
+  ],
+  "output_sha256": "34669864172d684be14d24caee5abb62373d66096c9a14af46f15c2281fb2575",
+  "particles_per_origin": 128,
+  "process_support_bound": 5.0,
+  "rounds": 4,
+  "row_counts": {
+    "convergence_diagnostics": 354,
+    "final_posterior_samples": 4608,
+    "mode_bank_origin_audits": 16
+  },
+  "schema_version": 1,
+  "seed": 20261108,
+  "source_code_hash": "1aacd16b3e63141ecbb0ea899b83f46a6c9294d32e3d71c15aa9721e43b9cd75",
+  "stem": "crossfit_weighted75_r2_floor01_128_continue4",
+  "total_accepted_cross_mode_count": 55
+}

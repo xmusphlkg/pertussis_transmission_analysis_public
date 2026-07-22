@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+from collections.abc import Iterable
 from copy import deepcopy
 from datetime import datetime, timezone
 from functools import lru_cache
@@ -28,6 +29,9 @@ from src_python.model.outputs import (
     summarize_timeseries,
 )
 from src_python.model.parameters import PreparedParameters
+from src_python.simulation.parameter_distributions import (
+    validate_uncertainty_registry_schema,
+)
 from src_python.utils.io import (
     deep_update,
     ensure_output_dirs,
@@ -141,8 +145,30 @@ UNCERTAINTY_REGISTRY_METADATA_STEMS = frozenset(
     {
         "sensitivity_runs",
         "joint_psa_rank_acceptability",
+        "resistance_management_psa",
+        "fitness_resistance_grid_psa_benefit",
         "bayesian_uncertainty",
+        "bayesian_uncertainty_conditional_research",
+        "bayesian_uncertainty_joint_research",
+    }
+)
+INPUT_ARTIFACT_DIGEST_METADATA_STEMS = frozenset(
+    {
+        "fitness_resistance_grid_psa_benefit",
+        "figure1b_current_practice_conditional_parametric_bootstrap",
+        "joint_psa_rank_acceptability",
+        "resistance_management_psa",
+        "sensitivity_runs",
+        "figure2c_parametric_bootstrap",
+    }
+)
+RETIRED_UNCERTAINTY_REGISTRY_METADATA_STEMS = frozenset(
+    {
+        # Historical compatibility only. New runs must use an explicitly
+        # nonpublication research stem rather than claiming a Figure 2c role.
+        "bayesian_uncertainty_full_joint",
         "bayesian_uncertainty_figure2c_conditional",
+        "bayesian_uncertainty_figure2c_joint",
     }
 )
 DEPENDENCY_VERSION_PACKAGES = ("numpy", "pandas", "scipy", "pyyaml", "joblib", "numba", "pyarrow")
@@ -151,6 +177,11 @@ DEPENDENCY_VERSION_PACKAGES = ("numpy", "pandas", "scipy", "pyyaml", "joblib", "
 # validator-only fix falsely mark every simulation output as stale.
 SOURCE_CODE_DIRECTORIES = ("model", "calibration", "simulation", "utils")
 CALIBRATION_SOURCE_CODE_DIRECTORIES = ("model", "calibration", "utils")
+NON_NUMERICAL_SOURCE_PATHS = frozenset(
+    {
+        "src_python/utils/validation.py",
+    }
+)
 PROSPECTIVE_POLICY_KEY = "_prospective_policy"
 PROSPECTIVE_POLICY_SCHEMA_VERSION = 1
 
@@ -172,6 +203,10 @@ def _load_configs_cached() -> dict[str, dict[str, Any]]:
             baseline[optional_block] = deepcopy(runtime[optional_block])
     distribution_path = project_path("config/parameter_distributions.yaml")
     parameter_distributions = load_yaml(distribution_path) if distribution_path.exists() else {}
+    validate_uncertainty_registry_schema(
+        parameter_distributions,
+        context="config/parameter_distributions.yaml",
+    )
     return {
         "settings": settings,
         "baseline": baseline,
@@ -356,6 +391,7 @@ def config_fingerprint(configs: dict[str, Any] | None = None) -> str:
 
 def _uncertainty_config_fingerprint_from_configs(configs: dict[str, Any]) -> str:
     payload = configs.get("parameter_distributions", {})
+    validate_uncertainty_registry_schema(payload)
     encoded = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
 
@@ -443,6 +479,10 @@ def _python_source_paths(
         if path.is_file() and "__pycache__" not in path.parts
     }
     paths.update(path for path in extra_paths if path.is_file())
+    paths.difference_update(
+        project_root.joinpath(relative_path)
+        for relative_path in NON_NUMERICAL_SOURCE_PATHS
+    )
     return paths
 
 
@@ -598,7 +638,11 @@ def validate_run_metadata(stem: str, *, require_dependency_versions: bool = True
             f"({recorded_source_hash}); current source-code hash is {expected_source_hash}."
         )
     recorded_uncertainty_hash = metadata.get("uncertainty_config_hash")
-    if stem in UNCERTAINTY_REGISTRY_METADATA_STEMS and not recorded_uncertainty_hash:
+    registry_backed_stems = (
+        UNCERTAINTY_REGISTRY_METADATA_STEMS
+        | RETIRED_UNCERTAINTY_REGISTRY_METADATA_STEMS
+    )
+    if stem in registry_backed_stems and not recorded_uncertainty_hash:
         raise ValueError(
             f"Output {stem} predates the parameter-distribution registry fingerprint and must be rerun."
         )
@@ -610,6 +654,46 @@ def validate_run_metadata(stem: str, *, require_dependency_versions: bool = True
                 f"({recorded_uncertainty_hash}); current uncertainty hash is "
                 f"{expected_uncertainty_hash}."
             )
+    # ``input_artifact_sha256`` is an older label-keyed provenance mapping in
+    # several pipelines (for example ``calibration_Australia``); its keys are
+    # not filesystem paths.  Path-revalidated dependencies use this distinct
+    # field so generic validation cannot reinterpret legacy labels as paths.
+    input_artifact_hashes = metadata.get("input_artifact_path_sha256")
+    if stem in INPUT_ARTIFACT_DIGEST_METADATA_STEMS and not input_artifact_hashes:
+        raise ValueError(
+            f"Output {stem} predates required upstream input-artifact fingerprints "
+            "and must be rerun."
+        )
+    if input_artifact_hashes is not None:
+        if not isinstance(input_artifact_hashes, dict) or not input_artifact_hashes:
+            raise ValueError(
+                f"Output {stem} has invalid input_artifact_path_sha256 metadata."
+            )
+        for recorded_path, recorded_hash in input_artifact_hashes.items():
+            if not isinstance(recorded_path, str) or not recorded_path.strip():
+                raise ValueError(
+                    f"Output {stem} has an invalid upstream input-artifact path."
+                )
+            if not isinstance(recorded_hash, str) or not recorded_hash.strip():
+                raise ValueError(
+                    f"Output {stem} has an invalid upstream input-artifact digest "
+                    f"for {recorded_path!r}."
+                )
+            artifact_path = Path(recorded_path)
+            if not artifact_path.is_absolute():
+                artifact_path = project_path(artifact_path)
+            if not artifact_path.is_file():
+                raise ValueError(
+                    f"Output {stem} depends on a missing upstream input artifact: "
+                    f"{artifact_path}."
+                )
+            current_digest = file_sha256(artifact_path)
+            if current_digest != recorded_hash:
+                raise ValueError(
+                    f"Output {stem} was generated from a stale upstream input artifact "
+                    f"{artifact_path} ({recorded_hash}); current SHA-256 is "
+                    f"{current_digest}."
+                )
     if require_dependency_versions:
         dependency_failures = dependency_version_failures_for_metadata(stem, metadata)
         if dependency_failures:
@@ -680,6 +764,33 @@ def load_calibrated_country_artifact(
         calibration_source_code_fingerprint(),
     )
     return deepcopy(artifact) if artifact is not None else None
+
+
+def validated_calibration_artifact_path_hashes(
+    countries: Iterable[str],
+    *,
+    context: str,
+) -> dict[str, str]:
+    """Require current accepted calibrations and return path-keyed digests."""
+
+    hashes: dict[str, str] = {}
+    unavailable: list[str] = []
+    root = project_path()
+    for raw_country in countries:
+        country = str(raw_country)
+        artifact = load_calibrated_country_artifact(country)
+        path = calibrated_country_artifact_path(country)
+        if artifact is None or not path.is_file():
+            unavailable.append(country)
+            continue
+        hashes[str(path.relative_to(root))] = file_sha256(path)
+    if unavailable:
+        raise RuntimeError(
+            f"{context} requires current accepted calibration artifacts for every "
+            "publication country; rerun calibration before production. Missing or "
+            f"stale: {', '.join(sorted(unavailable))}"
+        )
+    return dict(sorted(hashes.items()))
 
 
 def _value_at_dotted_path(config: dict[str, Any], path: str) -> Any:
@@ -2307,7 +2418,50 @@ def write_outputs(
     stem: str,
     *,
     extra_metadata: dict[str, Any] | None = None,
+    require_calibrated: bool = True,
 ) -> None:
+    calibration_input_hashes: dict[str, str] = {}
+    if require_calibrated:
+        enforce_calibration_status(summary, stem=stem)
+        if {"country", "calibration_loaded"}.issubset(summary.columns):
+            calibrated_countries = tuple(
+                sorted(
+                    summary.loc[
+                        summary["calibration_loaded"].eq(True).fillna(False), "country"
+                    ]
+                    .dropna()
+                    .astype(str)
+                    .unique()
+                )
+            )
+            if calibrated_countries:
+                calibration_input_hashes = validated_calibration_artifact_path_hashes(
+                    calibrated_countries,
+                    context=f"Output {stem}",
+                )
+    resolved_extra_metadata = dict(extra_metadata or {})
+    if calibration_input_hashes:
+        recorded = resolved_extra_metadata.get("input_artifact_path_sha256", {})
+        if recorded is None:
+            recorded = {}
+        if not isinstance(recorded, dict):
+            raise ValueError(
+                f"Output {stem} has non-mapping input_artifact_path_sha256 metadata"
+            )
+        conflicts = {
+            path
+            for path, digest in calibration_input_hashes.items()
+            if path in recorded and str(recorded[path]) != digest
+        }
+        if conflicts:
+            raise ValueError(
+                f"Output {stem} supplied conflicting calibration artifact digests: "
+                + ", ".join(sorted(conflicts))
+            )
+        resolved_extra_metadata["input_artifact_path_sha256"] = {
+            **calibration_input_hashes,
+            **recorded,
+        }
     ensure_output_dirs()
     project_path("outputs", "metadata").mkdir(parents=True, exist_ok=True)
     _clear_stem_outputs(stem)
@@ -2320,8 +2474,8 @@ def write_outputs(
             "summary": int(len(summary)),
         },
     )
-    if extra_metadata:
-        metadata.update(extra_metadata)
+    if resolved_extra_metadata:
+        metadata.update(resolved_extra_metadata)
     write_run_metadata(stem, metadata)
 
 
@@ -2433,11 +2587,13 @@ def write_manuscript_tables() -> None:
         else {}
     )
     evidence_specs = evidence_psa.get("parameters", {})
-    selected_sensitivity_specs = (
-        evidence_specs
-        if isinstance(evidence_specs, dict) and evidence_specs
-        else configs["sensitivity"].get("parameters", {})
-    )
+    if not isinstance(evidence_specs, dict) or not evidence_specs:
+        raise ValueError(
+            "Manuscript parameter tables require the canonical "
+            "parameter_distributions.global_sensitivity.parameters registry; "
+            "legacy sensitivity-range fallback is disabled."
+        )
+    selected_sensitivity_specs = evidence_specs
     sensitivity_paths = {
         spec.get("path")
         for spec in selected_sensitivity_specs.values()
@@ -2519,7 +2675,7 @@ def write_manuscript_tables() -> None:
         },
         "natural_history.maternal_protection_duration": {
             "source": "Pregnancy-vaccination effectiveness evidence and scenario assumption",
-            "note": "Baseline passive maternal-protection duration is short-lived; pregnancy Tdap and Figure 2c intervention priors vary the duration.",
+            "note": "Baseline passive maternal-protection duration is short-lived; pregnancy Tdap and the optional legacy nonpublication research intervention prior vary the duration.",
         },
         "natural_history.latent_duration": {
             "source": "Interval-censored pertussis incubation evidence",
@@ -2710,7 +2866,12 @@ def write_manuscript_tables() -> None:
         low = _fmt_parameter_value(spec.get("low", spec.get("min")))
         high = _fmt_parameter_value(spec.get("high", spec.get("max")))
         suffix = f" {unit}" if unit and unit not in {"ratio", "proportion"} else ""
-        distribution = str(spec.get("distribution", "uniform")).replace("_", "-")
+        if "distribution" not in spec:
+            raise ValueError(
+                "Manuscript parameter-table uncertainty specifications must "
+                "declare an explicit distribution."
+            )
+        distribution = str(spec["distribution"]).replace("_", "-")
         return f"{low} to {high}{suffix} ({distribution} support)".strip()
 
     def _parameter_range_text(path: str, unit: str) -> str:
@@ -2774,7 +2935,7 @@ def write_manuscript_tables() -> None:
             "transmission.multi_year_period_years": "3 to 5 years when country surveillance supports recurrence; otherwise fixed at 4 years",
             "transmission.multi_year_phase": "Fixed at 0 in the submitted primary analysis",
             "natural_history.latent_duration": "7 to 10 days clinical range",
-            "natural_history.maternal_protection_duration": "90 days baseline; 180 days in pregnancy Tdap scale-up; 90 to 270 days in Figure 2c intervention prior",
+            "natural_history.maternal_protection_duration": "90 days baseline; 180 days in pregnancy Tdap scale-up; 90 to 270 days in the optional legacy nonpublication research intervention prior",
             "natural_history.recovered_immunity_duration": "Legacy fallback only; inactive under the submitted SIRWS boosting model",
             "natural_history.R_to_W_duration": "Fixed at 1825 days in the submitted primary analysis",
             "natural_history.W_to_S_duration": "Fixed at 3650 days in the submitted primary analysis",
@@ -2787,7 +2948,7 @@ def write_manuscript_tables() -> None:
             "immunity_model.waned_vaccine_duration": "Fixed at 3650 days in the submitted primary analysis",
             "immunity_model.initial_recent_fraction": "Age-specific initial fractions 0.06 to 1.00; shared fallback 0.35",
             "observation.reporting_probability_baseline": "Country- and age-specific calibrated probabilities; prior bounds reported in the fitted reporting-probability table",
-            "reporting_multiplier": "Calibration and sensitivity support 0.50 to 1.50; Figure 2c prior SD 0.80 on log scale",
+            "reporting_multiplier": "Calibration and sensitivity support 0.50 to 1.50; optional legacy nonpublication research prior SD 0.80 on log scale",
             "calibration.dispersion": "Fixed at 50 in the negative-binomial likelihood; stochastic overlay explores k=5 to 50 separately",
             "calibration.recent_years": "Up to 6 recent observed years when available",
             "calibration.relative_incidence_tolerance": "Fixed at 0.25 for retained mean-incidence calibration",
@@ -3446,12 +3607,12 @@ def write_manuscript_tables() -> None:
         "VE_dur": (
             "Mechanistic duration-shortening proxy for reduced infectious duration "
             "among vaccinated infections. It is propagated as an external-prior "
-            "sensitivity dimension in the Figure 2c conditional interval and remains a vaccine-mechanism "
+            "sensitivity dimension in the optional legacy nonpublication research analysis and remains a vaccine-mechanism "
             "sensitivity parameter in other diagnostics."
         ),
         "resistance_prevalence": (
             "Resistance prevalence is fixed at the country-timeline value during the "
-            "Figure 2c conditional uncertainty analysis and beta-grid diagnostics. The country_resistance_timeline.csv "
+            "optional legacy nonpublication research analysis and beta-grid diagnostics. The country_resistance_timeline.csv "
             "provides well-constrained estimates for most countries; fixed, low-to-very-high "
             "resistance scenarios and the fitness grid evaluate the corresponding "
             "structural uncertainty."
@@ -3506,7 +3667,7 @@ def write_manuscript_tables() -> None:
             [
                 _prior_row(
                     "log_beta_S",
-                    "Conditional state target",
+                    "Optional legacy nonpublication research conditional state target",
                     "Pre-surveillance country configuration",
                     f"Bounded beta_S support {beta_state_bounds[0]} to {beta_state_bounds[1]}",
                     "log scale",
@@ -3516,7 +3677,7 @@ def write_manuscript_tables() -> None:
                 ),
                 _prior_row(
                     "log_reporting_multiplier",
-                    "Conditional state target",
+                    "Optional legacy nonpublication research conditional state target",
                     "Pre-surveillance multiplier 1.0",
                     f"Bounded multiplier support {reporting_state_bounds[0]} to {reporting_state_bounds[1]}",
                     "log scale",
@@ -3547,14 +3708,14 @@ def write_manuscript_tables() -> None:
                     center = baseline["natural_history"]["infectious_duration_symptomatic"]
                 elif parameter == "infectious_duration_asymptomatic":
                     center = baseline["natural_history"]["infectious_duration_asymptomatic"]
-                role = "Propagated as an equal-mass external-prior sensitivity dimension"
-                group = "External structural prior"
+                role = "Propagated as an equal-mass external-prior dimension in optional legacy nonpublication research"
+                group = "Optional legacy nonpublication research external structural prior"
                 if parameter == "resistance_prevalence":
-                    role = "Fixed in the Figure 2c conditional interval; structural uncertainty evaluated by resistance scenarios"
+                    role = "Fixed in the optional legacy nonpublication research interval; structural uncertainty evaluated by resistance scenarios"
                     group = "Fixed structural input"
                 elif parameter.startswith("maternal_VE_"):
-                    role = "Sampled as draw-level intervention-effect uncertainty in the Figure 2c conditional interval"
-                    group = "Intervention effect"
+                    role = "Sampled as draw-level intervention-effect uncertainty in the optional legacy nonpublication research interval"
+                    group = "Optional legacy nonpublication research intervention effect"
                 prior_rows.append(
                     _prior_row(
                         parameter,
@@ -3568,19 +3729,19 @@ def write_manuscript_tables() -> None:
                     )
                 )
         for parameter, values in (
-            bayesian.get("figure2c_conditional_uncertainty", {}).get("intervention_priors", {}).items()
+            bayesian.get("figure2c_joint_credible_interval", {}).get("intervention_priors", {}).items()
         ):
             if isinstance(values, dict) and {"low", "mode", "high"}.issubset(values):
                 unit = "days" if parameter.endswith("_days") else "proportion"
                 prior_rows.append(
                     _prior_row(
                         f"figure2c_{parameter}",
-                        "Intervention implementation" if "coverage" in parameter else "Intervention effect",
+                        "Optional legacy nonpublication research intervention implementation" if "coverage" in parameter else "Optional legacy nonpublication research intervention effect",
                         values["mode"],
                         f"{values['low']} to {values['high']}",
                         unit,
                         f"Triangular(low={values['low']}, mode={values['mode']}, high={values['high']})",
-                        "Sampled at draw level and paired across current-practice and intervention simulations",
+                        "Sampled at draw level and paired across current-practice and intervention simulations only in optional legacy nonpublication research",
                         values.get("note", ""),
                     )
                 )

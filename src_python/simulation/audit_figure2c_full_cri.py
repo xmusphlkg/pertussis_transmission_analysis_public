@@ -1,5 +1,13 @@
 from __future__ import annotations
 
+"""Audit the optional legacy paired-CrI research route.
+
+The historical module and artifact filenames are retained for compatibility.
+Neither this audit nor the artifacts it checks are a publication path or a
+Figure 2c interval source. Canonical Figure 2c uncertainty is the separate
+full-refit parametric-bootstrap estimation CI.
+"""
+
 import argparse
 from pathlib import Path
 from typing import Any
@@ -38,6 +46,27 @@ from src_python.simulation.run_bayesian_uncertainty import (
     STATE_IMPORTANCE_RECOMMENDED_MIN_ESS,
     STATE_IMPORTANCE_RECOMMENDED_MIN_TAIL_ESS,
     _artifact_stem,
+    _importance_pareto_shape,
+    _minimum_importance_tail_ess,
+)
+from src_python.simulation.run_hierarchical_joint_posterior import (
+    POSTERIOR_RELEVANT_MASS,
+    RECOMMENDED_MAX_FAILED_LOCAL_POSTERIOR_MASS,
+    RECOMMENDED_MAX_GLOBAL_PARETO_K,
+    RECOMMENDED_MAX_GLOBAL_WEIGHT,
+    RECOMMENDED_MAX_LOCAL_PARETO_K,
+    RECOMMENDED_MAX_LOCAL_WEIGHT,
+    RECOMMENDED_MIN_GLOBAL_ESS,
+    RECOMMENDED_MIN_GLOBAL_TAIL_ESS,
+    RECOMMENDED_MIN_LOCAL_ESS,
+    RECOMMENDED_MIN_LOCAL_TAIL_ESS,
+    RECOMMENDED_MIN_STATE_IN_BOUNDS_FRACTION,
+    SHARED_PARAMETER_NAMES,
+)
+from src_python.simulation.run_hierarchical_joint_smc import (
+    INFERENCE_STRUCTURE as JOINT_INFERENCE_STRUCTURE,
+    SAMPLING_METHOD as JOINT_SAMPLING_METHOD,
+    UNCERTAINTY_SCOPE as JOINT_UNCERTAINTY_SCOPE,
 )
 from src_python.simulation.run_figure2c_paired_uncertainty import (
     FIGURE2C_STRATEGIES,
@@ -50,19 +79,35 @@ from src_python.simulation.run_figure2c_paired_uncertainty import (
     EXTERNAL_STRUCTURAL_PRIOR_PARAMETERS,
 )
 from src_python.utils.io import project_path, write_dataframe
-from src_python.validation.publication_gate import (
-    require_predictive_publication_gate,
-)
 
 
-POSTERIOR_STEM = "bayesian_uncertainty_figure2c_conditional"
+# The research posterior stem is explicit; the two following stems retain
+# historical filenames only so old local automation can still find its files.
+POSTERIOR_STEM = "bayesian_uncertainty_joint_research"
 FIGURE2C_STEM = "figure2c_paired_programme_uncertainty"
-AUDIT_STEM = "figure2c_conditional_quality_audit"
+AUDIT_STEM = "figure2c_joint_credible_interval_quality_audit"
+ANALYSIS_ROLE = "optional_nonpublication_legacy_research_audit"
+PUBLICATION_PATH = False
+FIGURE2C_INTERVAL_SOURCE = False
 
 POSTERIOR_SAMPLE_PATH = project_path("outputs", "simulations", f"{POSTERIOR_STEM}_posterior_samples.parquet")
-CONVERGENCE_PATH = project_path("outputs", "summaries", f"{POSTERIOR_STEM}_convergence_diagnostics.csv")
-INTERVAL_PATH = project_path("outputs", "summaries", "figure2c_programme_paired_conditional_intervals.csv")
-DRAW_PATH = project_path("outputs", "tables", "figure2c_programme_paired_conditional_interval_draws.csv")
+STRUCTURAL_IMPORTANCE_PATH = project_path(
+    "outputs", "diagnostics", f"{POSTERIOR_STEM}_structural_importance_audit.csv"
+)
+LOCAL_IMPORTANCE_PATH = project_path(
+    "outputs", "diagnostics", f"{POSTERIOR_STEM}_local_state_importance_audit.csv"
+)
+SMC_STAGE_PATH = project_path(
+    "outputs", "diagnostics", f"{POSTERIOR_STEM}_smc_stage_audit.csv"
+)
+SMC_DIAGNOSTICS_PATH = project_path(
+    "outputs", "summaries", f"{POSTERIOR_STEM}_convergence_diagnostics.csv"
+)
+SMC_BOUNDARY_PATH = project_path(
+    "outputs", "diagnostics", f"{POSTERIOR_STEM}_smc_boundary_audit.csv"
+)
+INTERVAL_PATH = project_path("outputs", "summaries", "figure2c_programme_paired_credible_intervals.csv")
+DRAW_PATH = project_path("outputs", "tables", "figure2c_programme_paired_credible_interval_draws.csv")
 OUTPUT_PATH = project_path("outputs", "tables", f"{AUDIT_STEM}.csv")
 
 REQUIRED_INTERVENTION_UNCERTAINTY_COLUMNS = (
@@ -95,8 +140,12 @@ FULL_JOINT_SCOPES = {
     "multi_parameter_mcmc",
     "multi_parameter_joint_posterior",
     "multi_parameter_tempered_smc_posterior",
+    JOINT_UNCERTAINTY_SCOPE,
 }
-FULL_JOINT_SAMPLERS = {"adaptive_mh", "componentwise_mh", "slice", "joint_importance", "smc"}
+FULL_JOINT_SAMPLERS = {
+    "adaptive_mh", "componentwise_mh", "slice", "joint_importance", "smc",
+    JOINT_SAMPLING_METHOD,
+}
 CONDITIONAL_STATE_SPACE_SCOPE = "conditional_state_space_exact_importance_modular_sensitivity"
 CONDITIONAL_STATE_SPACE_SAMPLER = "state_space_exact_importance_cut"
 SMC_RECOMMENDED_ESS_FRACTION = 0.50
@@ -105,10 +154,10 @@ SMC_RECOMMENDED_UNIQUE_PARTICLE_FRACTION = 0.25
 SMC_RECOMMENDED_ISLAND_ESS_FRACTION = 0.35
 SMC_RECOMMENDED_MAX_ISLAND_WEIGHT = 0.50
 
-# The fatal thresholds are a last-resort validity floor. The Figure 2c
-# conditional-uncertainty pipeline is audited with --fail-on-warnings, so the recommended
-# thresholds imported above are the standard required for accepting final
-# outputs.
+# The fatal thresholds are a last-resort validity floor. This optional legacy
+# research route is audited with --fail-on-warnings, so the recommended
+# thresholds imported above are required before interpreting its research
+# outputs. Passing does not make the route publication eligible.
 
 
 def _status(condition: bool) -> str:
@@ -148,7 +197,8 @@ def _posterior_metadata_checks(rows: list[dict[str, Any]], metadata: dict[str, A
     fix_durations = bool(metadata.get("fix_durations", False))
     convergence_summary = metadata.get("convergence_summary") or {}
     recognized_target = bool(
-        (sampler == CONDITIONAL_STATE_SPACE_SAMPLER and scope == CONDITIONAL_STATE_SPACE_SCOPE)
+        (sampler == JOINT_SAMPLING_METHOD and scope == JOINT_UNCERTAINTY_SCOPE)
+        or (sampler == CONDITIONAL_STATE_SPACE_SAMPLER and scope == CONDITIONAL_STATE_SPACE_SCOPE)
         or (sampler != "beta_grid" and scope in FULL_JOINT_SCOPES)
     )
     _add(
@@ -191,6 +241,79 @@ def _posterior_runtime_checks(
     expected_chains: int,
 ) -> None:
     sampler = str(metadata.get("sampler", "")).lower()
+    if sampler == JOINT_SAMPLING_METHOD:
+        observed_batches = int(metadata.get("n_chains") or -1)
+        observed_draws = int(metadata.get("draws_per_chain") or -1)
+        _add(
+            rows,
+            category="posterior_runtime",
+            check="sampler_matches_recognized_uncertainty_target",
+            passed=True,
+            severity="fatal",
+            details=f"sampler={sampler}",
+        )
+        _add(
+            rows,
+            category="posterior_runtime",
+            check="expected_chain_count_in_metadata",
+            passed=observed_batches == int(expected_chains),
+            severity="fatal",
+            details=f"smc_islands={observed_batches}, expected={expected_chains}",
+        )
+        _add(
+            rows,
+            category="posterior_runtime",
+            check="positive_draw_warmup_thin_metadata",
+            passed=observed_draws > 0
+            and metadata.get("chain_labels_are_smc_islands") is True,
+            severity="fatal",
+            details=(
+                f"particles_per_island={observed_draws}, "
+                "chain_labels_are_smc_islands="
+                f"{metadata.get('chain_labels_are_smc_islands')}"
+            ),
+        )
+        _add(
+            rows,
+            category="posterior_runtime",
+            check="joint_inference_structure_recorded",
+            passed=str(metadata.get("inference_structure", "")).lower()
+            == JOINT_INFERENCE_STRUCTURE,
+            severity="fatal",
+            details=f"inference_structure={metadata.get('inference_structure')}",
+        )
+        posterior_hash = str(metadata.get("config_hash", "") or "missing")
+        current_hash = str(config_fingerprint())
+        _add(
+            rows,
+            category="posterior_runtime",
+            check="config_hash_recorded_for_traceability",
+            passed=posterior_hash != "missing",
+            severity="fatal",
+            details=f"posterior_config_hash={posterior_hash}, current_config_hash={current_hash}",
+        )
+        _add(
+            rows,
+            category="posterior_runtime",
+            check="current_config_hash_comparison",
+            passed=posterior_hash == current_hash,
+            severity="fatal",
+            details=f"posterior_config_hash={posterior_hash}, current_config_hash={current_hash}",
+        )
+        posterior_source_hash = str(metadata.get("source_code_hash", "") or "missing")
+        current_source_hash = str(source_code_fingerprint())
+        _add(
+            rows,
+            category="posterior_runtime",
+            check="current_source_code_hash_comparison",
+            passed=posterior_source_hash == current_source_hash,
+            severity="fatal",
+            details=(
+                f"posterior_source_code_hash={posterior_source_hash}, "
+                f"current_source_code_hash={current_source_hash}"
+            ),
+        )
+        return
     parameterization = str(metadata.get("parameterization", "")).lower()
     observed_chains = int(metadata.get("n_chains") or -1)
     observed_draws = int(metadata.get("draws_per_chain") or -1)
@@ -290,7 +413,7 @@ def _figure_metadata_checks(
     _add(
         rows,
         category="figure2c_metadata",
-        check="posterior_source_stem_matches_conditional_release",
+        check="posterior_source_stem_matches_joint_release",
         passed=observed_stem == expected_posterior_stem,
         severity="fatal",
         details=(
@@ -301,7 +424,7 @@ def _figure_metadata_checks(
     _add(
         rows,
         category="figure2c_metadata",
-        check="posterior_source_path_matches_conditional_release",
+        check="posterior_source_path_matches_joint_release",
         passed=paths_match,
         severity="fatal",
         details=f"posterior_samples_path={observed_path or 'missing'}, expected={expected_path}",
@@ -332,7 +455,32 @@ def _figure_metadata_checks(
         details=f"uncertainty_draws_per_country={observed_draws}, expected={expected_draws}",
     )
     expected_structure = str(expected_inference_structure or "").strip().lower()
-    if expected_structure in MODULAR_INFERENCE_STRUCTURES:
+    if expected_structure == JOINT_INFERENCE_STRUCTURE:
+        observed_structure = str(
+            figure_metadata.get("inference_structure", "")
+        ).strip().lower()
+        paired = figure_metadata.get("structural_draw_pairing") is True
+        basis = str(figure_metadata.get("interval_basis", "")).lower()
+        _add(
+            rows,
+            category="figure2c_metadata",
+            check="joint_inference_structure_retained",
+            passed=observed_structure == JOINT_INFERENCE_STRUCTURE,
+            severity="fatal",
+            details=f"observed={observed_structure or 'missing'}, expected={JOINT_INFERENCE_STRUCTURE}",
+        )
+        _add(
+            rows,
+            category="figure2c_metadata",
+            check="structural_draw_pairing_declared",
+            passed=paired and "joint_posterior" in basis,
+            severity="fatal",
+            details=(
+                f"structural_draw_pairing={figure_metadata.get('structural_draw_pairing')}, "
+                f"interval_basis={basis or 'missing'}"
+            ),
+        )
+    elif expected_structure in MODULAR_INFERENCE_STRUCTURES:
         observed_structure = str(figure_metadata.get("inference_structure", "")).strip().lower()
         paired = figure_metadata.get("structural_draw_pairing") is True
         selection = str(
@@ -749,7 +897,7 @@ def _posterior_parameter_width_checks(rows: list[dict[str, Any]], parameter_audi
 def _intervention_uncertainty_bounds() -> dict[str, tuple[float, float]]:
     configs = load_configs()
     baseline = configs["baseline"]
-    figure_settings = baseline.get("bayesian_uncertainty", {}).get("figure2c_conditional_uncertainty", {})
+    figure_settings = baseline.get("bayesian_uncertainty", {}).get("figure2c_joint_credible_interval", {})
     configured_priors = figure_settings.get("intervention_priors", {})
 
     bounds: dict[str, tuple[float, float]] = {}
@@ -759,6 +907,458 @@ def _intervention_uncertainty_bounds() -> dict[str, tuple[float, float]]:
     bounds[f"{INTERVENTION_UNCERTAINTY_PREFIX}maternal_VE_sus"] = (0.0, 1.0)
     bounds[f"{INTERVENTION_UNCERTAINTY_PREFIX}maternal_VE_sym"] = (0.0, 1.0)
     return bounds
+
+
+def _joint_importance_checks(
+    rows: list[dict[str, Any]],
+    metadata: dict[str, Any],
+    structural: pd.DataFrame,
+    local: pd.DataFrame,
+    *,
+    expected_countries: set[str],
+) -> None:
+    """Independently audit the numerical support behind the joint posterior."""
+
+    required_structural = {
+        "structural_index",
+        "joint_log_importance_weight",
+        "normalized_weight",
+        *SHARED_PARAMETER_NAMES,
+    }
+    required_local = {
+        "country",
+        "structural_index",
+        "state_effective_sample_size",
+        "state_maximum_weight",
+        "state_pareto_k",
+        "state_minimum_tail_ess",
+        "state_in_bounds_fraction",
+    }
+    missing_structural = sorted(required_structural.difference(structural.columns))
+    missing_local = sorted(required_local.difference(local.columns))
+    _add(
+        rows,
+        category="joint_importance",
+        check="joint_importance_quality_columns_present",
+        passed=not missing_structural and not missing_local,
+        severity="fatal",
+        details=f"missing_structural={missing_structural}, missing_local={missing_local}",
+    )
+    if missing_structural or missing_local:
+        return
+
+    quality = metadata.get("quality")
+    quality_checks = quality.get("checks") if isinstance(quality, dict) else None
+    metadata_complete = bool(
+        isinstance(quality, dict)
+        and isinstance(quality_checks, dict)
+        and quality_checks
+        and all(isinstance(value, (bool, np.bool_)) for value in quality_checks.values())
+    )
+    _add(
+        rows,
+        category="joint_importance",
+        check="joint_importance_quality_metadata_present",
+        passed=metadata_complete,
+        severity="fatal",
+        details=(
+            f"quality_keys={sorted(quality.keys()) if isinstance(quality, dict) else []}, "
+            f"check_keys={sorted(quality_checks) if isinstance(quality_checks, dict) else []}"
+        ),
+    )
+
+    structural_index = pd.to_numeric(
+        structural["structural_index"], errors="coerce"
+    )
+    weights = pd.to_numeric(structural["normalized_weight"], errors="coerce")
+    log_weights = pd.to_numeric(
+        structural["joint_log_importance_weight"], errors="coerce"
+    )
+    valid_weight = bool(
+        structural_index.notna().all()
+        and not structural_index.duplicated().any()
+        and weights.notna().all()
+        and log_weights.notna().all()
+        and np.isfinite(weights.to_numpy(dtype=float)).all()
+        and np.isfinite(log_weights.to_numpy(dtype=float)).all()
+        and weights.ge(0).all()
+        and np.isclose(float(weights.sum()), 1.0, rtol=1e-10, atol=1e-12)
+    )
+    _add(
+        rows,
+        category="joint_importance",
+        check="joint_structural_weights_valid",
+        passed=valid_weight,
+        severity="fatal",
+        details=(
+            f"rows={len(structural)}, unique_indices={structural_index.nunique()}, "
+            f"weight_sum={weights.sum(skipna=True)}"
+        ),
+    )
+    if not valid_weight:
+        return
+
+    coordinate_frame = structural.loc[:, list(SHARED_PARAMETER_NAMES)].apply(
+        pd.to_numeric, errors="coerce"
+    )
+    finite_coordinates = bool(
+        np.isfinite(coordinate_frame.to_numpy(dtype=float)).all()
+    )
+    _add(
+        rows,
+        category="joint_importance",
+        check="joint_structural_coordinates_finite",
+        passed=finite_coordinates,
+        severity="fatal",
+        details=f"rows={len(coordinate_frame)}, dimensions={len(SHARED_PARAMETER_NAMES)}",
+    )
+    if not finite_coordinates:
+        return
+
+    weight_array = weights.to_numpy(dtype=float)
+    global_ess = float(1.0 / np.sum(weight_array**2))
+    global_max_weight = float(weight_array.max())
+    global_pareto_k = float(
+        _importance_pareto_shape(log_weights.to_numpy(dtype=float))
+    )
+    global_tail_ess = float(
+        _minimum_importance_tail_ess(
+            coordinate_frame.to_numpy(dtype=float), weight_array
+        )
+    )
+    global_pass = bool(
+        global_ess >= RECOMMENDED_MIN_GLOBAL_ESS
+        and global_max_weight <= RECOMMENDED_MAX_GLOBAL_WEIGHT
+        and global_pareto_k <= RECOMMENDED_MAX_GLOBAL_PARETO_K
+        and global_tail_ess >= RECOMMENDED_MIN_GLOBAL_TAIL_ESS
+    )
+    _add(
+        rows,
+        category="joint_importance",
+        check="joint_global_importance_all_recommended",
+        passed=global_pass,
+        severity="fatal",
+        details=(
+            f"ESS={global_ess:.6g}>={RECOMMENDED_MIN_GLOBAL_ESS}, "
+            f"max_weight={global_max_weight:.6g}<={RECOMMENDED_MAX_GLOBAL_WEIGHT}, "
+            f"Pareto_k={global_pareto_k:.6g}<={RECOMMENDED_MAX_GLOBAL_PARETO_K}, "
+            f"min_tail_ESS={global_tail_ess:.6g}>={RECOMMENDED_MIN_GLOBAL_TAIL_ESS}"
+        ),
+    )
+
+    local_data = local.copy()
+    local_data["country"] = local_data["country"].astype(str)
+    local_data["structural_index"] = pd.to_numeric(
+        local_data["structural_index"], errors="coerce"
+    )
+    for column in required_local.difference({"country", "structural_index"}):
+        local_data[column] = pd.to_numeric(local_data[column], errors="coerce")
+    expected_rows = len(structural) * len(expected_countries)
+    local_grid_valid = bool(
+        len(local_data) == expected_rows
+        and set(local_data["country"]) == expected_countries
+        and not local_data.duplicated(["country", "structural_index"]).any()
+        and local_data.loc[:, list(required_local - {"country"})].notna().all().all()
+        and np.isfinite(
+            local_data.loc[:, list(required_local - {"country"})].to_numpy(
+                dtype=float
+            )
+        ).all()
+    )
+    _add(
+        rows,
+        category="joint_importance",
+        check="joint_local_importance_grid_complete",
+        passed=local_grid_valid,
+        severity="fatal",
+        details=(
+            f"rows={len(local_data)}/{expected_rows}, "
+            f"countries={sorted(set(local_data['country']))}"
+        ),
+    )
+    if not local_grid_valid:
+        return
+
+    order = np.argsort(-weight_array)
+    count = int(
+        np.searchsorted(
+            np.cumsum(weight_array[order]), POSTERIOR_RELEVANT_MASS, side="left"
+        )
+        + 1
+    )
+    relevant_ids = set(
+        structural_index.iloc[order[:count]].astype(int).tolist()
+    )
+    relevant = local_data.loc[
+        local_data["structural_index"].astype(int).isin(relevant_ids)
+    ]
+    local_recommended = (
+        local_data["state_effective_sample_size"].ge(RECOMMENDED_MIN_LOCAL_ESS)
+        & local_data["state_maximum_weight"].le(RECOMMENDED_MAX_LOCAL_WEIGHT)
+        & local_data["state_pareto_k"].le(RECOMMENDED_MAX_LOCAL_PARETO_K)
+        & local_data["state_minimum_tail_ess"].ge(RECOMMENDED_MIN_LOCAL_TAIL_ESS)
+        & local_data["state_in_bounds_fraction"].ge(
+            RECOMMENDED_MIN_STATE_IN_BOUNDS_FRACTION
+        )
+    )
+    structural_ok = (
+        pd.DataFrame(
+            {
+                "structural_index": local_data["structural_index"].astype(int),
+                "recommended": local_recommended,
+            }
+        )
+        .groupby("structural_index", sort=False)["recommended"]
+        .all()
+    )
+    failed_ids = set(structural_ok.index[~structural_ok].astype(int))
+    failed_mass = float(
+        structural.loc[
+            structural_index.astype(int).isin(failed_ids), "normalized_weight"
+        ].sum()
+    )
+    local_pass = bool(
+        relevant["state_effective_sample_size"].min() >= RECOMMENDED_MIN_LOCAL_ESS
+        and relevant["state_maximum_weight"].max() <= RECOMMENDED_MAX_LOCAL_WEIGHT
+        and relevant["state_pareto_k"].max() <= RECOMMENDED_MAX_LOCAL_PARETO_K
+        and relevant["state_minimum_tail_ess"].min()
+        >= RECOMMENDED_MIN_LOCAL_TAIL_ESS
+        and relevant["state_in_bounds_fraction"].min()
+        >= RECOMMENDED_MIN_STATE_IN_BOUNDS_FRACTION
+    )
+    _add(
+        rows,
+        category="joint_importance",
+        check="joint_local_importance_all_recommended",
+        passed=local_pass,
+        severity="fatal",
+        details=(
+            f"posterior_relevant_structural_draws={len(relevant_ids)}, "
+            f"min_ESS={relevant['state_effective_sample_size'].min():.6g}, "
+            f"max_weight={relevant['state_maximum_weight'].max():.6g}, "
+            f"max_Pareto_k={relevant['state_pareto_k'].max():.6g}, "
+            f"min_tail_ESS={relevant['state_minimum_tail_ess'].min():.6g}, "
+            f"min_in_bounds={relevant['state_in_bounds_fraction'].min():.6g}"
+        ),
+    )
+    _add(
+        rows,
+        category="joint_importance",
+        check="joint_local_failed_posterior_mass_below_limit",
+        passed=failed_mass <= RECOMMENDED_MAX_FAILED_LOCAL_POSTERIOR_MASS,
+        severity="fatal",
+        details=(
+            f"failed_posterior_mass={failed_mass:.6g}, "
+            f"maximum={RECOMMENDED_MAX_FAILED_LOCAL_POSTERIOR_MASS}"
+        ),
+    )
+    _add(
+        rows,
+        category="joint_importance",
+        check="joint_importance_metadata_all_recommended",
+        passed=bool(
+            metadata_complete
+            and quality.get("all_recommended_converged") is True
+            and all(bool(value) for value in quality_checks.values())
+        ),
+        severity="fatal",
+        details=(
+            f"all_recommended_converged={quality.get('all_recommended_converged') if isinstance(quality, dict) else None}, "
+            f"checks={quality_checks}"
+        ),
+    )
+
+
+def _joint_smc_checks(
+    rows: list[dict[str, Any]],
+    metadata: dict[str, Any],
+    stages: pd.DataFrame,
+    diagnostics: pd.DataFrame,
+    boundary: pd.DataFrame,
+) -> None:
+    required = {
+        "stage",
+        "temperature",
+        "temperature_increment",
+        "minimum_island_ess_fraction",
+        "maximum_island_particle_weight",
+        "move_rounds_per_stage",
+        "global_covariance_fraction",
+        "guided_geometry_weight",
+        "shared_guided_proposal",
+        "shared_move_acceptance",
+        "shared_guided_independence_acceptance",
+        "mean_country_state_move_acceptance",
+        "mean_country_guided_independence_acceptance",
+    }
+    missing = required.difference(stages.columns)
+    _add(
+        rows,
+        category="joint_smc",
+        check="smc_stage_columns_present",
+        passed=not missing,
+        severity="fatal",
+        details=f"missing={sorted(missing)}",
+    )
+    if missing or stages.empty:
+        return
+    temperature = _finite_series(stages, "temperature")
+    increment = _finite_series(stages, "temperature_increment")
+    ess_fraction = _finite_series(stages, "minimum_island_ess_fraction")
+    shared_acceptance = _finite_series(stages, "shared_move_acceptance")
+    state_acceptance = _finite_series(
+        stages, "mean_country_state_move_acceptance"
+    )
+    move_rounds = _finite_series(stages, "move_rounds_per_stage")
+    global_covariance = _finite_series(stages, "global_covariance_fraction")
+    guided_geometry_weight = _finite_series(stages, "guided_geometry_weight")
+    shared_guided = _finite_series(
+        stages, "shared_guided_independence_acceptance"
+    )
+    state_guided = _finite_series(
+        stages, "mean_country_guided_independence_acceptance"
+    )
+    temperature_valid = bool(
+        temperature.notna().all()
+        and temperature.between(0.0, 1.0).all()
+        and temperature.is_monotonic_increasing
+        and np.isclose(float(temperature.iloc[-1]), 1.0)
+        and increment.gt(0.0).all()
+    )
+    _add(
+        rows,
+        category="joint_smc",
+        check="smc_temperature_path_reaches_full_posterior",
+        passed=temperature_valid,
+        severity="fatal",
+        details=(
+            f"stages={len(stages)}, final_temperature={temperature.iloc[-1]}, "
+            f"minimum_increment={increment.min()}"
+        ),
+    )
+    _add(
+        rows,
+        category="joint_smc",
+        check="smc_each_stage_preserves_recommended_island_ess",
+        passed=bool(
+            ess_fraction.notna().all()
+            and ess_fraction.ge(SMC_RECOMMENDED_ESS_FRACTION - 1e-8).all()
+        ),
+        severity="fatal",
+        details=(
+            f"minimum_fraction={ess_fraction.min()}, "
+            f"recommended>={SMC_RECOMMENDED_ESS_FRACTION}"
+        ),
+    )
+    acceptance_valid = bool(
+        shared_acceptance.notna().all()
+        and state_acceptance.notna().all()
+        and shared_acceptance.between(0.0, 1.0).all()
+        and state_acceptance.between(0.0, 1.0).all()
+        and float(pd.concat((shared_acceptance, state_acceptance)).mean()) >= 0.10
+    )
+    _add(
+        rows,
+        category="joint_smc",
+        check="smc_population_geometry_rejuvenation_recorded",
+        passed=bool(
+            move_rounds.notna().all()
+            and move_rounds.ge(4).all()
+            and global_covariance.notna().all()
+            and global_covariance.between(0.10, 0.75).all()
+            and guided_geometry_weight.notna().all()
+            and guided_geometry_weight.between(0.0, 1.0).all()
+            and np.isclose(float(guided_geometry_weight.iloc[-1]), 1.0)
+            and int(metadata.get("move_rounds_per_stage", 0)) >= 4
+            and 0.10
+            <= float(metadata.get("global_covariance_fraction", -1.0))
+            <= 0.75
+        ),
+        severity="fatal",
+        details=(
+            f"move_rounds={sorted(move_rounds.unique().tolist())}, "
+            f"global_covariance_fraction={sorted(global_covariance.unique().tolist())}, "
+            f"guided_geometry_final_weight={guided_geometry_weight.iloc[-1]}"
+        ),
+    )
+    _add(
+        rows,
+        category="joint_smc",
+        check="smc_guided_independence_moves_are_active",
+        passed=bool(
+            shared_guided.notna().all()
+            and state_guided.notna().all()
+            and shared_guided.between(0.0, 1.0).all()
+            and state_guided.between(0.0, 1.0).all()
+            and float(pd.concat((shared_guided, state_guided)).mean()) >= 0.01
+            and float(metadata.get("guided_independence_move_fraction", 0.0))
+            >= 0.5
+            and float(metadata.get("guided_state_covariance_scale", 0.0)) >= 1.0
+            and str(stages["shared_guided_proposal"].iloc[-1])
+            == "population_gaussian_mixture"
+        ),
+        severity="fatal",
+        details=(
+            f"mean_shared_guided={shared_guided.mean()}, "
+            f"mean_state_guided={state_guided.mean()}, "
+            f"final_shared_guide={stages['shared_guided_proposal'].iloc[-1]}"
+        ),
+    )
+    _add(
+        rows,
+        category="joint_smc",
+        check="smc_rejuvenation_moves_are_active",
+        passed=acceptance_valid,
+        severity="fatal",
+        details=(
+            f"mean_shared={shared_acceptance.mean()}, "
+            f"mean_state={state_acceptance.mean()}"
+        ),
+    )
+    boundary_required = {
+        "country",
+        "coordinate",
+        "lower_edge_mass",
+        "upper_edge_mass",
+        "maximum_edge_mass",
+    }
+    boundary_missing = boundary_required.difference(boundary.columns)
+    boundary_mass = _finite_series(boundary, "maximum_edge_mass")
+    _add(
+        rows,
+        category="joint_smc",
+        check="smc_state_posterior_not_truncated_by_numerical_bounds",
+        passed=bool(
+            not boundary_missing
+            and not boundary.empty
+            and boundary_mass.notna().all()
+            and boundary_mass.le(0.01).all()
+        ),
+        severity="fatal",
+        details=(
+            f"missing={sorted(boundary_missing)}, "
+            f"maximum_edge_mass={boundary_mass.max(skipna=True)}, threshold<=0.01"
+        ),
+    )
+    quality = metadata.get("quality") or {}
+    checks = quality.get("checks") if isinstance(quality, dict) else {}
+    _add(
+        rows,
+        category="joint_smc",
+        check="joint_smc_metadata_all_recommended",
+        passed=bool(
+            quality.get("all_recommended_converged") is True
+            and isinstance(checks, dict)
+            and checks
+            and all(bool(value) for value in checks.values())
+        ),
+        severity="fatal",
+        details=(
+            f"all_recommended={quality.get('all_recommended_converged')}, "
+            f"checks={checks}"
+        ),
+    )
+    _convergence_checks(rows, diagnostics)
 
 
 def _convergence_checks(rows: list[dict[str, Any]], diagnostics: pd.DataFrame) -> None:
@@ -1361,7 +1961,7 @@ def _interval_checks(
         rows,
         category="intervals",
         check="uncertainty_interval_quantile_monte_carlo_resolution",
-        passed=expected_draws >= 400,
+        passed=expected_draws >= 2000,
         severity="warning",
         details=(
             f"uncertainty_draws_per_country_strategy_expected={expected_draws}, "
@@ -1435,7 +2035,7 @@ def _interval_checks(
             category="intervals",
             check="uncertainty_interval_width_distribution",
             passed=True,
-            severity="info",
+            severity="informational",
             details=(
                 f"min_width_pp={100 * width.min(skipna=True):.3f}, "
                 f"q25_width_pp={100 * width.quantile(0.25):.3f}, "
@@ -1456,10 +2056,14 @@ def _interval_checks(
         )
     if "interval_type" in intervals.columns:
         types = intervals["interval_type"].astype(str)
-        conditional_expected = (
-            str(expected_inference_structure).lower() in MODULAR_INFERENCE_STRUCTURES
+        joint_expected = (
+            str(expected_inference_structure).lower() == JOINT_INFERENCE_STRUCTURE
         )
-        expected_phrase = "conditional" if conditional_expected else "joint CrI"
+        expected_phrase = (
+            "95% joint posterior credible interval"
+            if joint_expected
+            else "conditional"
+        )
         _add(
             rows,
             category="intervals",
@@ -1479,26 +2083,36 @@ def _interval_checks(
         )
     if "interval_basis" in intervals.columns:
         basis = intervals["interval_basis"].astype(str).str.lower()
-        forbidden = basis.str.contains(
-            r"full[ _-]?joint|joint credible|joint cri",
-            regex=True,
+        joint_expected = (
+            str(expected_inference_structure).lower() == JOINT_INFERENCE_STRUCTURE
         )
         exact_state_expected = (
             str(expected_inference_structure).lower()
             == "reference_structure_state_space_exact_importance_cut"
         )
-        basis_matches = (
-            basis.str.contains("exact-target importance-corrected", regex=False).all()
-            and basis.str.contains("external structural-prior", regex=False).all()
-            and basis.str.contains("fixed", regex=False).all()
-            if exact_state_expected
-            else basis.str.contains("conditional", regex=False).all()
-        )
+        if joint_expected:
+            basis_matches = bool(
+                basis.str.contains("full-feedback", regex=False).all()
+                and basis.str.contains("posterior draw", regex=False).all()
+                and basis.str.contains("updated jointly", regex=False).all()
+                and not basis.str.contains(
+                    r"conditional uncertainty|modular[ _-]?cut|external structural-prior",
+                    regex=True,
+                ).any()
+            )
+        elif exact_state_expected:
+            basis_matches = bool(
+                basis.str.contains("exact-target importance-corrected", regex=False).all()
+                and basis.str.contains("external structural-prior", regex=False).all()
+                and basis.str.contains("fixed", regex=False).all()
+            )
+        else:
+            basis_matches = bool(basis.str.contains("conditional", regex=False).all())
         _add(
             rows,
             category="intervals",
-            check="interval_basis_is_conditional_not_joint",
-            passed=bool(basis_matches) and not bool(forbidden.any()),
+            check="interval_basis_is_full_feedback_joint_posterior",
+            passed=bool(basis_matches),
             severity="fatal",
             details=f"unique_basis={sorted(intervals['interval_basis'].astype(str).unique())}",
         )
@@ -1506,7 +2120,7 @@ def _interval_checks(
         _add(
             rows,
             category="intervals",
-            check="interval_basis_is_conditional_not_joint",
+            check="interval_basis_is_full_feedback_joint_posterior",
             passed=False,
             severity="fatal",
             details="interval_basis column is missing",
@@ -1990,36 +2604,40 @@ def main(
     fail_on_warnings: bool = True,
     posterior_stem: str = POSTERIOR_STEM,
 ) -> pd.DataFrame:
-    # This function writes the one canonical publication audit stem. Warning
-    # failures therefore cannot be downgraded by a direct Python call; doing so
-    # would let downstream manuscript builders see ``passed=true`` despite a
-    # failed recommended-quality check. The argument is retained only for API
-    # compatibility with older orchestration code.
+    # Warning failures cannot be downgraded by a direct Python call. The
+    # argument is retained only for compatibility with older research
+    # orchestration code; passing this audit never grants publication status.
     warnings_are_fatal = True
+    print(
+        "LEGACY NONPUBLICATION RESEARCH AUDIT: this route is not a Figure 2c "
+        "interval source."
+    )
     if posterior_stem in RETIRED_POSTERIOR_STEMS:
         raise ValueError(
             f"Posterior stem {posterior_stem!r} is retired because it mislabeled "
             f"conditional uncertainty; use {POSTERIOR_STEM!r}."
         )
     configured_country_list = publication_country_names(load_configs())
-    require_predictive_publication_gate(
-        expected_countries=configured_country_list
-    )
     rows: list[dict[str, Any]] = []
     posterior_sample_path = project_path(
         "outputs",
         "simulations",
         f"{_artifact_stem(posterior_stem, 'bayesian_posterior_samples', 'posterior_samples')}.parquet",
     )
-    convergence_path = project_path(
-        "outputs",
-        "summaries",
-        f"{_artifact_stem(posterior_stem, 'bayesian_convergence_diagnostics', 'convergence_diagnostics')}.csv",
+    structural_importance_path = project_path(
+        "outputs", "diagnostics", f"{posterior_stem}_structural_importance_audit.csv"
+    )
+    local_importance_path = project_path(
+        "outputs", "diagnostics", f"{posterior_stem}_local_state_importance_audit.csv"
     )
     metadata = _read_metadata_if_available(
         rows,
         stem=posterior_stem,
         category="posterior_metadata",
+    )
+    is_joint_smc = bool(
+        metadata
+        and str(metadata.get("sampler", "")).lower() == JOINT_SAMPLING_METHOD
     )
     figure_metadata = _read_metadata_if_available(
         rows,
@@ -2040,12 +2658,8 @@ def main(
     )
     configs = load_configs()
     configured_countries = set(configured_country_list)
-    expected_inference_structure = str(
-        configs["baseline"].get("bayesian_uncertainty", {}).get(
-            "inference_structure", "country_joint_feedback"
-        )
-    ).lower()
-    require_structural_pairing = expected_inference_structure in MODULAR_INFERENCE_STRUCTURES
+    expected_inference_structure = JOINT_INFERENCE_STRUCTURE
+    require_structural_pairing = True
     intervention_bounds = _intervention_uncertainty_bounds()
     expected_countries = configured_countries
 
@@ -2055,12 +2669,49 @@ def main(
         check="posterior_sample_file_exists",
         path=posterior_sample_path,
     )
-    convergence_exists = _file_exists_check(
-        rows,
-        category="convergence",
-        check="diagnostics_file_exists",
-        path=convergence_path,
-    )
+    if is_joint_smc:
+        structural_importance_exists = False
+        local_importance_exists = False
+        smc_stage_exists = _file_exists_check(
+            rows,
+            category="joint_smc",
+            check="smc_stage_audit_file_exists",
+            path=project_path(
+                "outputs", "diagnostics", f"{posterior_stem}_smc_stage_audit.csv"
+            ),
+        )
+        smc_diagnostics_exists = _file_exists_check(
+            rows,
+            category="joint_smc",
+            check="smc_convergence_diagnostics_file_exists",
+            path=project_path(
+                "outputs", "summaries", f"{posterior_stem}_convergence_diagnostics.csv"
+            ),
+        )
+        smc_boundary_exists = _file_exists_check(
+            rows,
+            category="joint_smc",
+            check="smc_boundary_audit_file_exists",
+            path=project_path(
+                "outputs", "diagnostics", f"{posterior_stem}_smc_boundary_audit.csv"
+            ),
+        )
+    else:
+        structural_importance_exists = _file_exists_check(
+            rows,
+            category="joint_importance",
+            check="structural_importance_file_exists",
+            path=structural_importance_path,
+        )
+        local_importance_exists = _file_exists_check(
+            rows,
+            category="joint_importance",
+            check="local_state_importance_file_exists",
+            path=local_importance_path,
+        )
+        smc_stage_exists = False
+        smc_diagnostics_exists = False
+        smc_boundary_exists = False
     interval_exists = _file_exists_check(
         rows,
         category="intervals",
@@ -2080,6 +2731,57 @@ def main(
         ("paired_intervals_sha256", INTERVAL_PATH, interval_exists),
     ):
         recorded_digest = str(figure_metadata.get(digest_field, ""))
+        observed_digest = file_sha256(path) if exists else ""
+        _add(
+            rows,
+            category="artifact_provenance",
+            check=f"{digest_field}_matches_current_artifact",
+            passed=bool(recorded_digest)
+            and bool(observed_digest)
+            and recorded_digest == observed_digest,
+            severity="fatal",
+            details=(
+                f"recorded={recorded_digest or 'missing'}, "
+                f"observed={observed_digest or 'missing'}, path={path}"
+            ),
+        )
+
+    posterior_diagnostic_artifacts = (
+        (
+            "smc_stage_audit_sha256",
+            project_path(
+                "outputs", "diagnostics", f"{posterior_stem}_smc_stage_audit.csv"
+            ),
+            smc_stage_exists,
+        ),
+        (
+            "convergence_diagnostics_sha256",
+            project_path(
+                "outputs", "summaries", f"{posterior_stem}_convergence_diagnostics.csv"
+            ),
+            smc_diagnostics_exists,
+        ),
+        (
+            "smc_boundary_audit_sha256",
+            project_path(
+                "outputs", "diagnostics", f"{posterior_stem}_smc_boundary_audit.csv"
+            ),
+            smc_boundary_exists,
+        ),
+    ) if is_joint_smc else (
+        (
+            "structural_importance_audit_sha256",
+            structural_importance_path,
+            structural_importance_exists,
+        ),
+        (
+            "local_state_importance_audit_sha256",
+            local_importance_path,
+            local_importance_exists,
+        ),
+    )
+    for digest_field, path, exists in posterior_diagnostic_artifacts:
+        recorded_digest = str((metadata or {}).get(digest_field, ""))
         observed_digest = file_sha256(path) if exists else ""
         _add(
             rows,
@@ -2119,7 +2821,7 @@ def main(
         expected_draws_per_chain = int((metadata or {}).get("draws_per_chain") or 0)
         require_annual_process_draws = bool(
             str((metadata or {}).get("sampler", "")).lower()
-            == CONDITIONAL_STATE_SPACE_SAMPLER
+            in {CONDITIONAL_STATE_SPACE_SAMPLER, JOINT_SAMPLING_METHOD}
         )
         parameter_audit = _posterior_sample_checks(
             rows,
@@ -2132,8 +2834,39 @@ def main(
         )
         if not parameter_audit.empty:
             _posterior_parameter_width_checks(rows, parameter_audit)
-    if convergence_exists:
-        _convergence_checks(rows, pd.read_csv(convergence_path))
+    if metadata is not None and structural_importance_exists and local_importance_exists:
+        _joint_importance_checks(
+            rows,
+            metadata,
+            pd.read_csv(structural_importance_path),
+            pd.read_csv(local_importance_path),
+            expected_countries=expected_countries,
+        )
+    if (
+        metadata is not None
+        and smc_stage_exists
+        and smc_diagnostics_exists
+        and smc_boundary_exists
+    ):
+        _joint_smc_checks(
+            rows,
+            metadata,
+            pd.read_csv(
+                project_path(
+                    "outputs", "diagnostics", f"{posterior_stem}_smc_stage_audit.csv"
+                )
+            ),
+            pd.read_csv(
+                project_path(
+                    "outputs", "summaries", f"{posterior_stem}_convergence_diagnostics.csv"
+                )
+            ),
+            pd.read_csv(
+                project_path(
+                    "outputs", "diagnostics", f"{posterior_stem}_smc_boundary_audit.csv"
+                )
+            ),
+        )
     intervals: pd.DataFrame | None = None
     draws: pd.DataFrame | None = None
     if interval_exists:
@@ -2158,7 +2891,7 @@ def main(
             expected_structural_draw_ids=expected_structural_draw_ids,
             require_annual_process_draws=bool(
                 str((metadata or {}).get("sampler", "")).lower()
-                == CONDITIONAL_STATE_SPACE_SAMPLER
+                in {CONDITIONAL_STATE_SPACE_SAMPLER, JOINT_SAMPLING_METHOD}
             ),
         )
     if intervals is not None and draws is not None:
@@ -2191,7 +2924,11 @@ def main(
             },
         )
         | {
+            "analysis_role": ANALYSIS_ROLE,
+            "publication_path": PUBLICATION_PATH,
+            "figure2c_interval_source": FIGURE2C_INTERVAL_SOURCE,
             "posterior_stem": posterior_stem,
+            "legacy_compatibility_artifact_names": True,
             "figure2c_stem": FIGURE2C_STEM,
             "expected_draws_per_country_strategy": int(expected_draws),
             "expected_chains_per_country": int(expected_chains),
@@ -2199,12 +2936,28 @@ def main(
             "warnings_are_fatal": warnings_are_fatal,
             "audit_table_sha256": file_sha256(OUTPUT_PATH),
             "audited_artifact_sha256": {
-                key: figure_metadata.get(key)
-                for key in (
-                    "posterior_samples_sha256",
-                    "paired_draws_sha256",
-                    "paired_intervals_sha256",
-                )
+                "posterior_samples_sha256": figure_metadata.get(
+                    "posterior_samples_sha256"
+                ),
+                "paired_draws_sha256": figure_metadata.get("paired_draws_sha256"),
+                "paired_intervals_sha256": figure_metadata.get(
+                    "paired_intervals_sha256"
+                ),
+                "smc_stage_audit_sha256": (metadata or {}).get(
+                    "smc_stage_audit_sha256"
+                ),
+                "convergence_diagnostics_sha256": (metadata or {}).get(
+                    "convergence_diagnostics_sha256"
+                ),
+                "smc_boundary_audit_sha256": (metadata or {}).get(
+                    "smc_boundary_audit_sha256"
+                ),
+                "structural_importance_audit_sha256": (metadata or {}).get(
+                    "structural_importance_audit_sha256"
+                ),
+                "local_state_importance_audit_sha256": (metadata or {}).get(
+                    "local_state_importance_audit_sha256"
+                ),
             },
         },
     )
@@ -2216,7 +2969,12 @@ def main(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Audit Figure 2c uncertainty outputs.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Audit optional legacy nonpublication paired-CrI research outputs. "
+            "Historical filenames are compatibility-only; this is not a Figure 2c source."
+        )
+    )
     parser.add_argument("--expected-draws", type=int, default=200)
     parser.add_argument("--expected-chains", type=int, default=10)
     parser.add_argument("--posterior-stem", default=POSTERIOR_STEM)

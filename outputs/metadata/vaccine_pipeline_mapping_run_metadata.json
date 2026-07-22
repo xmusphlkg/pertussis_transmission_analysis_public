@@ -1,6 +1,6 @@
 {
   "analysis_lock_date": "2026-05-21",
-  "config_hash": "e07d2d9623bba63452e5939f83db5c87901a902d0a71c99df08b4ecdc3550c54",
+  "config_hash": "fe4b0945dbc60905bca91e1dac7a67bb5863846eea9d42ff0fc0dbee6b1fb742",
   "dependency_versions": {
     "joblib": "1.5.3",
     "numba": "0.65.1",
@@ -11,7 +11,7 @@
     "pyyaml": "6.0.3",
     "scipy": "1.17.1"
   },
-  "generated_at_utc": "2026-07-14T01:14:18.266648+00:00",
+  "generated_at_utc": "2026-07-20T17:22:28.161184+00:00",
   "git": {
     "branch": "main",
     "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
@@ -21,7 +21,26 @@
     "outputs/tables/vaccine_pipeline_mechanism_mapping.csv": 4
   },
   "schema_version": 1,
-  "source_code_hash": "1b39feb5574028211a6cbd5c7ef247152b81925a64cd082bcab52ffa09d72af1",
+  "source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+  "source_hash_reattestation": {
+    "attested_at_utc": "2026-07-22T00:32:28.958887+00:00",
+    "change_class": "validation_contract_and_fingerprint_scope_no_numerical_change",
+    "changed_source_paths": [
+      "src_python/utils/validation.py",
+      "src_python/simulation/common.py",
+      "Makefile"
+    ],
+    "new_common_file_sha256": "f2013608cacb158e80dd138c0003228bab0a3e98cd42520d22cf4e76b65be845",
+    "new_makefile_sha256": "6fb613b2f04c0bb304f20849acab1ce3d304a8fce53404bd4c8dc68778bcdd9f",
+    "new_source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+    "new_validation_file_sha256": "e53bb5c63197063bcb45a1b020b0d5662f8d2855c2d6d33310a4f27786243f16",
+    "numerical_artifacts_regenerated": false,
+    "old_common_file_sha256": "271d625b719f7f5364a90a57e69488ad5ff091601b35c5ce4e0dd7dce9a899e3",
+    "old_makefile_sha256": "4f920081b277eaabbb0088ce5507676363703344081305fa8aea3b5c09a2c5cd",
+    "old_source_code_hash": "ba497202d4e1ede62d2c1a8500cff7ecee3ba54aecc2d558e44ac80fa19aac74",
+    "old_validation_file_sha256": "40bef8420b07823ff83d7209c23660194201c6bb247a5c5f95bfb6abb7c50f82",
+    "reason": "Removed retired posterior publication requirements, added the active Figure 1b and Figure 2 publication stems, unified the generic and manuscript publication inventories, and excluded the non-generating validator from numerical fingerprints/prerequisites."
+  },
   "source_note": "Mechanism mapping table assembled from cited vaccine pipeline evidence.",
   "stem": "vaccine_pipeline_mapping"
 }

@@ -1,0 +1,84 @@
+{
+  "bootstrap_data_generation": "conditional_fitted_AR1_path_plus_NB2_measurement",
+  "bootstrap_refit": "country_state_space_MAP_full_refit_per_replicate",
+  "conditional_on_fitted_latent_process_path": true,
+  "confidence_interval_method": "percentile_parametric_bootstrap",
+  "config_hash": "7146e9d750809ceb8970d848923d726ed33ae6a473d557c6843aead99779770e",
+  "countries": [
+    "Australia",
+    "China",
+    "United_Kingdom",
+    "Japan",
+    "New_Zealand",
+    "Sweden",
+    "United_States",
+    "Brazil",
+    "Thailand"
+  ],
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "future_observation_prediction_interval": false,
+  "generated_at_utc": "2026-07-19T13:31:31.937592+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
+    "dirty": true
+  },
+  "interval_basis": "Current-practice-only conditional parametric bootstrap. The accepted fitted annual latent transmission path is held as the generating trajectory, surveillance counts are regenerated from the fitted NB2 observation model, and the country state-space model is fully refitted before the same fitted replicate is propagated once through current practice. Biological inputs, AR(1) hyperparameters, and NB2 dispersion remain fixed at prespecified reference values.",
+  "interval_type": "95% parametric-bootstrap confidence interval",
+  "latent_process_path_regenerated": false,
+  "maximum_tail_probability_mcse_threshold": 0.005,
+  "maxiter": 12,
+  "minimum_success_fraction": 0.95,
+  "minimum_successful_replicates": 1000,
+  "n_jobs": 48,
+  "observed_maximum_tail_probability_mcse": 0.004878904686248749,
+  "outcomes": [
+    "Reports",
+    "Symptomatic",
+    "Infections"
+  ],
+  "output_artifact_sha256": {
+    "confidence_intervals": "61e46a2e3e4331b391c133a6a15dc6912c1875911b7b6699af42c30d3e496610",
+    "current_practice_bootstrap_draws": "665b5d54cf5e2f8251fc0a3cbde41e2abb2491e8a380ae2f4adfc14bc3dd4df0",
+    "fit_diagnostics": "3e523dd59243a42e17f5c968d740ec6756d6432312ec7926b04e640377e58afc",
+    "interval_stability": "0928cdfb388842fdcdc3fd0c54dbcfb470807a9bad33322197c85eac74a6285a"
+  },
+  "posterior_credible_interval": false,
+  "replicates_requested_per_country": 1024,
+  "retry_maxiter_schedule": [
+    64,
+    128
+  ],
+  "row_counts": {
+    "confidence_interval_rows": 27,
+    "current_practice_bootstrap_draws": 9216,
+    "fit_diagnostics": 9216,
+    "interval_stability_rows": 27
+  },
+  "scenario_scope": "current_practice_only",
+  "schema_version": 1,
+  "seed": 20260718,
+  "source_code_hash": "aaf66a106cb76a7fabea0b4dc0ca89df9cfe8d41f21686aeaefba2e76afdcea7",
+  "statistical_target": "frequentist_confidence_interval",
+  "stem": "figure1b_current_practice_conditional_parametric_bootstrap",
+  "successful_replicates_by_country": {
+    "Australia": 1024,
+    "Brazil": 1024,
+    "China": 1024,
+    "Japan": 1024,
+    "New_Zealand": 1024,
+    "Sweden": 1024,
+    "Thailand": 1024,
+    "United_Kingdom": 1024,
+    "United_States": 1024
+  }
+}

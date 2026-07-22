@@ -17,6 +17,7 @@ required <- c(
   "cowplot",
   "RColorBrewer",
   "readr",
+  "svglite",
   "arrow"
 )
 missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]

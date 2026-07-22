@@ -75,22 +75,30 @@ plot_figure_1_panel_a <- function(data) {
       show.legend = FALSE
     ) +
     scale_colour_manual(values = region_colours, guide = "none") +
-    scale_x_continuous(breaks = seq(2000, 2024, by = 4), expand = expansion(mult = c(0.01, 0.02))) +
+    scale_x_continuous(breaks = seq(2000, 2024, by = 4), expand = expansion(mult = c(0.01, 0.01))) +
     scale_y_log10(
       breaks = c(0.3, 1, 3, 10, 30, 50),
       labels = label_lancet_number(accuracy = 0.1),
       expand = expansion(mult = c(0, 0))
     ) +
-    coord_cartesian(xlim = c(2000, 2028.5), ylim = c(0.25, 50)) +
-    labs(x = "Year", y = "Reported incidence per 100 000/year (log)", tag = "a") +
+    coord_cartesian(xlim = c(2000, 2029.5), ylim = c(0.25, 50)) +
+    labs(x = "Year", y = "Reported incidence per 100 000 (log)", tag = "a") +
     theme_lancet(base_size = journal_base_text_size)
 }
 
 plot_figure_1_panel_b <- function(data) {
   baseline_endpoint_colours <- figure_1_endpoint_colours()
   baseline_endpoint_shapes <- figure_1_endpoint_shapes()
-  p1d_x_breaks <- pretty(c(0, max(data$baseline_endpoint_long$rate_per_100k, na.rm = TRUE)), n = 5)
+  baseline_endpoint_order <- names(baseline_endpoint_shapes)
+  endpoint_interval_cap <- 0.075
+  panel_b_x_values <- c(
+    0,
+    data$baseline_endpoint_long$rate_per_100k,
+    data$endpoint_intervals$interval_upper_per_100k
+  )
+  p1d_x_breaks <- pretty(panel_b_x_values[is.finite(panel_b_x_values)], n = 5)
   p1d_x_breaks <- p1d_x_breaks[p1d_x_breaks >= 0]
+  p1d_x_breaks <- sort(unique(c(p1d_x_breaks, 7000)))
   p1d_x_limits <- range(p1d_x_breaks)
 
   ggplot() +
@@ -100,6 +108,45 @@ plot_figure_1_panel_b <- function(data) {
       linewidth = 0.42,
       colour = manuscript_colour("pale_grey"),
       lineend = "round"
+    ) +
+    geom_segment(
+      data = data$endpoint_intervals,
+      aes(
+        x = interval_lower_per_100k,
+        xend = interval_upper_per_100k,
+        y = country_y,
+        yend = country_y,
+        colour = outcome
+      ),
+      linewidth = 0.68,
+      alpha = 0.92,
+      lineend = "butt"
+    ) +
+    geom_segment(
+      data = data$endpoint_intervals,
+      aes(
+        x = interval_lower_per_100k,
+        xend = interval_lower_per_100k,
+        y = country_y - endpoint_interval_cap,
+        yend = country_y + endpoint_interval_cap,
+        colour = outcome
+      ),
+      linewidth = 0.46,
+      alpha = 0.92,
+      lineend = "butt"
+    ) +
+    geom_segment(
+      data = data$endpoint_intervals,
+      aes(
+        x = interval_upper_per_100k,
+        xend = interval_upper_per_100k,
+        y = country_y - endpoint_interval_cap,
+        yend = country_y + endpoint_interval_cap,
+        colour = outcome
+      ),
+      linewidth = 0.46,
+      alpha = 0.92,
+      lineend = "butt"
     ) +
     geom_point(
       data = data$baseline_endpoint_long,
@@ -122,6 +169,13 @@ plot_figure_1_panel_b <- function(data) {
     scale_fill_manual(values = baseline_endpoint_colours, guide = "none") +
     scale_shape_manual(
       values = baseline_endpoint_shapes,
+      limits = baseline_endpoint_order,
+      breaks = baseline_endpoint_order,
+      labels = c(
+        "Reports" = "Reports",
+        "Symptomatic" = "Symptomatic",
+        "Infections" = "Infections"
+      ),
       name = "Outcome",
       guide = guide_legend(
         ncol = 1,
@@ -131,8 +185,8 @@ plot_figure_1_panel_b <- function(data) {
         keywidth = unit(0.34, "cm"),
         keyheight = unit(0.46, "cm"),
         override.aes = list(
-          colour = unname(baseline_endpoint_colours[names(baseline_endpoint_shapes)]),
-          fill = unname(baseline_endpoint_colours[names(baseline_endpoint_shapes)]),
+          colour = unname(baseline_endpoint_colours[baseline_endpoint_order]),
+          fill = unname(baseline_endpoint_colours[baseline_endpoint_order]),
           alpha = 1,
           size = 2.1
         )
@@ -140,7 +194,7 @@ plot_figure_1_panel_b <- function(data) {
     ) +
     coord_cartesian(xlim = p1d_x_limits, clip = "off") +
     labs(
-      x = "Conditional annualised index per 100 000\npeople aged <18 years, 2027–50",
+      x = "Annual <18 index per 100 000",
       y = NULL,
       tag = "b"
     ) +
@@ -181,13 +235,13 @@ plot_figure_1_panel_c <- function(data) {
       intercept = 0,
       slope = 1,
       linewidth = 0.28,
-      linetype = "dashed",
+      linetype = "22",
       colour = manuscript_colour("mid_grey")
     ) +
     geom_point(aes(fill = who_region), shape = 21, size = 2.35, colour = manuscript_colour("black"), stroke = 0.25, alpha = 0.9) +
     ggrepel::geom_text_repel(
       aes(label = country_label_text),
-      size = journal_point_label_text_size,
+      size = journal_heatmap_cell_text_size,
       fontface = "bold",
       seed = 7,
       nudge_x = decision_map$label_nudge_x,
@@ -220,8 +274,8 @@ plot_figure_1_panel_c <- function(data) {
     ) +
     coord_equal(xlim = panel_limits, ylim = panel_limits, clip = "off") +
     labs(
-      x = "Conditional symptomatic-case index\nper 100 000 people aged <18 years, 2027–50",
-      y = "Conditional infant-hospitalisation index per 100 000 infants,\n2027–50",
+      x = "<18 cases per 100 000",
+      y = "Infant hospitalisations per 100 000",
       tag = "c"
     ) +
     theme_lancet_panel(
@@ -235,8 +289,18 @@ plot_figure_1_panel_c <- function(data) {
 plot_figure_1_panel_d <- function(data) {
   age_group_colours <- figure_1_age_group_colours()
   age_group_display_labels <- figure_1_age_group_display_labels()
-  p1d_x_limits <- c(0, 1200)
-  p1d_x_breaks <- seq(0, 1200, by = 200)
+  country_totals <- data$baseline_composition %>%
+    group_by(country_label) %>%
+    summarise(
+      symptomatic_cases_per_100k_under18 = sum(symptomatic_cases_per_100k_under18),
+      .groups = "drop"
+    )
+  p1d_x_breaks <- pretty(
+    c(0, country_totals$symptomatic_cases_per_100k_under18),
+    n = 5
+  )
+  p1d_x_breaks <- p1d_x_breaks[p1d_x_breaks >= 0]
+  p1d_x_limits <- range(p1d_x_breaks)
 
   ggplot(data$baseline_composition, aes(symptomatic_cases_per_100k_under18, country_label, fill = age_group)) +
     geom_col(width = 0.64, colour = "white", linewidth = 0.18, position = position_stack(reverse = TRUE)) +
@@ -246,6 +310,7 @@ plot_figure_1_panel_d <- function(data) {
       breaks = p1d_x_breaks,
       expand = expansion(mult = c(0, 0))
     ) +
+    scale_y_discrete(limits = rev(data$country_order), drop = FALSE) +
     scale_fill_manual(
       values = age_group_colours,
       labels = age_group_display_labels,
@@ -259,7 +324,7 @@ plot_figure_1_panel_d <- function(data) {
       )
     ) +
     labs(
-      x = "Conditional symptomatic-case index\nper 100 000 people aged <18 years, 2027–50",
+      x = "<18 symptomatic cases per 100 000",
       y = NULL,
       fill = "Age group",
       tag = "d"

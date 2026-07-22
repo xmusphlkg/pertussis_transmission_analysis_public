@@ -1,18 +1,7 @@
 ## Extended Data Figure 2 data preparation ------------------------------------
 
 extended_data_figure_2_country_who_region <- function() {
-  c(
-    Australia = "Western Pacific Region",
-    China = "Western Pacific Region",
-    Japan = "Western Pacific Region",
-    New_Zealand = "Western Pacific Region",
-    Sweden = "European Region",
-    United_Kingdom = "European Region",
-    United_States = "Region of the Americas",
-    Brazil = "Region of the Americas",
-    Thailand = "South-East Asia Region",
-    South_Africa = "African Region"
-  )
+  country_who_regions
 }
 
 extended_data_figure_2_input_paths <- function() {
@@ -137,12 +126,11 @@ prepare_extended_data_figure_2_data <- function(inputs = load_extended_data_figu
     )
   }
 
-  calibration_country_order <- inputs$baseline_pediatric_burden %>%
+  available_calibration_countries <- inputs$baseline_pediatric_burden %>%
     require_columns(c("country", "primary_cases_per_100k"), "Lancet baseline pediatric burden table") %>%
-    mutate(country = stringr::str_replace_all(country, " ", "_")) %>%
-    arrange(desc(as.numeric(primary_cases_per_100k))) %>%
-    mutate(country_label_text = format_country(country)) %>%
+    transmute(country_label_text = format_country(stringr::str_replace_all(country, " ", "_"))) %>%
     pull(country_label_text)
+  calibration_country_order <- main_figure_country_order(available_calibration_countries)
 
   require_columns(
     calibration,

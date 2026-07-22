@@ -1,12 +1,12 @@
 resistance_reduction_constraint,preferred_strategy,preferred_strategy_label,countries_preferred,median_infant_case_regret_per_100k,median_standardized_infant_regret_vs_current,median_resistant_infection_reduction
-0.0,timeliness_only,Routine timeliness,5,0.0,0.0,0.027406025836660408
-0.0,resistance_guided_treatment,Resistance-guided management,3,0.0,0.0,0.4960740311247176
-0.0,maternal_immunization,Infant-exposure reduction,1,0.0,0.0,0.6441941411793448
+0.0,timeliness_only,Routine timeliness,5,0.0,0.0,0.04587712090966978
+0.0,resistance_guided_treatment,Resistance-guided management,3,0.0,0.0,0.49607838688638284
+0.0,maternal_immunization,Infant-exposure reduction,1,0.0,0.0,0.64462016333823
 0.5,,,7,,,
-0.5,maternal_immunization,Infant-exposure reduction,1,0.0,0.0,0.6441941411793448
-0.5,resistance_guided_treatment,Resistance-guided management,1,0.0,0.0,0.5660279709440359
+0.5,maternal_immunization,Infant-exposure reduction,1,0.0,0.0,0.64462016333823
+0.5,resistance_guided_treatment,Resistance-guided management,1,0.0,0.0,0.572261596081249
 0.8,,,8,,,
-0.8,resistance_guided_treatment,Resistance-guided management,1,21.873629369676166,0.051815575327775136,0.9277509819759207
+0.8,resistance_guided_treatment,Resistance-guided management,1,21.811171787118496,0.051649287854845634,0.9282968803028054
 0.9,,,8,,,
-0.9,resistance_guided_treatment,Resistance-guided management,1,21.873629369676166,0.051815575327775136,0.9277509819759207
+0.9,resistance_guided_treatment,Resistance-guided management,1,21.811171787118496,0.051649287854845634,0.9282968803028054
 0.95,,,9,,,

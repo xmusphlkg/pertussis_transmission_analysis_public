@@ -1,0 +1,54 @@
+{
+  "audit": "exact_complete_state_mode_bank_independence_mh",
+  "config_hash": "60c5de6f402f35a1616f91df67d6fcf33a2b7f5d37b9e8a6d23895f7076a02d3",
+  "covariance_inflation": 1.5,
+  "degrees_of_freedom": 7.0,
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "generated_at_utc": "2026-07-15T11:18:07.132933+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
+    "dirty": true
+  },
+  "mean_mh_acceptance": 0.0703125,
+  "mode_bank_dimension": 80,
+  "mode_bank_source_hashes": [
+    "88096a48e9d170abb8a3f71541bcd1ac75745f5b4236751aa0ec7b20d2d1efc8",
+    "49cb2788937b44155255cd872d2cc1e3051f6cd32e11da3377a50576b3a0b9b1",
+    "32a09cdd7ceb36a27ce20be6e1f22277f616739326fc9f286947e6a60b0bf89f",
+    "d30ee2febdca19a4ef9605fae2f598ac85c05b8a996d66b50a00088bf4627336"
+  ],
+  "mode_bank_source_stems": [
+    "hierarchical_joint_smc_global256_jointde_adaptive_pilot",
+    "hierarchical_joint_smc_replicated256_adaptive_pilot_r2",
+    "hierarchical_joint_smc_replicated256_adaptive_pilot_r3",
+    "hierarchical_joint_smc_replicated256_adaptive_pilot_r4"
+  ],
+  "n_jobs": 20,
+  "origin_stems": [
+    "hierarchical_joint_smc_global256_jointde_adaptive_pilot",
+    "hierarchical_joint_smc_replicated256_adaptive_pilot_r2",
+    "hierarchical_joint_smc_replicated256_adaptive_pilot_r3",
+    "hierarchical_joint_smc_replicated256_adaptive_pilot_r4"
+  ],
+  "output_sha256": "306de090f2ddee5d86be080d7f6de9b88ea6a5e71868ffb9b5ba04198ed96d96",
+  "particles_per_origin": 32,
+  "process_support_bound": 5.0,
+  "row_counts": {
+    "mode_bank_origin_audits": 4
+  },
+  "schema_version": 1,
+  "seed": 20260823,
+  "source_code_hash": "e6fefc23695f501d44e44269761cc39f81a0e4986a51e57734f775a47896a532",
+  "stem": "modebank_audit_infl150_df7",
+  "total_accepted_cross_mode_count": 8
+}

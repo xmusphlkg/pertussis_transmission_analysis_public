@@ -1,10 +1,26 @@
 from __future__ import annotations
 
+from copy import deepcopy
+
 import numpy as np
 import pandas as pd
+import pytest
 
 from src_python.simulation import run_fitness_grid as fitness_grid
+from src_python.simulation.common import PROSPECTIVE_POLICY_KEY, file_sha256
 from src_python.simulation.run_bayesian_uncertainty import _apply_sample, _sample_columns
+
+
+def test_optional_posterior_route_uses_nonpublication_research_contract() -> None:
+    assert fitness_grid.DEFAULT_POSTERIOR_SAMPLE_PATH.name == (
+        "bayesian_uncertainty_conditional_research_posterior_samples.parquet"
+    )
+    assert (
+        fitness_grid.POSTERIOR_ANALYSIS_ROLE
+        == "optional_nonpublication_legacy_research"
+    )
+    assert fitness_grid.POSTERIOR_PUBLICATION_PATH is False
+    assert fitness_grid.POSTERIOR_FIGURE2C_INTERVAL_SOURCE is False
 
 
 def _posterior_samples(countries: tuple[str, ...] = ("A", "B"), draws: int = 5) -> pd.DataFrame:
@@ -142,8 +158,10 @@ def test_summarise_posterior_benefits_uses_paired_low_high_draws() -> None:
     assert np.isclose(row["q975_relative_benefit"], np.percentile(benefits, 97.5))
 
 
-def test_fig3d_psa_nuisance_sample_keeps_grid_overrides_fixed() -> None:
-    config = {
+def test_fig3d_psa_config_enforces_structural_and_prospective_time_scopes(
+    monkeypatch,
+) -> None:
+    base_config = {
         "age_groups": [
             {"label": "infant_0_2m"},
             {"label": "child_1_4y"},
@@ -158,6 +176,7 @@ def test_fig3d_psa_nuisance_sample_keeps_grid_overrides_fixed() -> None:
         "vaccine": {"VE_inf": 0.25},
         "PEP": {"coverage_household_contacts": 0.40},
         "reporting_multiplier": 1.0,
+        "simulation": {"start_time": 0.0},
     }
     sample = {
         "psa_sample_id": 7,
@@ -168,18 +187,72 @@ def test_fig3d_psa_nuisance_sample_keeps_grid_overrides_fixed() -> None:
         "fitness_R": 1.25,
         "PEP_coverage_multiplier": 1.50,
     }
+    samples = pd.DataFrame(
+        [
+            {
+                **sample,
+                "sample_design": "latin_hypercube_inverse_cdf",
+                "uncertainty_schema_version": 1,
+            }
+        ]
+    )
+    monkeypatch.setattr(
+        fitness_grid,
+        "make_config",
+        lambda **_kwargs: deepcopy(base_config),
+    )
 
-    sampled = fitness_grid._apply_fig3d_psa_nuisance_sample(config, sample)
-    overridden = fitness_grid._apply_grid_overrides(sampled, fitness_r=0.85, ve_inf=0.55)
+    scenarios = fitness_grid._build_psa_benefit_scenarios(
+        samples,
+        countries=["A"],
+        resistance_name="country_timeline",
+        fitness_targets=[
+            {
+                "fitness_group": "Fitness cost (0.85)",
+                "target_fitness_R": 0.85,
+                "grid_fitness_R": 0.85,
+            }
+        ],
+        low_ve_inf=0.05,
+        high_ve_inf=0.55,
+    )
 
-    assert np.isclose(overridden["reporting_multiplier"], 1.0)
-    assert np.isclose(overridden["contact_matrix"]["rows"][0][1], 3.0)
-    assert np.isclose(overridden["contact_matrix"]["rows"][0][2], 4.5)
-    assert np.isclose(overridden["transmission"]["relative_infectiousness_asymptomatic"], 0.70)
-    assert np.isclose(overridden["natural_history"]["infectious_duration_asymptomatic"], 18.0)
-    assert np.isclose(overridden["PEP"]["coverage_household_contacts"], 0.60)
-    assert np.isclose(overridden["transmission"]["fitness_R"], 0.85)
-    assert np.isclose(overridden["vaccine"]["VE_inf"], 0.55)
+    assert len(scenarios) == 2
+    for scenario in scenarios:
+        policy = scenario["config"]
+        history = policy[PROSPECTIVE_POLICY_KEY]["history_config"]
+        expected_ve_inf = float(scenario["metadata"]["grid_VE_inf"])
+
+        assert policy["metadata"]["prospective_policy"] is True
+        assert policy[PROSPECTIVE_POLICY_KEY]["history_vaccine_scenario"] == (
+            "symptom_protective"
+        )
+        assert policy[PROSPECTIVE_POLICY_KEY]["history_resistance_scenario"] == (
+            "country_timeline"
+        )
+
+        # Structural nuisances and fixed grid overrides apply to both phases.
+        for phase in (policy, history):
+            assert np.isclose(phase["reporting_multiplier"], 1.0)
+            assert np.isclose(phase["contact_matrix"]["rows"][0][1], 3.0)
+            assert np.isclose(phase["contact_matrix"]["rows"][0][2], 4.5)
+            assert np.isclose(
+                phase["transmission"]["relative_infectiousness_asymptomatic"],
+                0.70,
+            )
+            assert np.isclose(
+                phase["natural_history"]["infectious_duration_asymptomatic"],
+                18.0,
+            )
+            assert np.isclose(phase["transmission"]["fitness_R"], 0.85)
+            assert np.isclose(phase["vaccine"]["VE_inf"], expected_ve_inf)
+
+        # The prospective implementation draw must never leak into history.
+        assert np.isclose(history["PEP"]["coverage_household_contacts"], 0.40)
+        assert np.isclose(policy["PEP"]["coverage_household_contacts"], 0.60)
+        assert scenario["metadata"]["uncertainty_scope"] == fitness_grid.PSA_UNCERTAINTY_SCOPE
+        assert "both pre-policy history and policy" in fitness_grid.PSA_UNCERTAINTY_SCOPE
+        assert "only to the prospective policy" in fitness_grid.PSA_UNCERTAINTY_SCOPE
 
 
 def test_fig3d_psa_loader_accepts_current_true_case_design_without_reporting(tmp_path) -> None:
@@ -192,7 +265,6 @@ def test_fig3d_psa_loader_accepts_current_true_case_design_without_reporting(tmp
         "relative_infectiousness_asymptomatic": 0.5,
         "infectious_duration_asymptomatic": 17.0,
         "fitness_R": 1.0,
-        "resistance_management_uptake": 0.7,
         "PEP_coverage_multiplier": 1.0,
     }
     path = tmp_path / "psa.csv"
@@ -202,6 +274,64 @@ def test_fig3d_psa_loader_accepts_current_true_case_design_without_reporting(tmp
 
     assert loaded["psa_sample_id"].tolist() == [1]
     assert "reporting_multiplier" not in loaded.columns
+
+
+def test_canonical_fig3d_psa_loader_verifies_finalized_upstream_digest(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    row = {
+        "psa_sample_id": 1,
+        "sample_design": "latin_hypercube_inverse_cdf",
+        "uncertainty_schema_version": 1,
+        "infant_contact_multiplier": 1.0,
+        "VE_inf_baseline": 0.25,
+        "relative_infectiousness_asymptomatic": 0.5,
+        "infectious_duration_asymptomatic": 17.0,
+        "fitness_R": 1.0,
+        "PEP_coverage_multiplier": 1.0,
+    }
+    path = tmp_path / "canonical_joint_psa.csv"
+    pd.DataFrame([row]).to_csv(path, index=False)
+    expected_digest = file_sha256(path)
+    monkeypatch.setattr(fitness_grid, "DEFAULT_PSA_SAMPLE_PATH", path)
+    monkeypatch.setattr(
+        fitness_grid,
+        "validate_run_metadata",
+        lambda stem: {
+            "output_artifact_sha256": {
+                "parameter_samples": expected_digest,
+            }
+        },
+    )
+
+    loaded = fitness_grid._load_psa_samples(path)
+    assert loaded["psa_sample_id"].tolist() == [1]
+
+    changed = dict(row, PEP_coverage_multiplier=1.1)
+    pd.DataFrame([changed]).to_csv(path, index=False)
+    with pytest.raises(ValueError, match="do not match their finalized metadata digest"):
+        fitness_grid._load_psa_samples(path)
+
+
+def test_fig3d_psa_loader_rejects_legacy_extra_dimension(tmp_path) -> None:
+    row = {
+        "psa_sample_id": 1,
+        "sample_design": "latin_hypercube_inverse_cdf",
+        "uncertainty_schema_version": 1,
+        "infant_contact_multiplier": 1.0,
+        "VE_inf_baseline": 0.25,
+        "relative_infectiousness_asymptomatic": 0.5,
+        "infectious_duration_asymptomatic": 17.0,
+        "fitness_R": 1.0,
+        "PEP_coverage_multiplier": 1.0,
+        "resistance_management_uptake": 0.7,
+    }
+    path = tmp_path / "legacy_psa.csv"
+    pd.DataFrame([row]).to_csv(path, index=False)
+
+    with pytest.raises(ValueError, match="extra=.*resistance_management_uptake"):
+        fitness_grid._load_psa_samples(path)
 
 
 def test_summarise_psa_benefits_uses_paired_low_high_samples() -> None:

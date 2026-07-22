@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copy import deepcopy
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -8,6 +10,7 @@ from manuscript_notes import generate_high_risk_review_tables as review_tables
 from src_python.model.parameters import PreparedParameters
 from src_python.simulation import run_sensitivity as sensitivity_runner
 from src_python.simulation.common import (
+    PROSPECTIVE_POLICY_KEY,
     config_fingerprint,
     load_configs,
     make_config,
@@ -24,12 +27,18 @@ from src_python.simulation.run_joint_psa_rank_acceptability import (
     _sample_table as joint_sample_table,
 )
 from src_python.simulation.run_sensitivity import (
+    GLOBAL_SENSITIVITY_PARAMETER_NAMES,
+    GLOBAL_SENSITIVITY_PARAMETER_TIME_SCOPES,
+    OBSERVATION_ONLY,
+    RUNNER_CONSUMER,
     SAMPLE_DESIGN,
+    STRUCTURAL_ALL_TIME,
     _add_tornado_metrics,
     _apply_sample,
     _baseline_sensitivity_config,
     _sample_table,
     _settings,
+    _validated_parameter_time_scopes,
 )
 
 
@@ -75,6 +84,75 @@ def test_global_inverse_cdf_lhs_is_reproducible_and_nonuniform() -> None:
     efficacy = first["vaccine_disease_efficacy"]
     assert efficacy.mean() > 0.86
     assert efficacy.between(0.70, 0.97).all()
+
+
+def test_global_sensitivity_scope_contract_is_exact_and_consumed() -> None:
+    _, settings, _ = _global_settings()
+    specs = settings["parameters"]
+
+    scopes = _validated_parameter_time_scopes(specs)
+
+    assert tuple(specs) == GLOBAL_SENSITIVITY_PARAMETER_NAMES
+    assert scopes == GLOBAL_SENSITIVITY_PARAMETER_TIME_SCOPES
+    assert scopes["reporting_multiplier_factor"] == OBSERVATION_ONLY
+    assert all(
+        scope == STRUCTURAL_ALL_TIME
+        for name, scope in scopes.items()
+        if name != "reporting_multiplier_factor"
+    )
+    assert all(RUNNER_CONSUMER in spec["consumers"] for spec in specs.values())
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (lambda specs: specs.pop("fitness_R"), "10-parameter semantic contract"),
+        (
+            lambda specs: specs["fitness_R"].__setitem__(
+                "time_scope", "prospective_implementation"
+            ),
+            "implemented scope",
+        ),
+        (
+            lambda specs: specs["latent_duration"].__setitem__("consumers", []),
+            "must declare",
+        ),
+        (
+            lambda specs: specs["reporting_multiplier_factor"].__setitem__(
+                "path", "transmission.beta_S"
+            ),
+            "observation-only",
+        ),
+    ],
+)
+def test_global_sensitivity_scope_contract_rejects_drift(mutation, message) -> None:
+    _, settings, _ = _global_settings()
+    specs = deepcopy(settings["parameters"])
+    mutation(specs)
+
+    with pytest.raises(ValueError, match=message):
+        _validated_parameter_time_scopes(specs)
+
+
+def test_global_sensitivity_disables_legacy_registry_fallback() -> None:
+    configs = load_configs()
+    configs["parameter_distributions"].pop("global_sensitivity")
+
+    with pytest.raises(ValueError, match="legacy range fallback is disabled"):
+        _settings(configs)
+
+
+@pytest.mark.parametrize("bad_version", [None, True, "1", 1.0, 0, 2])
+def test_global_sensitivity_registry_schema_fails_closed(bad_version) -> None:
+    configs = load_configs()
+    registry = configs["parameter_distributions"]
+    if bad_version is None:
+        registry.pop("schema_version")
+    else:
+        registry["schema_version"] = bad_version
+
+    with pytest.raises(ValueError, match="schema_version"):
+        _settings(configs)
 
 
 def test_uncertainty_registry_has_a_separate_provenance_fingerprint() -> None:
@@ -177,6 +255,45 @@ def test_semantic_parameter_updates_are_coherent_and_active() -> None:
     assert params.rates["waning_R_to_W"] != 1.0 / float(base["natural_history"]["R_to_W_duration"])
 
 
+def test_scoped_sample_updates_history_but_keeps_reporting_observation_only() -> None:
+    configs, settings, _ = _global_settings()
+    specs = settings["parameters"]
+    base = make_config(
+        vaccine_scenario="symptom_protective",
+        resistance_scenario=configs["baseline"]["baseline_resistance_scenario"],
+        load_calibration=False,
+    )
+    history = deepcopy(base)
+    base[PROSPECTIVE_POLICY_KEY] = {"history_config": history}
+    sample = {
+        name: float(inverse_cdf(0.5, spec, context=name))
+        for name, spec in specs.items()
+    }
+    sample["latent_duration"] = 12.0
+    sample["reporting_multiplier_factor"] = 1.25
+
+    updated = _apply_sample(base, sample, specs)
+    updated_history = updated[PROSPECTIVE_POLICY_KEY]["history_config"]
+
+    assert updated["natural_history"]["latent_duration"] == 12.0
+    assert updated_history["natural_history"]["latent_duration"] == 12.0
+    assert np.isclose(
+        updated["reporting_multiplier"],
+        float(base.get("reporting_multiplier", 1.0)) * 1.25,
+    )
+    assert updated_history.get("reporting_multiplier", 1.0) == history.get(
+        "reporting_multiplier", 1.0
+    )
+
+    alternate = dict(sample, reporting_multiplier_factor=0.75)
+    alternate_updated = _apply_sample(base, alternate, specs)
+    first_latent_config = deepcopy(updated)
+    second_latent_config = deepcopy(alternate_updated)
+    first_latent_config.pop("reporting_multiplier", None)
+    second_latent_config.pop("reporting_multiplier", None)
+    assert first_latent_config == second_latent_config
+
+
 def test_reporting_factor_uses_reported_case_not_true_case_tornado_endpoint() -> None:
     frame = pd.DataFrame(
         {
@@ -239,7 +356,18 @@ def test_joint_rank_psa_uses_registry_distributions_and_rejects_stale_resume() -
     assert retained.empty
 
     with pytest.raises(ValueError, match="semantic contract"):
-        joint_sample_table(4, 1, {**specs, "unimplemented_parameter": {"min": 0, "max": 1}})
+        joint_sample_table(
+            4,
+            1,
+            {
+                **specs,
+                "unimplemented_parameter": {
+                    "distribution": "uniform",
+                    "min": 0,
+                    "max": 1,
+                },
+            },
+        )
 
 
 def test_joint_psa_ranks_programmes_on_the_primary_under18_endpoint_separately() -> None:
@@ -306,6 +434,7 @@ def test_review_screening_separates_reporting_from_true_disease_endpoint(monkeyp
     ]
 
     captured: dict[str, pd.DataFrame] = {}
+    monkeypatch.setattr(review_tables, "validate_run_metadata", lambda _stem: {})
     monkeypatch.setattr(review_tables, "_read_csv", lambda _path: draws)
     monkeypatch.setattr(review_tables, "load_configs", lambda: configs)
     monkeypatch.setattr(
@@ -326,7 +455,7 @@ def test_review_screening_separates_reporting_from_true_disease_endpoint(monkeyp
     assert result["screening_note"].str.contains("64-sample inverse-CDF").all()
 
 
-def test_review_screening_recognizes_legacy_output_despite_shared_column_names(monkeypatch) -> None:
+def test_review_screening_rejects_legacy_uniform_output(monkeypatch) -> None:
     configs, _, _ = _global_settings()
     legacy_specs = configs["sensitivity"]["parameters"]
     rng = np.random.default_rng(3)
@@ -334,18 +463,9 @@ def test_review_screening_recognizes_legacy_output_despite_shared_column_names(m
         {name: rng.normal(size=64) for name in legacy_specs}
     )
     legacy["annualized_infant_cases_per_100k"] = rng.normal(size=64)
-    captured: dict[str, pd.DataFrame] = {}
+    monkeypatch.setattr(review_tables, "validate_run_metadata", lambda _stem: {})
     monkeypatch.setattr(review_tables, "_read_csv", lambda _path: legacy)
     monkeypatch.setattr(review_tables, "load_configs", lambda: configs)
-    monkeypatch.setattr(
-        review_tables,
-        "_write",
-        lambda frame, path: captured.setdefault(path, frame.copy()),
-    )
 
-    review_tables.sensitivity_correlations()
-
-    result = captured["outputs/tables/sensitivity_correlation_screening.csv"]
-    assert set(result["parameter"]) == set(legacy_specs)
-    assert result["evidence_class"].eq("legacy_range").all()
-    assert result["screening_note"].str.contains("legacy uniform").all()
+    with pytest.raises(ValueError, match="legacy uniform output fallback is disabled"):
+        review_tables.sensitivity_correlations()

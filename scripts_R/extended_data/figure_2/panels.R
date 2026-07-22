@@ -83,6 +83,7 @@ plot_extended_data_figure_2_panel_c <- function(data) {
     geom_vline(xintercept = 1, linewidth = 0.26, linetype = "dashed", colour = manuscript_colour("black")) +
     geom_point(aes(fill = who_region), shape = 21, size = 1.95, colour = manuscript_colour("black"), stroke = 0.22, alpha = 0.88) +
     scale_fill_manual(values = c(region_colours, "Other" = manuscript_colour("mid_grey")), guide = "none") +
+    scale_y_discrete(limits = rev(data$calibration_country_order), drop = FALSE) +
     scale_x_continuous(
       breaks = c(0.75, 1.0, 1.25),
       labels = label_lancet_number(accuracy = 0.01),
@@ -110,6 +111,7 @@ plot_extended_data_figure_2_panel_d <- function(data) {
     ) +
     geom_point(aes(fill = who_region), shape = 21, size = 1.95, colour = manuscript_colour("black"), stroke = 0.22, alpha = 0.88) +
     scale_fill_manual(values = c(region_colours, "Other" = manuscript_colour("mid_grey")), guide = "none") +
+    scale_y_discrete(limits = rev(data$calibration_country_order), drop = FALSE) +
     scale_x_continuous(
       breaks = c(0, threshold / 2, threshold),
       labels = label_lancet_number(accuracy = 0.01),
@@ -137,6 +139,7 @@ plot_extended_data_figure_2_panel_e <- function(data) {
     geom_vline(xintercept = 1, linewidth = 0.26, linetype = "dashed", colour = manuscript_colour("black")) +
     geom_point(aes(fill = who_region), shape = 21, size = 1.95, colour = manuscript_colour("black"), stroke = 0.22, alpha = 0.88) +
     scale_fill_manual(values = c(region_colours, "Other" = manuscript_colour("mid_grey")), guide = "none") +
+    scale_y_discrete(limits = rev(data$calibration_country_order), drop = FALSE) +
     scale_x_log10(
       breaks = c(0.25, 0.5, 1, 2, 4),
       labels = c("0·25", "0·5", "1", "2", "4"),
@@ -184,7 +187,7 @@ plot_extended_data_figure_2_panel_f <- function(data) {
       labels = label_lancet_number(accuracy = 0.1),
       expand = expansion(mult = c(0.02, 0.02))
     ) +
-    scale_y_discrete(drop = FALSE) +
+    scale_y_discrete(limits = rev(data$calibration_country_order), drop = FALSE) +
     coord_cartesian(xlim = c(0, 1), clip = "off") +
     labs(x = "Age-pattern\nweight", y = NULL, tag = "F") +
     theme_lancet_panel(
@@ -236,6 +239,7 @@ plot_extended_data_figure_2_panel_h <- function(data) {
   data$reporting_long %>%
     ggplot(aes(age_group, country_label, fill = reporting_rate)) +
     geom_tile(colour = "white", linewidth = lancet_heatmap_tile_linewidth) +
+    scale_y_discrete(limits = rev(data$calibration_country_order), drop = FALSE) +
     scale_fill_fraction(
       limits = c(0, 0.7),
       breaks = seq(0, 0.7, by = 0.1),

@@ -5,10 +5,12 @@ import pandas as pd
 import pytest
 
 from src_python.simulation.parameter_distributions import (
+    UNCERTAINTY_REGISTRY_SCHEMA_VERSION,
     inverse_cdf,
     latin_hypercube_draw_table,
     log_pdf,
     validate_distribution_spec,
+    validate_uncertainty_registry_schema,
 )
 
 
@@ -145,15 +147,38 @@ def test_log_pdf_matches_inverse_cdf_local_probability_mass():
     assert np.exp(log_pdf(midpoint, spec)) == pytest.approx(numerical_density, rel=2e-5)
 
 
-def test_legacy_min_max_spec_is_normalized_to_uniform_without_mutation():
-    legacy = {"min": 2, "max": 6, "path": "transmission.beta_S"}
-    normalized = validate_distribution_spec(legacy)
+def test_explicit_uniform_min_max_aliases_are_normalized_without_mutation():
+    spec = {
+        "distribution": "uniform",
+        "min": 2,
+        "max": 6,
+        "path": "transmission.beta_S",
+    }
+    normalized = validate_distribution_spec(spec)
 
-    assert legacy == {"min": 2, "max": 6, "path": "transmission.beta_S"}
+    assert spec == {
+        "distribution": "uniform",
+        "min": 2,
+        "max": 6,
+        "path": "transmission.beta_S",
+    }
     assert normalized["distribution"] == "uniform"
     assert normalized["low"] == 2.0
     assert normalized["high"] == 6.0
-    assert inverse_cdf(np.array([0.0, 0.25, 1.0]), legacy).tolist() == [2.0, 3.0, 6.0]
+    assert inverse_cdf(np.array([0.0, 0.25, 1.0]), spec).tolist() == [2.0, 3.0, 6.0]
+
+
+@pytest.mark.parametrize(
+    "spec",
+    [
+        {"low": 0.0, "high": 1.0},
+        {"min": 0.0, "max": 1.0},
+        {"value": 0.0},
+    ],
+)
+def test_mapping_specs_never_infer_a_distribution(spec):
+    with pytest.raises(ValueError, match="missing required 'distribution'"):
+        validate_distribution_spec(spec)
 
 
 def test_stratified_beta_quantiles_recover_underlying_mean_and_sd():
@@ -234,7 +259,10 @@ def test_complement_lognormal_models_asymmetric_effectiveness_interval():
 
 def test_latin_hypercube_preserves_names_reproducibility_and_marginal_strata():
     specs = [
-        ("zeta", {"min": 2.0, "max": 6.0}),
+        (
+            "zeta",
+            {"distribution": "uniform", "min": 2.0, "max": 6.0},
+        ),
         (
             "alpha",
             {"distribution": "triangular", "low": 0.0, "mode": 0.3, "high": 1.0},
@@ -258,7 +286,7 @@ def test_spike_and_slab_has_requested_stratified_spike_proportion():
         "implementation_failure": {
             "distribution": "spike_and_slab",
             "spike_probability": 0.2,
-            "spike": {"value": 0.0},
+            "spike": {"distribution": "constant", "value": 0.0},
             "slab": {
                 "distribution": "beta_pert",
                 "low": 0.1,
@@ -280,7 +308,7 @@ def test_spike_value_alias_normalizes_idempotently():
         "distribution": "spike_and_slab",
         "spike_probability": 0.25,
         "spike_value": 0.0,
-        "slab": {"min": 1.0, "max": 2.0},
+        "slab": {"distribution": "uniform", "min": 1.0, "max": 2.0},
     }
 
     normalized = validate_distribution_spec(spec)
@@ -296,7 +324,7 @@ def test_right_hand_spike_and_slab_inverse_cdf_is_monotone():
         "distribution": "spike_and_slab",
         "spike_probability": 0.2,
         "spike": 10.0,
-        "slab": {"min": 0.0, "max": 1.0},
+        "slab": {"distribution": "uniform", "min": 0.0, "max": 1.0},
     }
     values = inverse_cdf(np.linspace(0.0, 1.0, 101), spec)
 
@@ -307,11 +335,14 @@ def test_right_hand_spike_and_slab_inverse_cdf_is_monotone():
 @pytest.mark.parametrize(
     ("spec", "message"),
     [
-        ({}, "missing 'distribution'"),
+        ({}, "missing required 'distribution'"),
         ({"distribution": None, "min": 0, "max": 1}, "non-empty string"),
         ({"distribution": "mystery", "low": 0, "high": 1}, "unsupported distribution"),
-        ({"min": 0}, "missing 'max'"),
-        ({"min": 1, "max": 1}, "lower bound must be less"),
+        ({"distribution": "uniform", "min": 0}, "missing 'max'"),
+        (
+            {"distribution": "uniform", "min": 1, "max": 1},
+            "lower bound must be less",
+        ),
         (
             {"distribution": "uniform", "low": 0, "high": 1, "min": 0, "max": 2},
             "specify different bounds",
@@ -347,7 +378,7 @@ def test_right_hand_spike_and_slab_inverse_cdf_is_monotone():
                 "distribution": "spike_and_slab",
                 "spike_probability": 1.2,
                 "spike": 0,
-                "slab": {"min": 1, "max": 2},
+                "slab": {"distribution": "uniform", "min": 1, "max": 2},
             },
             "spike_probability.*within",
         ),
@@ -360,7 +391,11 @@ def test_right_hand_spike_and_slab_inverse_cdf_is_monotone():
                 "distribution": "spike_and_slab",
                 "spike_probability": 0.2,
                 "spike": 0.5,
-                "slab": {"min": 0.0, "max": 1.0},
+                "slab": {
+                    "distribution": "uniform",
+                    "min": 0.0,
+                    "max": 1.0,
+                },
             },
             "component supports overlap",
         ),
@@ -374,10 +409,38 @@ def test_invalid_distribution_specs_raise_clear_value_errors(spec, message):
 @pytest.mark.parametrize("unit", [[-0.01], [1.01], [np.nan], [np.inf]])
 def test_invalid_unit_quantiles_raise_value_error(unit):
     with pytest.raises(ValueError, match="unit quantiles"):
-        inverse_cdf(unit, {"min": 0.0, "max": 1.0})
+        inverse_cdf(
+            unit,
+            {"distribution": "uniform", "min": 0.0, "max": 1.0},
+        )
 
 
 @pytest.mark.parametrize("n_draws", [0, -1, 1.5, True])
 def test_latin_hypercube_rejects_invalid_draw_counts(n_draws):
     with pytest.raises(ValueError, match="positive integer"):
-        latin_hypercube_draw_table({"x": {"min": 0, "max": 1}}, n_draws, seed=1)
+        latin_hypercube_draw_table(
+            {"x": {"distribution": "uniform", "min": 0, "max": 1}},
+            n_draws,
+            seed=1,
+        )
+
+
+@pytest.mark.parametrize(
+    ("registry", "message"),
+    [
+        ({}, "explicitly declare"),
+        ({"schema_version": True}, "must be the integer"),
+        ({"schema_version": "1"}, "must be the integer"),
+        ({"schema_version": 1.0}, "must be the integer"),
+        ({"schema_version": 0}, "only version 1"),
+        ({"schema_version": 2}, "only version 1"),
+    ],
+)
+def test_uncertainty_registry_schema_is_exact_and_not_coerced(registry, message):
+    with pytest.raises(ValueError, match=message):
+        validate_uncertainty_registry_schema(registry)
+
+
+def test_uncertainty_registry_schema_accepts_only_integer_version_one():
+    assert UNCERTAINTY_REGISTRY_SCHEMA_VERSION == 1
+    assert validate_uncertainty_registry_schema({"schema_version": 1}) == 1

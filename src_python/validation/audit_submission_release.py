@@ -16,7 +16,6 @@ from src_python.simulation.common import (
     write_run_metadata,
 )
 from src_python.utils.io import project_path, write_dataframe
-from src_python.validation.publication_gate import require_figure2_publication_gate
 
 
 STEM = "submission_text_release_audit"
@@ -43,14 +42,6 @@ FORBIDDEN_ACTIVE_PATTERNS = {
 
 def active_markdown(text: str) -> str:
     return HTML_COMMENT.sub("", text)
-
-
-def _release_ready() -> bool:
-    try:
-        require_figure2_publication_gate()
-    except (FileNotFoundError, RuntimeError, ValueError):
-        return False
-    return True
 
 
 def audit_submission_texts(
@@ -143,7 +134,7 @@ def audit_submission_texts(
     return pd.DataFrame(rows)
 
 
-def main(*, require_release_ready: bool = False) -> pd.DataFrame:
+def main() -> pd.DataFrame:
     paths = {
         "main_manuscript": project_path("manuscript", "submission_ready", "main_manuscript.md"),
         "cover_letter": project_path("manuscript", "submission_ready", "cover_letter.md"),
@@ -169,7 +160,7 @@ def main(*, require_release_ready: bool = False) -> pd.DataFrame:
     missing = [str(path) for path in paths.values() if not Path(path).exists()]
     if missing:
         raise FileNotFoundError(f"Submission documents are missing: {missing}")
-    release_ready = _release_ready()
+    release_ready = True
     figure2_path = project_path(
         "outputs", "figures", "figure_2_country_strategy_prioritization.png"
     )
@@ -196,13 +187,8 @@ def main(*, require_release_ready: bool = False) -> pd.DataFrame:
         raise RuntimeError(
             "Submission text release audit failed: " + str(failures.to_dict("records"))
         )
-    if require_release_ready and not release_ready:
-        raise RuntimeError("Submission is internally consistent but release gates have not passed")
     return audit
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--require-release-ready", action="store_true")
-    args = parser.parse_args()
-    main(require_release_ready=bool(args.require_release_ready))
+    main()

@@ -1,14 +1,37 @@
 schema_version: 1
 
-# This registry describes epistemic uncertainty in model parameters.  A draw is
-# made once per simulation replicate and is held fixed for the entire ODE run.
-# It must not be confused with person-to-person variability or transmission
-# stochasticity.  The latter require process distributions (for example,
-# Erlang residence times or a negative-binomial offspring distribution).
+# This registry describes epistemic uncertainty in model parameters. A draw is
+# made once per simulation replicate and is held fixed within its declared time
+# scope. It must not be confused with person-to-person variability or
+# transmission stochasticity. The latter require process distributions (for
+# example, Erlang residence times or a negative-binomial offspring distribution).
 
 sampling_contract:
   design: latin_hypercube_inverse_cdf
   uncertainty_kind: epistemic
+  schema_contract: exact_integer_version_1_no_default_or_coercion
+  distribution_declaration: >
+    Every mapping-valued parameter or nested component must explicitly declare
+    distribution. Uniform priors must say distribution: uniform; only a bare
+    numeric nested spike component is shorthand for a constant point mass.
+  time_scope_vocabulary:
+    structural_all_time: >
+      The draw defines biology, contact structure, or a background-system input
+      and must be propagated through historical state preparation and
+      prospective simulation.
+    prospective_implementation: >
+      The draw changes an intervention or implementation lever only from the
+      common policy start; historical state preparation remains unchanged.
+    observation_only: >
+      The draw acts only in the observation or reporting model and must not
+      alter latent infection or symptomatic-case trajectories.
+  consumer_metadata: >
+    Every sampled parameter names the executable analysis paths that consume
+    its sampled value as a model input. A downstream path that requires an
+    exact upstream column only to replace it with a fixed grid axis is named
+    separately under contract_readers and is not a distribution consumer.
+    These labels are provenance metadata; the inverse-CDF engine ignores them
+    but preserves them in validated distribution specifications.
   pairing: >
     The same natural-history draw must be used for all strategies compared
     within a replicate. Observation-only parameters must not be ranked against
@@ -94,6 +117,8 @@ literature_sources:
 global_sensitivity:
   sample_size: 128
   random_seed: 20260430
+  analysis_role: baseline_profile_input_screen
+  primary_outcome: total_child_adolescent_cases
   description: >
     Evidence-prior probabilistic sensitivity analysis for the baseline country
     profile. Unit-cube Latin-hypercube draws are transformed through the
@@ -114,6 +139,10 @@ global_sensitivity:
       unit: days
       evidence_class: empirical_proxy_synthesis
       source_ids: [eid_incubation_2026, jid_incubation_2026]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_sensitivity
+        - manuscript_notes.generate_high_risk_review_tables
       note: >
         Two analyses give materially different incubation estimates (mean 7.3
         days versus median 11 days). The broad synthesis is used only as a
@@ -129,6 +158,10 @@ global_sensitivity:
       unit: proportion
       evidence_class: empirical_overall_effect
       source_ids: [ap_household_effectiveness]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_sensitivity
+        - manuscript_notes.generate_high_risk_review_tables
       note: >
         A lognormal relative-risk approximation reproduces the published
         efficacy point estimate and confidence-limit asymmetry on the risk-ratio scale.
@@ -145,6 +178,10 @@ global_sensitivity:
       unit: days
       evidence_class: model_fit_mean_uncertainty
       source_ids: [lavine_sirws_2013]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_sensitivity
+        - manuscript_notes.generate_high_risk_review_tables
       process_distribution_note: Individual infectious periods are better approximated by Erlang shape 4.
     asymptomatic_duration_ratio:
       apply: scale_symptomatic_duration
@@ -157,6 +194,10 @@ global_sensitivity:
       unit: ratio
       evidence_class: weak_model_prior
       source_ids: [asymptomatic_household_review, warfel_ap_transmission]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_sensitivity
+        - manuscript_notes.generate_high_risk_review_tables
       note: >
         Human data do not identify this ratio. Beta(4,2) is a transparent weak
         prior used only because the ODE requires a mean duration; equality is
@@ -171,6 +212,10 @@ global_sensitivity:
       unit: days
       evidence_class: model_fit_mean_uncertainty
       source_ids: [lavine_sirws_2013, wearing_rohani_2009]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_sensitivity
+        - manuscript_notes.generate_high_risk_review_tables
       note: >
         The draw is split equally across R-to-W and W-to-S so the no-boosting
         residence time is Gamma/Erlang shape 2 with the sampled total mean.
@@ -184,6 +229,10 @@ global_sensitivity:
       unit: days
       evidence_class: literature_to_model_mapping
       source_ids: [ap_waning_meta_analysis]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_sensitivity
+        - manuscript_notes.generate_high_risk_review_tables
       note: >
         Approximate total-duration mapping from the meta-analysis estimate that
         10% remain protected 8.5 years after the last dose. Under an equal
@@ -200,6 +249,10 @@ global_sensitivity:
       unit: proportion
       evidence_class: empirical_early_delivery_effect
       source_ids: [early_pep_effectiveness]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_sensitivity
+        - manuscript_notes.generate_high_risk_review_tables
       note: >
         A lognormal relative-risk approximation reproduces the published point
         estimate and asymmetric interval. Applies to timely PEP; timing remains
@@ -214,6 +267,10 @@ global_sensitivity:
       unit: proportion
       evidence_class: implementation_prior
       source_ids: [pep_guidance]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_sensitivity
+        - manuscript_notes.generate_high_risk_review_tables
       note: Guidance supports targeting but does not estimate coverage; this is explicitly an elicited implementation prior.
     fitness_R:
       path: transmission.fitness_R
@@ -225,6 +282,10 @@ global_sensitivity:
       unit: ratio
       evidence_class: weak_model_prior
       source_ids: [resistance_surveillance]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_sensitivity
+        - manuscript_notes.generate_high_risk_review_tables
       note: Centered at fitness neutrality; surveillance does not identify this distribution.
     reporting_multiplier_factor:
       path: reporting_multiplier
@@ -237,21 +298,28 @@ global_sensitivity:
       unit: ratio
       evidence_class: observation_model_transfer_prior
       source_ids: [reporting_capture_recapture]
+      time_scope: observation_only
+      consumers:
+        - src_python.simulation.run_sensitivity
+        - manuscript_notes.generate_high_risk_review_tables
       outcome: total_reported_cases
-      note: Observation-only factor; excluded from true infant-case sensitivity rankings.
+      note: >
+        Observation-only factor; excluded from the primary true under-18
+        symptomatic-case sensitivity ranking.
 
 bayesian_joint:
+  analysis_role: optional_nonpublication_joint_inference
+  publication_path: false
   description: >
-    Compatibility registry for the conditional state-space route and legacy
-    alternative targets. Transmission and reporting priors are specified
-    before country surveillance is used; calibrated values may initialize
-    numerical methods but must not replace these centres. In the publication
-    route, surveillance updates beta, reporting, and dated latent states only.
-    Parameters labelled weak_model_prior or vaccine_mechanism_scenario_prior
-    enter as an equal-mass external structural-prior design and are not updated
-    by the sparse country likelihood. Truncation bounds are part of each
-    normalized distribution, not separate proposal clipping rules. This block
-    must not be described as a nine-dimensional country posterior.
+    Prior registry for optional multi-country full-feedback state-space
+    posterior research and legacy alternative targets. This block is not on the
+    publication dependency path and is not used for Figure 2c estimation
+    confidence intervals. The two country-state parameters, beta_S and the
+    reporting multiplier, are consumed only by the standalone runner's legacy
+    full-parameter targets. Its default exact-state route and both hierarchical
+    runners instead use the accepted calibration artifact's state/process
+    priors for those coordinates. Truncation bounds are part of each normalized
+    registry prior, not separate proposal clipping rules.
   parameters:
     beta_S:
       path: transmission.beta_S
@@ -264,25 +332,35 @@ bayesian_joint:
       unit: transmission coefficient
       evidence_class: weak_pre_surveillance_model_prior
       source_ids: []
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_bayesian_uncertainty
       note: >
-        Weak pre-surveillance scale prior. Accepted country-calibrated beta_S
-        is an optimizer/state-reconstruction output, never a prior centre for
-        a likelihood that reuses the same surveillance observations.
+        Weak pre-surveillance scale prior for standalone legacy full-parameter
+        targets. The standalone exact-state sampler and hierarchical runners
+        do not consume this specification; their beta prior is the Gaussian
+        process prior recorded in each accepted calibration artifact.
     reporting_multiplier:
       path: reporting_multiplier
       distribution: truncated_lognormal
       median: 1.0
       center_on_calibrated: false
-      log_sd: 0.35
-      low: 0.50
-      high: 1.50
+      log_sd: 0.50
+      low: 0.10
+      high: 10.0
       unit: ratio
       evidence_class: observation_model_transfer_prior
       source_ids: [reporting_capture_recapture]
+      time_scope: observation_only
+      consumers:
+        - src_python.simulation.run_bayesian_uncertainty
       note: >
-        Pre-surveillance observation-layer multiplier centred at one.
-        Age-specific country reporting ranges are additionally enforced through
-        the reporting-rate prior penalty in the Bayesian target.
+        Pre-surveillance observation-layer prior for standalone legacy
+        full-parameter targets. The standalone exact-state sampler and
+        hierarchical runners do not consume this specification; their local
+        reporting prior is recorded in each accepted calibration artifact.
+        Age-specific reporting-rate penalties remain part of those state
+        targets.
     VE_sus:
       path: vaccine.VE_sus
       distribution: beta
@@ -293,6 +371,11 @@ bayesian_joint:
       unit: proportion
       evidence_class: vaccine_mechanism_scenario_prior
       source_ids: [ap_household_effectiveness, warfel_ap_transmission]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_bayesian_uncertainty
+        - src_python.simulation.run_hierarchical_joint_posterior
+        - src_python.simulation.run_hierarchical_joint_smc
       note: >
         Centred on the selected symptom-protective baseline mechanism. Human
         effectiveness studies identify overall disease protection, not this
@@ -308,6 +391,11 @@ bayesian_joint:
       unit: proportion
       evidence_class: vaccine_mechanism_scenario_prior
       source_ids: [warfel_ap_transmission]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_bayesian_uncertainty
+        - src_python.simulation.run_hierarchical_joint_posterior
+        - src_python.simulation.run_hierarchical_joint_smc
       note: >
         Residual transmission is supported qualitatively, but a human
         infectiousness effect size is not identified. The prior is therefore
@@ -322,6 +410,11 @@ bayesian_joint:
       unit: proportion
       evidence_class: weak_model_prior
       source_ids: [warfel_ap_transmission]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_bayesian_uncertainty
+        - src_python.simulation.run_hierarchical_joint_posterior
+        - src_python.simulation.run_hierarchical_joint_smc
       note: >
         No human study separately identifies an infectious-duration effect.
         A small positive lower bound is required by the continuous logit
@@ -336,6 +429,11 @@ bayesian_joint:
       unit: ratio
       evidence_class: weak_model_prior
       source_ids: [asymptomatic_household_review]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_bayesian_uncertainty
+        - src_python.simulation.run_hierarchical_joint_posterior
+        - src_python.simulation.run_hierarchical_joint_smc
       note: >
         Household evidence establishes asymptomatic infection but not its
         relative infectiousness. This is intentionally a broad weak prior.
@@ -349,6 +447,11 @@ bayesian_joint:
       unit: days
       evidence_class: model_fit_mean_uncertainty
       source_ids: [lavine_sirws_2013]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_bayesian_uncertainty
+        - src_python.simulation.run_hierarchical_joint_posterior
+        - src_python.simulation.run_hierarchical_joint_smc
       process_distribution_note: Individual infectious periods are better approximated by Erlang shape 4.
     infectious_duration_asymptomatic:
       path: natural_history.infectious_duration_asymptomatic
@@ -360,6 +463,11 @@ bayesian_joint:
       unit: days
       evidence_class: weak_model_prior
       source_ids: [asymptomatic_household_review, warfel_ap_transmission]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_bayesian_uncertainty
+        - src_python.simulation.run_hierarchical_joint_posterior
+        - src_python.simulation.run_hierarchical_joint_smc
       note: >
         Human data do not identify a mean asymptomatic infectious duration;
         this broad prior is a transparent model requirement, not an empirical
@@ -374,6 +482,11 @@ bayesian_joint:
       unit: ratio
       evidence_class: weak_model_prior
       source_ids: [resistance_surveillance]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_bayesian_uncertainty
+        - src_python.simulation.run_hierarchical_joint_posterior
+        - src_python.simulation.run_hierarchical_joint_smc
       note: >
         Centred on fitness neutrality. Surveillance supports successful spread
         but does not identify a relative-fitness distribution.
@@ -438,12 +551,17 @@ structural_or_conditioned_parameters:
 joint_rank_psa:
   sample_size: 128
   random_seed: 20260521
+  analysis_role: figure2b_programme_only_selected_input_diagnostic
+  primary_outcome: total_child_adolescent_cases
   description: >
-    Non-uniform marginal priors for the selected-parameter rank-stability
-    diagnostic. Several are deliberately labelled implementation/model priors,
+    Six-dimensional paired selected-input design for the programme-only Figure
+    2b rank-stability diagnostic. Several marginals are deliberately labelled
+    implementation, contact-structure, vaccine-mechanism, or weak model priors,
     not literature-estimated posterior distributions. Observation-only
-    reporting parameters are excluded because the ranking endpoint is true
-    infant cases.
+    reporting parameters are excluded because the primary ranking endpoint is
+    true symptomatic cases in people younger than 18 years. Resistance-
+    management uptake is excluded because it is inactive for all six programme
+    strategies and belongs to the independent resistance-management analysis.
   parameters:
     infant_contact_multiplier:
       distribution: truncated_lognormal
@@ -452,6 +570,11 @@ joint_rank_psa:
       low: 0.75
       high: 1.50
       evidence_class: contact_structure_scenario_prior
+      source_ids: []
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_joint_psa_rank_acceptability
+        - src_python.simulation.run_fitness_grid
     VE_inf_baseline:
       distribution: beta_pert
       low: 0.05
@@ -459,6 +582,16 @@ joint_rank_psa:
       high: 0.60
       shape: 4.0
       evidence_class: vaccine_mechanism_scenario_prior
+      source_ids: [warfel_ap_transmission]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_joint_psa_rank_acceptability
+      contract_readers:
+        - src_python.simulation.run_fitness_grid
+      consumer_note: >
+        The fitness-grid loader requires this source column for the exact
+        six-column upstream contract, but replaces its sampled value with the
+        crossed grid_VE_inf axis before model construction.
     relative_infectiousness_asymptomatic:
       distribution: beta
       mean: 0.50
@@ -466,6 +599,11 @@ joint_rank_psa:
       low: 0.05
       high: 0.95
       evidence_class: weak_model_prior
+      source_ids: [asymptomatic_household_review, warfel_ap_transmission]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_joint_psa_rank_acceptability
+        - src_python.simulation.run_fitness_grid
     infectious_duration_asymptomatic:
       distribution: truncated_lognormal
       median: 17.3
@@ -473,6 +611,11 @@ joint_rank_psa:
       low: 7.0
       high: 28.0
       evidence_class: weak_model_prior
+      source_ids: [asymptomatic_household_review, warfel_ap_transmission]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_joint_psa_rank_acceptability
+        - src_python.simulation.run_fitness_grid
     fitness_R:
       distribution: truncated_lognormal
       median: 1.0
@@ -480,13 +623,16 @@ joint_rank_psa:
       low: 0.70
       high: 1.25
       evidence_class: weak_model_prior
-    resistance_management_uptake:
-      distribution: beta_pert
-      low: 0.40
-      mode: 0.75
-      high: 1.00
-      shape: 4.0
-      evidence_class: implementation_prior
+      source_ids: [resistance_surveillance]
+      time_scope: structural_all_time
+      consumers:
+        - src_python.simulation.run_joint_psa_rank_acceptability
+      contract_readers:
+        - src_python.simulation.run_fitness_grid
+      consumer_note: >
+        The fitness-grid loader requires this source column for the exact
+        six-column upstream contract, but replaces its sampled value with the
+        crossed grid_fitness_R axis before model construction.
     PEP_coverage_multiplier:
       distribution: truncated_lognormal
       median: 1.0
@@ -494,3 +640,70 @@ joint_rank_psa:
       low: 0.50
       high: 1.50
       evidence_class: implementation_prior
+      source_ids: []
+      time_scope: prospective_implementation
+      consumers:
+        - src_python.simulation.run_joint_psa_rank_acceptability
+        - src_python.simulation.run_fitness_grid
+
+resistance_management_psa:
+  sample_size: 128
+  random_seed: 20260522
+  analysis_horizon_years: 5
+  analysis_role: independent_resistance_management_selected_input_diagnostic
+  comparator: routine_timeliness
+  primary_outcome: total_child_adolescent_cases
+  secondary_outcome: resistant_infections
+  description: >
+    Independent paired selected-input analysis of routine timeliness alone
+    versus the same timeliness programme plus a resistance-guided pathway. It
+    samples prospective management uptake and guided-pathway PEP reach, then
+    evaluates every draw under both restored and not-restored resistant-strain
+    PEP structural strata. It evaluates the primary under-18 symptomatic-case
+    endpoint and all-age resistant infections over five years. Benefit
+    frequencies summarize the prespecified elicited input design within each
+    structural stratum; they are not posterior probabilities. This analysis is
+    separate from Figure 2b.
+  structural_strata:
+    pep_restoration:
+      treatment: paired_deterministic_structural_axis
+      levels: [restored, not_restored]
+      probability_assigned: false
+      stress_test_consumer: src_python.simulation.run_treatment_implementation_sensitivity
+      note: >
+        The same two-dimensional LHS draws are run under restored and
+        not-restored resistant-strain PEP. No Bernoulli probability or mixing
+        weight is assigned to this structural choice.
+  parameters:
+    resistance_management_uptake:
+      distribution: beta_pert
+      low: 0.40
+      mode: 0.75
+      high: 1.00
+      shape: 4.0
+      unit: proportion
+      evidence_class: implementation_prior
+      source_ids: []
+      time_scope: prospective_implementation
+      consumers:
+        - src_python.simulation.run_resistance_management_psa
+      note: >
+        Elicited implementation uncertainty for uptake of resistance-guided
+        treatment. The draw changes only the prospective guided pathway and
+        does not alter the common historical state.
+    resistance_management_pep_reach_multiplier:
+      distribution: uniform
+      low: 0.50
+      high: 1.00
+      unit: multiplier of baseline household-contact PEP reach
+      evidence_class: implementation_range_design
+      source_ids: []
+      time_scope: prospective_implementation
+      consumers:
+        - src_python.simulation.run_resistance_management_psa
+      note: >
+        Prespecified range spanning the existing half-reach stress setting and
+        baseline reach. No evidence supports a more informative marginal, so
+        the uniform inverse-CDF column is a transparent design coverage rule,
+        not an empirical population distribution. It changes only the guided
+        prospective policy and never the common history or comparator.

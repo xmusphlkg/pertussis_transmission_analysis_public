@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from src_python.utils import validation
+from manuscript_notes import validate_publication_outputs as publication_validation
 
 
 EXPECTED_SIMULATE_SUMMARY_STEMS = (
@@ -49,8 +50,11 @@ EXPECTED_PUBLICATION_METADATA_STEMS = (
     "treatment_implementation_sensitivity",
     "individual_stochastic_toy",
     "joint_psa_rank_acceptability",
-    "fitness_resistance_grid_posterior_sample_diagnostics",
-    "fitness_resistance_grid_posterior_benefit",
+    "resistance_management_psa",
+    "figure1b_current_practice_conditional_parametric_bootstrap",
+    "figure2_programme_reference",
+    "figure2c_parametric_bootstrap",
+    "figure2c_parametric_bootstrap_quality_audit",
     "fitness_resistance_grid_psa_benefit",
     "health_utility_analysis",
     "vaccine_pipeline_mapping",
@@ -66,16 +70,38 @@ def test_core_validation_stems_match_makefile_simulate_outputs() -> None:
     assert "bayesian_uncertainty" not in validation.CORE_OUTPUT_STEMS
     assert validation.OPTIONAL_EXISTING_OUTPUT_STEMS == ("bayesian_uncertainty",)
     assert validation.PUBLICATION_METADATA_STEMS == EXPECTED_PUBLICATION_METADATA_STEMS
+    assert not any("posterior" in stem for stem in validation.PUBLICATION_METADATA_STEMS)
     for stem in EXPECTED_SIMULATE_SUMMARY_STEMS:
         assert EXPECTED_SIMULATE_RUNNER_FRAGMENTS[stem] in makefile
     assert "data/raw/covid_npi_contact_reduction_timeline.csv" in makefile
 
 
 def test_publication_validation_stems_have_required_table_entries() -> None:
+    assert (
+        publication_validation.ACTIVE_PUBLICATION_METADATA_STEMS
+        is validation.PUBLICATION_METADATA_STEMS
+    )
     assert set(validation.PUBLICATION_REQUIRED_TABLES) == set(validation.PUBLICATION_METADATA_STEMS)
     for stem, tables in validation.PUBLICATION_REQUIRED_TABLES.items():
         assert tables, stem
         assert all(path.startswith("outputs/") for path in tables)
+
+
+def test_active_figure_interval_paths_are_exactly_the_canonical_outputs() -> None:
+    assert validation.PUBLICATION_REQUIRED_TABLES[
+        "figure1b_current_practice_conditional_parametric_bootstrap"
+    ] == (
+        "outputs/summaries/figure1b_current_practice_conditional_confidence_intervals.csv",
+        "outputs/tables/figure1b_current_practice_conditional_bootstrap_draws.csv",
+        "outputs/diagnostics/figure1b_current_practice_conditional_parametric_bootstrap_fit_diagnostics.csv",
+        "outputs/diagnostics/figure1b_current_practice_conditional_parametric_bootstrap_interval_stability.csv",
+    )
+    assert validation.PUBLICATION_REQUIRED_TABLES["figure2c_parametric_bootstrap"] == (
+        "outputs/summaries/figure2c_programme_paired_confidence_intervals.csv",
+        "outputs/tables/figure2c_programme_paired_bootstrap_draws.csv",
+        "outputs/diagnostics/figure2c_parametric_bootstrap_fit_diagnostics.csv",
+        "outputs/diagnostics/figure2c_parametric_bootstrap_interval_stability.csv",
+    )
 
 
 def test_validate_main_output_windows_requires_core_summaries(monkeypatch, tmp_path) -> None:

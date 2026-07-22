@@ -1,5 +1,5 @@
 comparator,resistance_prevalence,median_minimum_VE_inf,countries_reaching_comparator,countries_evaluated,threshold_basis
-infant_exposure_reduction_strategy,0.0,0.0,8,9,VE_inf-only grid; VE_sus and VE_dur held at the grid baseline.
+infant_exposure_reduction_strategy,0.0,0.0,7,9,VE_inf-only grid; VE_sus and VE_dur held at the grid baseline.
 resistance_guided_treatment,0.0,0.1,7,9,VE_inf-only grid; VE_sus and VE_dur held at the grid baseline.
 infant_exposure_reduction_strategy,0.5,0.575,2,9,VE_inf-only grid; VE_sus and VE_dur held at the grid baseline.
 resistance_guided_treatment,0.5,,0,9,VE_inf-only grid; VE_sus and VE_dur held at the grid baseline.

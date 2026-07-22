@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import argparse
+from dataclasses import dataclass
 from pathlib import Path
 import sys
 from typing import Iterable
@@ -14,12 +16,14 @@ if str(ROOT) not in sys.path:
 
 from src_python.simulation.common import (
     current_run_metadata,
+    file_sha256,
     load_configs,
     publication_country_names,
+    validate_run_metadata,
+    validated_calibration_artifact_path_hashes,
     write_run_metadata,
 )
 from src_python.utils.io import project_path, read_table, write_dataframe
-from src_python.validation.publication_gate import require_predictive_publication_gate
 
 
 INFANT_AGE_GROUPS = ("infant_0_2m", "infant_3_11m")
@@ -50,6 +54,15 @@ PROGRAM_ONLY_STRATEGIES = (
     "pregnancy_tdap_scaleup",
     "cocooning_adjunct",
     "maternal_immunization",
+    "targeted_pep_high_risk",
+)
+
+FIGURE2_PROGRAMME_STRATEGIES = (
+    "timeliness_only",
+    "maternal_immunization",
+    "pregnancy_tdap_scaleup",
+    "adolescent_booster",
+    "cocooning_adjunct",
     "targeted_pep_high_risk",
 )
 
@@ -119,6 +132,23 @@ FALLBACK_RATE = "annualized_infant_cases_per_100k"
 FALLBACK_TOTAL = "total_infant_cases"
 FALLBACK_REDUCTION = "relative_reduction_infant_cases"
 
+TABLE_STEM = "lancet_child_adolescent_tables"
+FRONTIER_STEM = "lancet_child_adolescent_decision_frontier"
+BOOTSTRAP_STEM = "figure2c_parametric_bootstrap"
+BOOTSTRAP_AUDIT_STEM = "figure2c_parametric_bootstrap_quality_audit"
+FRONTIER_RELATIVE_PATH = (
+    "outputs/tables/lancet_child_adolescent_decision_frontier.csv"
+)
+BOOTSTRAP_RELATIVE_PATH = (
+    "outputs/tables/figure2c_programme_paired_bootstrap_draws.csv"
+)
+TABLE1_RELATIVE_PATH = "outputs/tables/table1_profile_programme_priorities.csv"
+FRONTIER_PARENT_STEMS = (
+    "intervention_scenarios",
+    "vaccine_scenarios",
+    "figure2_programme_reference",
+)
+
 TIMESERIES_DERIVED_COLUMNS = (
     "country",
     "scenario",
@@ -144,6 +174,51 @@ def _write(df: pd.DataFrame, relative_path: str) -> None:
 
 def _read(relative_path: str) -> pd.DataFrame:
     return read_table(project_path(relative_path))
+
+
+def _metadata_artifact_path(path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(project_path().resolve()).as_posix()
+    except ValueError:
+        return str(resolved)
+
+
+def _parent_artifact_paths(stem: str) -> tuple[Path, ...]:
+    return (
+        project_path("outputs", "summaries", f"{stem}_summary.csv"),
+        project_path("outputs", "summaries", f"{stem}_summary.parquet"),
+        project_path("outputs", "simulations", f"{stem}.parquet"),
+    )
+
+
+def _validated_parent_artifact_hashes(
+    stems: Iterable[str],
+    *,
+    countries: tuple[str, ...],
+) -> dict[str, str]:
+    """Bind deterministic parents to the same nine accepted calibrations."""
+
+    expected_calibrations = validated_calibration_artifact_path_hashes(
+        countries,
+        context=f"{FRONTIER_STEM} deterministic parents",
+    )
+    artifact_hashes = dict(expected_calibrations)
+    for stem in stems:
+        metadata = validate_run_metadata(stem)
+        recorded = metadata.get("input_artifact_path_sha256")
+        if not isinstance(recorded, dict) or dict(sorted(recorded.items())) != dict(
+            sorted(expected_calibrations.items())
+        ):
+            raise ValueError(
+                f"Deterministic parent {stem} is not bound to exactly the current "
+                f"{len(expected_calibrations)} accepted calibration artifacts."
+            )
+        for path in _parent_artifact_paths(stem):
+            if not path.is_file():
+                raise FileNotFoundError(path)
+            artifact_hashes[_metadata_artifact_path(path)] = file_sha256(path)
+    return dict(sorted(artifact_hashes.items()))
 
 
 def _available(data: pd.DataFrame, columns: Iterable[str]) -> bool:
@@ -440,9 +515,21 @@ def _resistant_infections_per_100k(df: pd.DataFrame) -> pd.Series:
 
 def _load_intervention_rows(
     intervention: pd.DataFrame,
-    timeliness: pd.DataFrame,
+    programme_reference: pd.DataFrame,
     vaccine: pd.DataFrame,
 ) -> pd.DataFrame:
+    # Figure 2 programme rows must share one production-runtime current-practice
+    # trajectory.  Do not splice the coarser routine-timeliness diagnostic into
+    # this decision frontier.
+    locked_programme_strategies = {
+        "current",
+        "timeliness_only",
+        "adolescent_booster",
+        "pregnancy_tdap_scaleup",
+        "cocooning_adjunct",
+        "maternal_immunization",
+        "targeted_pep_high_risk",
+    }
     intervention = intervention.loc[
         intervention["scenario"].isin(
             [
@@ -459,10 +546,32 @@ def _load_intervention_rows(
             ]
         )
     ].copy()
+    intervention = intervention.loc[
+        ~intervention["scenario"].isin(locked_programme_strategies)
+    ].copy()
 
-    timeliness = timeliness.loc[timeliness["strategy"].eq("timeliness_only")].copy()
-    timeliness["scenario"] = "timeliness_only"
-    timeliness["intervention"] = "timeliness_only"
+    programme_reference = programme_reference.loc[
+        programme_reference["scenario"].isin(locked_programme_strategies)
+    ].copy()
+    programme_reference["strategy"] = programme_reference["scenario"]
+    programme_reference["intervention"] = programme_reference["scenario"]
+    expected_countries = set(intervention["country"].astype(str))
+    observed_countries = set(programme_reference["country"].astype(str))
+    if expected_countries != observed_countries:
+        raise ValueError(
+            "Locked Figure 2 programme parent has a country mismatch: "
+            f"missing={sorted(expected_countries - observed_countries)}, "
+            f"unexpected={sorted(observed_countries - expected_countries)}"
+        )
+    expected_rows = len(expected_countries) * len(locked_programme_strategies)
+    if (
+        len(programme_reference) != expected_rows
+        or programme_reference[["country", "strategy"]].duplicated().any()
+    ):
+        raise ValueError(
+            "Locked Figure 2 programme parent requires one current and six "
+            "programme rows per profile"
+        )
 
     current = vaccine.loc[vaccine["scenario"].eq("symptom_protective")].copy()
     current = current.rename(
@@ -507,7 +616,11 @@ def _load_intervention_rows(
     ].replace(0, np.nan)
     transmission = transmission.drop(columns=[col for col in transmission.columns if col.startswith("current_")])
 
-    combined = pd.concat([intervention, timeliness, transmission], ignore_index=True, sort=False)
+    combined = pd.concat(
+        [intervention, programme_reference, transmission],
+        ignore_index=True,
+        sort=False,
+    )
     combined["strategy"] = combined["scenario"]
     return combined.loc[combined["strategy"].isin(SELECTED_STRATEGIES)].copy()
 
@@ -528,18 +641,49 @@ def _strategy_burden_frame(data: pd.DataFrame) -> pd.DataFrame:
     out["primary_case_metric"] = metric_basis
     out["primary_cases_per_100k"] = pd.to_numeric(out[rate_col], errors="coerce")
     out["primary_total_cases"] = pd.to_numeric(out[total_col], errors="coerce")
-    out["primary_case_reduction"] = pd.to_numeric(out.get(reduction_col), errors="coerce")
+    out["source_primary_case_reduction"] = pd.to_numeric(
+        out.get(reduction_col), errors="coerce"
+    )
     current = out.loc[out["strategy"].eq("current"), ["country", "primary_cases_per_100k", "primary_total_cases"]].rename(
         columns={
             "primary_cases_per_100k": "current_primary_cases_per_100k",
             "primary_total_cases": "current_primary_total_cases",
         }
     )
+    out = out.drop(
+        columns=[
+            column
+            for column in (
+                "current_primary_cases_per_100k",
+                "current_primary_total_cases",
+            )
+            if column in out.columns
+        ]
+    )
     out = out.merge(current, on="country", how="left")
-    missing_reduction = out["primary_case_reduction"].isna()
-    out.loc[missing_reduction, "primary_case_reduction"] = 1.0 - out.loc[
-        missing_reduction, "primary_cases_per_100k"
-    ] / out.loc[missing_reduction, "current_primary_cases_per_100k"].replace(0, np.nan)
+    out["primary_case_reduction"] = 1.0 - out["primary_cases_per_100k"] / out[
+        "current_primary_cases_per_100k"
+    ].replace(0, np.nan)
+    out["source_minus_common_denominator_reduction"] = (
+        out["source_primary_case_reduction"] - out["primary_case_reduction"]
+    )
+    finite_required = out[[
+        "primary_cases_per_100k",
+        "current_primary_cases_per_100k",
+        "primary_case_reduction",
+    ]].to_numpy(dtype=float)
+    if not np.isfinite(finite_required).all():
+        raise ValueError("Programme burdens and common current denominators must be finite")
+    algebraic = 1.0 - out["primary_cases_per_100k"] / out[
+        "current_primary_cases_per_100k"
+    ]
+    if not np.allclose(
+        out["primary_case_reduction"].to_numpy(dtype=float),
+        algebraic.to_numpy(dtype=float),
+        rtol=1e-12,
+        atol=1e-12,
+    ):
+        raise AssertionError("Programme reductions failed the common-denominator audit")
     out["annualized_resistant_infections_per_100k"] = _resistant_infections_per_100k(out)
     out["metric_availability_note"] = np.where(
         metric_basis == "child_adolescent_0_17y",
@@ -574,6 +718,8 @@ def _strategy_burden_frame(data: pd.DataFrame) -> pd.DataFrame:
         "primary_total_cases",
         "current_primary_cases_per_100k",
         "primary_case_reduction",
+        "source_primary_case_reduction",
+        "source_minus_common_denominator_reduction",
         "infant_cases_per_100k",
         "infant_hospitalizations_per_100k",
         "infant_deaths_per_100k",
@@ -911,25 +1057,55 @@ def _age_pattern_weighted_strategy_summary(burden: pd.DataFrame) -> pd.DataFrame
     return out.sort_values(["ordering_basis", "strategy_rank_within_basis", "strategy"])
 
 
-def _rank_margin_label(excess: float) -> str:
-    if not np.isfinite(excess):
-        return ""
-    if excess <= 5.0:
-        return "Near-tie"
-    if excess < 25.0:
-        return "Modest margin"
-    return "Clear margin"
-
-
 def _country_label(country: str) -> str:
     return str(country).replace("_", " ")
 
 
-def _table1_programme_priorities(frontier: pd.DataFrame) -> pd.DataFrame:
+def _table1_programme_priorities(
+    frontier: pd.DataFrame,
+    bootstrap_draws: pd.DataFrame,
+) -> pd.DataFrame:
     program = frontier.loc[
         frontier["optimization_constraint"].eq("program_only")
-        & frontier["strategy"].isin(PROGRAM_ONLY_STRATEGIES)
+        & frontier["strategy"].isin(("current", *FIGURE2_PROGRAMME_STRATEGIES))
     ].copy()
+    required_bootstrap = {
+        "country",
+        "bootstrap_replicate",
+        "strategy",
+        "current_rate",
+        "intervention_rate",
+    }
+    missing_bootstrap = sorted(required_bootstrap.difference(bootstrap_draws.columns))
+    if missing_bootstrap:
+        raise KeyError(
+            f"Figure 2 paired bootstrap draws are missing columns: {missing_bootstrap}"
+        )
+    bootstrap = bootstrap_draws.loc[
+        bootstrap_draws["strategy"].isin(FIGURE2_PROGRAMME_STRATEGIES)
+    ].copy()
+    bootstrap["country"] = bootstrap["country"].astype(str).str.replace(
+        " ", "_", regex=False
+    )
+    bootstrap["bootstrap_replicate"] = pd.to_numeric(
+        bootstrap["bootstrap_replicate"], errors="raise"
+    ).astype(int)
+    for column in ("current_rate", "intervention_rate"):
+        bootstrap[column] = pd.to_numeric(bootstrap[column], errors="raise")
+    paired_blocks = bootstrap.groupby(["country", "bootstrap_replicate"])
+    block_sizes = paired_blocks.size()
+    strategy_counts = paired_blocks["strategy"].nunique()
+    current_ranges = paired_blocks["current_rate"].agg(lambda values: values.max() - values.min())
+    if (
+        (block_sizes != len(FIGURE2_PROGRAMME_STRATEGIES)).any()
+        or (strategy_counts != len(FIGURE2_PROGRAMME_STRATEGIES)).any()
+        or (current_ranges > 1e-10).any()
+    ):
+        raise ValueError(
+            "Figure 2 bootstrap rows must contain all six strategies paired to one "
+            "current-practice rate in every replicate"
+        )
+
     rows = []
     for country, group in program.groupby("country", sort=False):
         current_rows = group.loc[group["strategy"].eq("current")]
@@ -946,6 +1122,39 @@ def _table1_programme_priorities(frontier: pd.DataFrame) -> pd.DataFrame:
         best = ranked.iloc[0]
         runner_up = ranked.iloc[1]
         excess = float(runner_up["primary_cases_per_100k"] - best["primary_cases_per_100k"])
+        country_draws = bootstrap.loc[bootstrap["country"].eq(str(country))]
+        leader_draws = country_draws.loc[
+            country_draws["strategy"].eq(str(best["strategy"])),
+            ["bootstrap_replicate", "current_rate", "intervention_rate"],
+        ].rename(columns={"intervention_rate": "leader_rate"})
+        runner_draws = country_draws.loc[
+            country_draws["strategy"].eq(str(runner_up["strategy"])),
+            ["bootstrap_replicate", "current_rate", "intervention_rate"],
+        ].rename(
+            columns={
+                "current_rate": "runner_current_rate",
+                "intervention_rate": "runner_rate",
+            }
+        )
+        paired = leader_draws.merge(
+            runner_draws,
+            on="bootstrap_replicate",
+            how="inner",
+            validate="one_to_one",
+        )
+        if len(paired) != len(leader_draws) or len(paired) != len(runner_draws):
+            raise ValueError(f"Incomplete leader/runner bootstrap pairing for {country}")
+        if not np.allclose(
+            paired["current_rate"],
+            paired["runner_current_rate"],
+            rtol=1e-12,
+            atol=1e-10,
+        ):
+            raise AssertionError(f"Paired current-practice rates disagree for {country}")
+        absolute_reduction = paired["current_rate"] - paired["leader_rate"]
+        paired_margin = paired["runner_rate"] - paired["leader_rate"]
+        effect_q025, effect_q975 = np.quantile(absolute_reduction, [0.025, 0.975])
+        margin_q025, margin_q975 = np.quantile(paired_margin, [0.025, 0.975])
         rows.append(
             {
                 "programme_profile": _country_label(country),
@@ -954,62 +1163,244 @@ def _table1_programme_priorities(frontier: pd.DataFrame) -> pd.DataFrame:
                 "reduction_percent": 100.0 * best["primary_case_reduction"],
                 "cases_averted_per_100k_under18": current["primary_cases_per_100k"]
                 - best["primary_cases_per_100k"],
+                "cases_averted_per_100k_under18_q025": float(effect_q025),
+                "cases_averted_per_100k_under18_q975": float(effect_q975),
                 "infant_hospitalisations_averted_per_100k_infants": current[
                     "infant_hospitalizations_per_100k"
                 ]
                 - best["infant_hospitalizations_per_100k"],
+                "second_ranked_programme_only_strategy": runner_up["strategy_label"],
                 "runner_up_excess_cases_per_100k_under18": excess,
-                "rank_margin": _rank_margin_label(excess),
+                "runner_up_excess_cases_per_100k_under18_q025": float(margin_q025),
+                "runner_up_excess_cases_per_100k_under18_q975": float(margin_q975),
+                "paired_interval_status": (
+                    "above_zero" if float(margin_q025) > 0.0 else "includes_zero"
+                ),
+                "successful_paired_bootstrap_replicates": int(len(paired)),
             }
         )
     return pd.DataFrame(rows).sort_values("programme_profile")
 
 
+@dataclass(frozen=True)
+class FrontierProducts:
+    countries: tuple[str, ...]
+    input_artifact_path_sha256: dict[str, str]
+    intervention: pd.DataFrame
+    vaccine: pd.DataFrame
+    programme_reference: pd.DataFrame
+    burden: pd.DataFrame
+    frontier: pd.DataFrame
+    preferred: pd.DataFrame
+    summary: pd.DataFrame
+
+
+def _read_augmented_parent(stem: str, *, reference_scenario: str) -> pd.DataFrame:
+    return _augment_with_pediatric_metrics(
+        _read(f"outputs/summaries/{stem}_summary.csv"),
+        stem=stem,
+        reference_scenario=reference_scenario,
+    )
+
+
+def _build_frontier_products() -> FrontierProducts:
+    countries = tuple(publication_country_names(load_configs()))
+    input_hashes = _validated_parent_artifact_hashes(
+        FRONTIER_PARENT_STEMS,
+        countries=countries,
+    )
+    intervention = _read_augmented_parent(
+        "intervention_scenarios",
+        reference_scenario="current",
+    )
+    vaccine = _read_augmented_parent(
+        "vaccine_scenarios",
+        reference_scenario="symptom_protective",
+    )
+    programme_reference = _read_augmented_parent(
+        "figure2_programme_reference",
+        reference_scenario="current",
+    )
+    burden = _strategy_burden_frame(
+        _load_intervention_rows(intervention, programme_reference, vaccine)
+    )
+    frontier, preferred = _frontier_and_preferred(burden)
+    return FrontierProducts(
+        countries=countries,
+        input_artifact_path_sha256=input_hashes,
+        intervention=intervention,
+        vaccine=vaccine,
+        programme_reference=programme_reference,
+        burden=burden,
+        frontier=frontier,
+        preferred=preferred,
+        summary=_strategy_summary(frontier),
+    )
+
+
+def generate_frontier_only() -> pd.DataFrame:
+    """Write the deterministic decision frontier without reading bootstrap data."""
+
+    WRITTEN_ROW_COUNTS.clear()
+    products = _build_frontier_products()
+    _write(products.frontier, FRONTIER_RELATIVE_PATH)
+    frontier_path = project_path(FRONTIER_RELATIVE_PATH)
+    metadata = current_run_metadata(
+        FRONTIER_STEM,
+        row_counts={"decision_frontier": int(len(products.frontier))},
+    ) | {
+        "analysis_role": "prebootstrap_deterministic_decision_frontier",
+        "publication_path": True,
+        "bootstrap_independent": True,
+        "reads_bootstrap_artifact": False,
+        "countries": list(products.countries),
+        "programme_strategies": list(FIGURE2_PROGRAMME_STRATEGIES),
+        "deterministic_parent_stems": list(FRONTIER_PARENT_STEMS),
+        "input_artifact_path_sha256": products.input_artifact_path_sha256,
+        "output_artifact_sha256": {
+            "decision_frontier": file_sha256(frontier_path),
+        },
+    }
+    write_run_metadata(FRONTIER_STEM, metadata)
+    return products.frontier
+
+
+def _validated_frontier_artifact(
+    *,
+    expected_input_hashes: dict[str, str],
+) -> pd.DataFrame:
+    metadata = validate_run_metadata(FRONTIER_STEM)
+    if (
+        metadata.get("analysis_role")
+        != "prebootstrap_deterministic_decision_frontier"
+        or metadata.get("bootstrap_independent") is not True
+        or metadata.get("reads_bootstrap_artifact") is not False
+    ):
+        raise ValueError("Decision-frontier metadata have the wrong pre-bootstrap role.")
+    if metadata.get("input_artifact_path_sha256") != expected_input_hashes:
+        raise ValueError("Decision frontier is stale relative to deterministic parents.")
+    frontier_path = project_path(FRONTIER_RELATIVE_PATH)
+    if not frontier_path.is_file():
+        raise FileNotFoundError(frontier_path)
+    observed_digest = file_sha256(frontier_path)
+    recorded_outputs = metadata.get("output_artifact_sha256")
+    if (
+        not isinstance(recorded_outputs, dict)
+        or recorded_outputs.get("decision_frontier") != observed_digest
+    ):
+        raise ValueError("Decision frontier does not match its producer metadata.")
+    return pd.read_csv(frontier_path)
+
+
+def _assert_same_frontier(expected: pd.DataFrame, observed: pd.DataFrame) -> None:
+    sort_columns = [
+        "optimization_constraint",
+        "country",
+        "implementation_intensity",
+        "strategy",
+    ]
+    if set(expected.columns) != set(observed.columns):
+        raise ValueError("Decision frontier columns changed after bootstrap.")
+    expected_sorted = expected.sort_values(sort_columns).reset_index(drop=True)
+    observed_sorted = observed.loc[:, expected.columns].sort_values(sort_columns).reset_index(
+        drop=True
+    )
+    try:
+        pd.testing.assert_frame_equal(
+            expected_sorted,
+            observed_sorted,
+            check_dtype=False,
+            check_exact=False,
+            rtol=1e-12,
+            atol=1e-12,
+        )
+    except AssertionError as exc:
+        raise ValueError(
+            "Decision frontier changed between the pre-bootstrap and final table stages."
+        ) from exc
+
+
+def _validated_bootstrap_draws() -> tuple[pd.DataFrame, dict[str, str]]:
+    bootstrap_metadata = validate_run_metadata(BOOTSTRAP_STEM)
+    audit_metadata = validate_run_metadata(BOOTSTRAP_AUDIT_STEM)
+    if (
+        audit_metadata.get("passed") is not True
+        or audit_metadata.get("warnings_are_fatal") is not True
+        or audit_metadata.get("figure2c_source_stem") != BOOTSTRAP_STEM
+    ):
+        raise ValueError("Figure 2c bootstrap quality audit is missing or did not pass.")
+    bootstrap_path = project_path(BOOTSTRAP_RELATIVE_PATH)
+    if not bootstrap_path.is_file():
+        raise FileNotFoundError(bootstrap_path)
+    observed_digest = file_sha256(bootstrap_path)
+    recorded_outputs = bootstrap_metadata.get("output_artifact_sha256")
+    audited_outputs = audit_metadata.get("audited_artifact_sha256")
+    if (
+        not isinstance(recorded_outputs, dict)
+        or recorded_outputs.get("paired_bootstrap_draws") != observed_digest
+        or not isinstance(audited_outputs, dict)
+        or audited_outputs.get("paired_bootstrap_draws_sha256") != observed_digest
+    ):
+        raise ValueError("Figure 2c bootstrap draws do not match source and audit metadata.")
+    return pd.read_csv(bootstrap_path), {
+        _metadata_artifact_path(bootstrap_path): observed_digest
+    }
+
+
+def validate_frontier_for_bootstrap() -> pd.DataFrame:
+    """Fail closed unless the saved frontier matches every current parent."""
+
+    products = _build_frontier_products()
+    frontier = _validated_frontier_artifact(
+        expected_input_hashes=products.input_artifact_path_sha256
+    )
+    _assert_same_frontier(products.frontier, frontier)
+    return frontier
+
+
 def main() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    # These files are canonical manuscript/decision-frontier artifacts. Gate
-    # before the first read/write so a direct script invocation cannot replace
-    # valid outputs with rankings from a predictively inadequate or stale run.
-    configs = load_configs()
-    require_predictive_publication_gate(
-        expected_countries=publication_country_names(configs)
+    """Generate complete post-bootstrap Lancet tables from locked parents."""
+
+    WRITTEN_ROW_COUNTS.clear()
+    products = _build_frontier_products()
+    frontier = _validated_frontier_artifact(
+        expected_input_hashes=products.input_artifact_path_sha256
     )
-    intervention = _augment_with_pediatric_metrics(
-        _read("outputs/summaries/intervention_scenarios_summary.csv"),
-        stem="intervention_scenarios",
+    _assert_same_frontier(products.frontier, frontier)
+    bootstrap_draws, bootstrap_input_hash = _validated_bootstrap_draws()
+    timeliness_input_hashes = _validated_parent_artifact_hashes(
+        ("routine_timeliness_sensitivity",),
+        countries=products.countries,
+    )
+    timeliness = _read_augmented_parent(
+        "routine_timeliness_sensitivity",
         reference_scenario="current",
-    )
-    timeliness = _augment_with_pediatric_metrics(
-        _read("outputs/summaries/routine_timeliness_sensitivity_summary.csv"),
-        stem="routine_timeliness_sensitivity",
-        reference_scenario="current",
-    )
-    vaccine = _augment_with_pediatric_metrics(
-        _read("outputs/summaries/vaccine_scenarios_summary.csv"),
-        stem="vaccine_scenarios",
-        reference_scenario="no_vaccine",
     )
     _write(
         _metric_availability(
             {
-                "intervention_scenarios_summary": intervention,
+                "intervention_scenarios_summary": products.intervention,
                 "routine_timeliness_sensitivity_summary": timeliness,
-                "vaccine_scenarios_summary": vaccine,
+                "figure2_programme_reference_summary": products.programme_reference,
+                "vaccine_scenarios_summary": products.vaccine,
             }
         ),
         "outputs/tables/lancet_child_adolescent_metric_availability.csv",
     )
 
-    burden = _strategy_burden_frame(_load_intervention_rows(intervention, timeliness, vaccine))
-    frontier, preferred = _frontier_and_preferred(burden)
-    summary = _strategy_summary(frontier)
+    burden = products.burden
+    preferred = products.preferred
+    summary = products.summary
     metric_basis = str(burden["primary_case_metric"].iloc[0]) if not burden.empty else "unknown"
     inventory = _age_case_inventory()
 
     _write(burden, "outputs/tables/lancet_child_adolescent_strategy_burden.csv")
-    _write(frontier, "outputs/tables/lancet_child_adolescent_decision_frontier.csv")
     _write(preferred, "outputs/tables/lancet_child_adolescent_preferred_strategies.csv")
     _write(summary, "outputs/tables/lancet_child_adolescent_strategy_summary.csv")
-    _write(_table1_programme_priorities(frontier), "outputs/tables/table1_profile_programme_priorities.csv")
+    _write(
+        _table1_programme_priorities(frontier, bootstrap_draws),
+        TABLE1_RELATIVE_PATH,
+    )
     _write(_logic_blueprint(metric_basis), "outputs/tables/lancet_child_adolescent_logic_blueprint.csv")
     _write(inventory, "outputs/tables/lancet_age_case_data_inventory.csv")
     _write(_baseline_pediatric_burden(burden, inventory), "outputs/tables/lancet_baseline_pediatric_burden.csv")
@@ -1019,12 +1410,50 @@ def main() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         _age_pattern_weighted_strategy_summary(burden),
         "outputs/tables/lancet_age_pattern_weighted_strategy_summary.csv",
     )
-    write_run_metadata(
-        "lancet_child_adolescent_tables",
-        current_run_metadata("lancet_child_adolescent_tables", row_counts=WRITTEN_ROW_COUNTS),
-    )
+    input_hashes = {
+        **products.input_artifact_path_sha256,
+        **timeliness_input_hashes,
+        _metadata_artifact_path(project_path(FRONTIER_RELATIVE_PATH)): file_sha256(
+            project_path(FRONTIER_RELATIVE_PATH)
+        ),
+        **bootstrap_input_hash,
+    }
+    output_hashes = {
+        relative_path: file_sha256(project_path(relative_path))
+        for relative_path in WRITTEN_ROW_COUNTS
+    }
+    metadata = current_run_metadata(
+        TABLE_STEM,
+        row_counts=WRITTEN_ROW_COUNTS,
+    ) | {
+        "frontier_source_stem": FRONTIER_STEM,
+        "bootstrap_source_stem": BOOTSTRAP_STEM,
+        "bootstrap_audit_stem": BOOTSTRAP_AUDIT_STEM,
+        "input_artifact_path_sha256": dict(sorted(input_hashes.items())),
+        "output_artifact_sha256": output_hashes,
+    }
+    write_run_metadata(TABLE_STEM, metadata)
     return burden, preferred, summary
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--frontier-only",
+        action="store_true",
+        help="Generate only the bootstrap-independent deterministic decision frontier.",
+    )
+    parser.add_argument(
+        "--validate-frontier",
+        action="store_true",
+        help="Validate the saved frontier and all deterministic parents without writing.",
+    )
+    arguments = parser.parse_args()
+    if arguments.frontier_only and arguments.validate_frontier:
+        parser.error("--frontier-only and --validate-frontier are mutually exclusive")
+    if arguments.frontier_only:
+        generate_frontier_only()
+    elif arguments.validate_frontier:
+        validate_frontier_for_bootstrap()
+    else:
+        main()

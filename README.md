@@ -63,9 +63,8 @@ make validate-public
 make test
 ```
 
-The predictive gate verifies that retained POMP/ensemble artifacts, audited
-source data, code/configuration hashes, and Figure 2 release inputs are
-mutually current.
+Validation checks retained POMP/ensemble artifacts, audited source data,
+code/configuration hashes, and Figure 2 inputs for internal consistency.
 
 ## Rebuild
 

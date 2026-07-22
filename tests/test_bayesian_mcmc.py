@@ -16,7 +16,10 @@ from src_python.calibration.calibrate_baseline import (
 from src_python.model.parameters import PreparedParameters
 from src_python.simulation import common as simulation_common
 from src_python.simulation.bayesian_priors import (
+    BAYESIAN_LOCAL_STATE_PARAMETER_NAMES,
+    BAYESIAN_PARAMETER_CONSUMERS,
     BAYESIAN_PARAMETER_NAMES,
+    BAYESIAN_SHARED_PARAMETER_NAMES,
     resolve_bayesian_prior_specs,
 )
 from src_python.simulation.common import load_calibrated_country_artifact, load_configs, make_config
@@ -911,6 +914,128 @@ def test_bayesian_registry_keeps_pre_surveillance_centres_and_evidence_labels():
     assert specs["VE_dur"]["evidence_class"] == "weak_model_prior"
 
 
+def test_bayesian_registry_declares_consumers_per_actual_prior_target():
+    configured = load_configs()["parameter_distributions"]["bayesian_joint"][
+        "parameters"
+    ]
+
+    for name in BAYESIAN_PARAMETER_NAMES:
+        assert tuple(configured[name]["consumers"]) == BAYESIAN_PARAMETER_CONSUMERS[
+            name
+        ]
+    for name in BAYESIAN_LOCAL_STATE_PARAMETER_NAMES:
+        assert BAYESIAN_PARAMETER_CONSUMERS[name] == (
+            "src_python.simulation.run_bayesian_uncertainty",
+        )
+    for name in BAYESIAN_SHARED_PARAMETER_NAMES:
+        assert set(BAYESIAN_PARAMETER_CONSUMERS[name]) == {
+            "src_python.simulation.run_bayesian_uncertainty",
+            "src_python.simulation.run_hierarchical_joint_posterior",
+            "src_python.simulation.run_hierarchical_joint_smc",
+        }
+
+
+def test_shared_registry_resolution_does_not_consume_local_state_prior_specs():
+    config = make_config(country_profile="Australia")
+    registry = deepcopy(load_configs()["parameter_distributions"])
+    parameters = registry["bayesian_joint"]["parameters"]
+    for name in BAYESIAN_LOCAL_STATE_PARAMETER_NAMES:
+        parameters.pop(name)
+
+    shared = resolve_bayesian_prior_specs(
+        registry,
+        config,
+        parameter_names=BAYESIAN_SHARED_PARAMETER_NAMES,
+    )
+
+    assert tuple(shared) == BAYESIAN_SHARED_PARAMETER_NAMES
+    assert not set(shared) & set(BAYESIAN_LOCAL_STATE_PARAMETER_NAMES)
+    with pytest.raises(ValueError, match="exactly match"):
+        resolve_bayesian_prior_specs(registry, config)
+
+
+@pytest.mark.parametrize(
+    ("parameter_names", "message"),
+    [
+        (("VE_sus", "VE_sus"), "duplicate"),
+        (("VE_sus", "not_a_parameter"), "unknown"),
+        ((), "at least one"),
+    ],
+)
+def test_bayesian_registry_parameter_subset_fails_closed(parameter_names, message):
+    config = make_config(country_profile="Australia")
+    registry = load_configs()["parameter_distributions"]
+
+    with pytest.raises(ValueError, match=message):
+        resolve_bayesian_prior_specs(
+            registry,
+            config,
+            parameter_names=parameter_names,
+        )
+
+
+def test_bayesian_registry_rejects_override_outside_selected_contract():
+    config = make_config(country_profile="Australia")
+    registry = load_configs()["parameter_distributions"]
+
+    with pytest.raises(ValueError, match="outside this runner"):
+        resolve_bayesian_prior_specs(
+            registry,
+            config,
+            parameter_names=BAYESIAN_SHARED_PARAMETER_NAMES,
+            beta_prior_log_sd=1.0,
+        )
+
+
+@pytest.mark.parametrize("bad_version", [None, True, "1", 1.0, 0, 2])
+def test_bayesian_registry_schema_fails_closed(bad_version):
+    config = make_config(country_profile="Australia")
+    registry = deepcopy(load_configs()["parameter_distributions"])
+    if bad_version is None:
+        registry.pop("schema_version")
+    else:
+        registry["schema_version"] = bad_version
+
+    with pytest.raises(ValueError, match="schema_version"):
+        resolve_bayesian_prior_specs(registry, config)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (
+            lambda parameters: parameters.__setitem__(
+                "unimplemented_extra", deepcopy(parameters["fitness_R"])
+            ),
+            "exactly match",
+        ),
+        (
+            lambda parameters: parameters["fitness_R"].__setitem__(
+                "path", "transmission.beta_S"
+            ),
+            "implemented path",
+        ),
+        (
+            lambda parameters: parameters["reporting_multiplier"].__setitem__(
+                "time_scope", "structural_all_time"
+            ),
+            "implemented scope",
+        ),
+        (
+            lambda parameters: parameters["VE_inf"].__setitem__("consumers", []),
+            "implemented consumers",
+        ),
+    ],
+)
+def test_bayesian_registry_semantic_contract_fails_closed(mutation, message):
+    config = make_config(country_profile="Australia")
+    registry = deepcopy(load_configs()["parameter_distributions"])
+    mutation(registry["bayesian_joint"]["parameters"])
+
+    with pytest.raises(ValueError, match=message):
+        resolve_bayesian_prior_specs(registry, config)
+
+
 def test_full_nine_dimensional_prior_draw_and_log_density_use_same_registry_specs():
     config = make_config(country_profile="Australia")
     priors = _registry_backed_priors(config)
@@ -975,15 +1100,42 @@ def test_bayesian_registry_width_override_is_applied_exactly_once():
 
     configured_beta_width = registry["bayesian_joint"]["parameters"]["beta_S"]["log_sd"]
     assert specs["beta_S"]["log_sd"] == pytest.approx(0.5 * configured_beta_width)
-    assert specs["reporting_multiplier"]["log_sd"] == pytest.approx(0.175)
+    configured_reporting_width = registry["bayesian_joint"]["parameters"][
+        "reporting_multiplier"
+    ]["log_sd"]
+    assert specs["reporting_multiplier"]["log_sd"] == pytest.approx(
+        0.5 * configured_reporting_width
+    )
     assert specs["VE_sus"]["sd"] == pytest.approx(0.05)
     assert specs["fitness_R"]["log_sd"] == pytest.approx(0.075)
 
 
 def test_canonical_bayesian_outputs_require_uncertainty_registry_metadata():
     assert "bayesian_uncertainty" in simulation_common.UNCERTAINTY_REGISTRY_METADATA_STEMS
-    assert "bayesian_uncertainty_figure2c_conditional" in simulation_common.UNCERTAINTY_REGISTRY_METADATA_STEMS
+    assert "bayesian_uncertainty_conditional_research" in simulation_common.UNCERTAINTY_REGISTRY_METADATA_STEMS
+    assert "bayesian_uncertainty_joint_research" in simulation_common.UNCERTAINTY_REGISTRY_METADATA_STEMS
+    assert "bayesian_uncertainty_figure2c_joint" not in simulation_common.UNCERTAINTY_REGISTRY_METADATA_STEMS
+    assert (
+        "bayesian_uncertainty_figure2c_joint"
+        in simulation_common.RETIRED_UNCERTAINTY_REGISTRY_METADATA_STEMS
+    )
     assert "bayesian_uncertainty_full_joint" not in simulation_common.UNCERTAINTY_REGISTRY_METADATA_STEMS
+    assert (
+        "bayesian_uncertainty_full_joint"
+        in simulation_common.RETIRED_UNCERTAINTY_REGISTRY_METADATA_STEMS
+    )
+
+
+def test_bayesian_entrypoint_defaults_are_explicitly_nonpublication_research():
+    assert bayesian_uncertainty.DEFAULT_OUTPUT_STEM == (
+        "bayesian_uncertainty_conditional_research"
+    )
+    assert "bayesian_uncertainty_figure2c_conditional" in (
+        bayesian_uncertainty.RETIRED_MISLABELED_OUTPUT_STEMS
+    )
+    assert "bayesian_uncertainty_figure2c_joint" in (
+        bayesian_uncertainty.RETIRED_MISLABELED_OUTPUT_STEMS
+    )
 
 
 def test_joint_importance_diagnostics_use_weight_quality_columns():
@@ -1226,6 +1378,11 @@ def test_prior_sd_overrides_tighten_requested_priors():
 
 def test_pilot_artifact_stems_do_not_reuse_canonical_names():
     assert _artifact_stem("bayesian_uncertainty", "bayesian_posterior_samples", "posterior_samples") == "bayesian_posterior_samples"
+    assert _artifact_stem(
+        bayesian_uncertainty.DEFAULT_OUTPUT_STEM,
+        "bayesian_posterior_samples",
+        "posterior_samples",
+    ) == "bayesian_uncertainty_conditional_research_posterior_samples"
     assert _artifact_stem("pilot_slice", "bayesian_posterior_samples", "posterior_samples") == "pilot_slice_posterior_samples"
 
 

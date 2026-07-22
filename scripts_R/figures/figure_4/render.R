@@ -29,7 +29,7 @@ render_figure_4 <- function(write_source = TRUE, save_plot = TRUE) {
   figure <- assemble_figure_4(panels)
 
   if (isTRUE(save_plot)) {
-    save_main_figure(figure, "figure_4_resistance_conditioned_control", height = 9.10)
+    save_main_figure(figure, "figure_4_resistance_conditioned_control", height = 5.60)
     cat("Figure 4 saved.\n")
   }
 

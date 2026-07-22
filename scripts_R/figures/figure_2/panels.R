@@ -1,271 +1,437 @@
 ## Figure 2 panels -------------------------------------------------------------
 
+figure_2_visual_required_columns <- function(data, columns, panel_name) {
+  missing_columns <- setdiff(columns, names(data))
+  if (length(missing_columns) > 0L) {
+    stop(
+      panel_name, " is missing visual-contract column(s): ",
+      paste(missing_columns, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  invisible(data)
+}
+
+figure_2_profile_limits <- function(data) {
+  profile_order <- as.character(data$profile_order)
+  if (length(profile_order) == 0L ||
+      anyNA(profile_order) ||
+      any(!nzchar(profile_order))) {
+    stop("Figure 2 requires a complete top-to-bottom profile_order.", call. = FALSE)
+  }
+  rev(profile_order)
+}
+
+figure_2_prepare_profile_factor <- function(panel_data, data, panel_name) {
+  if (!"profile_factor" %in% names(panel_data)) {
+    if (!"country_label" %in% names(panel_data)) {
+      stop(panel_name, " requires profile_factor or country_label.", call. = FALSE)
+    }
+    panel_data$profile_factor <- panel_data$country_label
+  }
+  panel_data$profile_factor <- factor(
+    as.character(panel_data$profile_factor),
+    levels = figure_2_profile_limits(data)
+  )
+  if (anyNA(panel_data$profile_factor)) {
+    stop(panel_name, " contains profiles outside profile_order.", call. = FALSE)
+  }
+  panel_data
+}
+
+figure_2_visual_strategy_labels <- function(data) {
+  strategy_order <- as.character(data$strategy_order)
+  labels <- data$strategy_short_labels
+  if (is.null(labels)) labels <- data$strategy_labels
+  if (is.null(names(labels)) && length(labels) == length(strategy_order)) {
+    names(labels) <- strategy_order
+  }
+  resolved <- unname(labels[strategy_order])
+  resolved[is.na(resolved) | !nzchar(resolved)] <- strategy_order[
+    is.na(resolved) | !nzchar(resolved)
+  ]
+  stats::setNames(resolved, strategy_order)
+}
+
+figure_2_strategy_palette <- function(data) {
+  palette <- data$strategy_colours
+  strategy_order <- as.character(data$strategy_order)
+  if (is.null(names(palette)) && length(palette) == length(strategy_order)) {
+    names(palette) <- strategy_order
+  }
+  palette <- palette[strategy_order]
+  if (length(palette) != length(strategy_order) ||
+      anyNA(palette) ||
+      any(!nzchar(palette))) {
+    stop("Figure 2 requires one named colour for every strategy.", call. = FALSE)
+  }
+  palette
+}
+
 plot_figure_2_panel_a <- function(data) {
-  ggplot() +
-    geom_vline(xintercept = 0, linewidth = 0.24, colour = manuscript_colour("pale_grey")) +
-    geom_segment(
-      data = data$strategy_distribution,
-      aes(x = min_reduction, xend = max_reduction, y = strategy_overview_plot, yend = strategy_overview_plot),
-      linewidth = 0.25,
-      colour = manuscript_colour("pale_grey")
+  figure_2_visual_required_columns(
+    data$panel_a,
+    c(
+      "country", "scenario", "scenario_label",
+      "relative_reduction_percent", "profile_factor"
+    ),
+    "Figure 2 panel a"
+  )
+  panel_a <- figure_2_prepare_profile_factor(
+    data$panel_a,
+    data,
+    "Figure 2 panel a"
+  )
+  scenario_order <- c("coverage_floor_only", "timeliness_only")
+  panel_a$scenario <- factor(
+    as.character(panel_a$scenario),
+    levels = scenario_order
+  )
+  if (anyNA(panel_a$scenario) ||
+      any(!is.finite(panel_a$relative_reduction_percent))) {
+    stop("Figure 2 panel a contains an invalid delivery-lever result.", call. = FALSE)
+  }
+  connector_data <- panel_a %>%
+    group_by(country, profile_factor) %>%
+    summarise(
+      xmin = min(relative_reduction_percent),
+      xmax = max(relative_reduction_percent),
+      .groups = "drop"
+    )
+  scenario_labels <- stats::setNames(
+    c("Coverage floor only", "Timeliness only"),
+    scenario_order
+  )
+  scenario_colours <- c(
+    coverage_floor_only = manuscript_colour("grey"),
+    timeliness_only = manuscript_colour("blue")
+  )
+  scenario_shapes <- c(
+    coverage_floor_only = 22,
+    timeliness_only = 21
+  )
+
+  ggplot(panel_a, aes(x = relative_reduction_percent, y = profile_factor)) +
+    geom_vline(
+      xintercept = 0,
+      linewidth = 0.30,
+      linetype = "dashed",
+      colour = manuscript_colour("mid_grey")
     ) +
     geom_segment(
-      data = data$strategy_distribution,
-      aes(
-        x = q25_reduction,
-        xend = q75_reduction,
-        y = strategy_overview_plot,
-        yend = strategy_overview_plot,
-        linetype = "IQR"
-      ),
-      linewidth = 1.0,
-      colour = manuscript_colour("grey"),
-      alpha = 0.72
+      data = connector_data,
+      aes(x = xmin, xend = xmax, y = profile_factor, yend = profile_factor),
+      inherit.aes = FALSE,
+      linewidth = 0.48,
+      colour = manuscript_colour("light_grey"),
+      lineend = "round"
     ) +
     geom_point(
-      data = data$program_frontier,
-      aes(primary_case_reduction, strategy_overview_plot, colour = strategy, shape = "Profiles"),
-      alpha = 0.50,
-      size = 1.25,
-      position = position_jitter(height = 0.08, width = 0)
+      aes(fill = scenario, shape = scenario),
+      size = 2.55,
+      stroke = 0.34,
+      colour = lancet_text_colour
     ) +
-    geom_point(
-      data = data$strategy_distribution,
-      aes(median_reduction, strategy_overview_plot, shape = "Median"),
-      fill = manuscript_colour("black"),
-      colour = "white",
-      stroke = 0.20,
-      size = 2.2
+    scale_fill_manual(
+      values = scenario_colours,
+      breaks = scenario_order,
+      labels = scenario_labels,
+      name = "Configured lever"
     ) +
-    scale_x_continuous(labels = label_lancet_percent(accuracy = 1),
-                       limits = c(-0.10, 0.5),
-                       breaks = seq(-0.10, 0.50, by = 0.10),
-                       expand = expansion(mult = 0, add = 0)) +
-    scale_colour_manual(values = strategy_colours, guide = "none") +
-    scale_shape_profile_median() +
-    scale_linetype_iqr(label = "Cross-profile\nIQR", linewidth = 1.0, alpha = 0.72) +
+    scale_shape_manual(
+      values = scenario_shapes,
+      breaks = scenario_order,
+      labels = scenario_labels,
+      name = "Configured lever"
+    ) +
+    scale_x_continuous(
+      limits = c(-5, 30),
+      breaks = c(-5, 0, 10, 20, 30),
+      labels = label_lancet_number(accuracy = 1, suffix = "%"),
+      expand = expansion(mult = 0)
+    ) +
+    scale_y_discrete(
+      limits = figure_2_profile_limits(data),
+      drop = FALSE,
+      expand = expansion(add = 0.55)
+    ) +
     labs(
-      x = "Conditional scenario reduction in annualised symptomatic cases\namong people aged <18 years (%)",
+      x = "Reduction in <18 symptomatic-case index",
       y = NULL,
       tag = "a"
     ) +
-    theme_lancet_panel(base_size = journal_base_text_size, plot_margin = margin(4, 7, 4, 4), show_y_grid = TRUE) +
-    theme(
-      axis.text.y = element_text(lineheight = 0.88)
+    theme_lancet_panel(
+      base_size = journal_dense_text_size,
+      plot_margin = margin(3, 5, 4, 7),
+      show_x_grid = FALSE,
+      show_y_grid = TRUE
     ) +
-    theme_lancet_inside_legend(
-      key_height = unit(0.34, "cm"),
-      title_lineheight = 0.90,
-      text_lineheight = 1.16,
-      text_margin = margin(t = 0, b = 0),
-      spacing_y = unit(0, "pt"),
-      box_margin = margin(0, 0, 1, 0),
-      legend_margin = margin(3, 0, 3, 0)
+    theme(
+      axis.text.y = element_text(
+        colour = lancet_text_colour,
+        size = journal_country_axis_text_size - 0.15,
+        lineheight = 0.95
+      ),
+      axis.title.x = element_text(
+        size = journal_dense_text_size - 0.35,
+        lineheight = 0.94
+      ),
+      legend.position = "top",
+      legend.direction = "horizontal",
+      legend.justification = "left",
+      legend.title = element_text(size = journal_dense_text_size - 0.5),
+      legend.text = element_text(size = journal_dense_text_size - 0.65),
+      legend.key.width = unit(0.30, "cm"),
+      legend.spacing.x = unit(0.08, "cm"),
+      legend.margin = margin(0, 0, 0, 0),
+      legend.box.margin = margin(0, 0, 0, 0)
+    ) +
+    guides(
+      fill = guide_legend(
+        nrow = 1,
+        byrow = TRUE,
+        title.position = "left",
+        title.hjust = 0,
+        override.aes = list(shape = unname(scenario_shapes))
+      ),
+      shape = "none"
     )
 }
 
 plot_figure_2_panel_b <- function(data) {
+  figure_2_visual_required_columns(
+    data$panel_b,
+    c(
+      "country_label", "reference_strategy",
+      "reference_choice_retained", "regret_pp_q95", "setting_count"
+    ),
+    "Figure 2 panel b"
+  )
+  panel_b <- data$panel_b
+  if (any(!is.finite(panel_b$reference_choice_retained)) ||
+      any(!is.finite(panel_b$regret_pp_q95)) ||
+      any(panel_b$setting_count != data$rank_setting_count)) {
+    stop("Figure 2 panel b contains an invalid fragility summary.", call. = FALSE)
+  }
+  observed_strategies <- as.character(data$strategy_order)[
+    as.character(data$strategy_order) %in% panel_b$reference_strategy
+  ]
+  strategy_labels <- figure_2_visual_strategy_labels(data)
+  strategy_palette <- figure_2_strategy_palette(data)
+  panel_b_x_breaks <- pretty(panel_b$reference_choice_retained, n = 5)
+  panel_b_y_breaks <- pretty(panel_b$regret_pp_q95, n = 5)
+
   ggplot(
-    data$selected_program,
-    aes(winner_margin_cases_per_100k, country_label_margin)
+    panel_b,
+    aes(
+      x = reference_choice_retained,
+      y = regret_pp_q95,
+      fill = reference_strategy
+    )
   ) +
-    annotate(
-      "rect",
-      xmin = 0,
-      xmax = 5,
-      ymin = -Inf,
-      ymax = Inf,
-      fill = manuscript_colour("light_grey"),
-      alpha = 0.45
-    ) +
-    geom_vline(xintercept = c(0, 5, 25), linewidth = 0.24, linetype = "dashed", colour = manuscript_colour("grey")) +
-    geom_text(
-      data = data.frame(
-        label_x = 2.5,
-        country_label_margin = factor(data$heatmap_country_order[[1]], levels = rev(data$heatmap_country_order)),
-        label_text = "near-tie \u22645\u00B70"
-      ),
-      aes(x = label_x, y = country_label_margin, label = label_text),
-      inherit.aes = FALSE,
-      size = lancet_pt_to_geom_size(7.2),
-      fontface = "bold",
-      colour = manuscript_colour("grey"),
-      hjust = 0.5,
-      vjust = -2.8
-    ) +
-    geom_segment(
-      aes(x = 0, xend = winner_margin_cases_per_100k, yend = country_label_margin, colour = winning_strategy),
-      linewidth = 0.58,
-      lineend = "round",
-      alpha = 0.90
+    geom_hline(
+      yintercept = 0,
+      linewidth = 0.30,
+      colour = manuscript_colour("mid_grey")
     ) +
     geom_point(
-      aes(fill = winning_strategy),
       shape = 21,
-      size = 2.3,
-      stroke = 0.22,
-      colour = "white"
+      size = 2.75,
+      stroke = 0.34,
+      colour = lancet_text_colour
     ) +
-    geom_text(
-      aes(label = runner_up_excess_label),
-      hjust = -0.12,
-      size = journal_heatmap_cell_text_size_small,
-      colour = manuscript_colour("black")
-    ) +
-    scale_x_continuous(
-      breaks = c(0, 5, 25, 50, 100, 150),
-      labels = label_lancet_comma(accuracy = 1),
-      expand = expansion(mult = 0, add = 0)
+    ggrepel::geom_text_repel(
+      aes(label = country_label),
+      seed = 20260718,
+      size = journal_heatmap_cell_text_size,
+      fontface = "bold",
+      family = lancet_font_family,
+      colour = lancet_text_colour,
+      box.padding = 0.30,
+      point.padding = 0.24,
+      min.segment.length = 0,
+      segment.size = lancet_direct_label_segment_linewidth,
+      segment.color = manuscript_colour("mid_grey"),
+      max.overlaps = Inf,
+      max.time = 2,
+      direction = "both",
+      show.legend = FALSE
     ) +
     scale_fill_manual(
-      values = strategy_colours,
-      breaks = data$selected_strategy_order,
-      labels = data$selected_strategy_legend_labels,
-      name = "Lowest burden\n(point estimate)",
-      guide = guide_legend(
-        ncol = 1,
-        title.position = "top",
-        keywidth = unit(0.36, "cm"),
-        keyheight = unit(0.46, "cm"),
-        override.aes = list(alpha = 0.90)
-      )
+      values = strategy_palette,
+      breaks = observed_strategies,
+      labels = unname(strategy_labels[observed_strategies]),
+      name = "Reference choice",
+      drop = FALSE
     ) +
-    scale_colour_manual(values = strategy_colours, guide = "none") +
-    scale_y_discrete(limits = rev(data$heatmap_country_order)) +
-    coord_cartesian(xlim = c(-5, max(data$selected_program$winner_margin_cases_per_100k, na.rm = TRUE) * 1.28), clip = "off") +
+    scale_x_continuous(
+      limits = range(panel_b_x_breaks),
+      breaks = panel_b_x_breaks,
+      labels = label_lancet_number(accuracy = 1),
+      expand = expansion(mult = 0)
+    ) +
+    scale_y_continuous(
+      limits = range(panel_b_y_breaks),
+      breaks = panel_b_y_breaks,
+      labels = label_lancet_number(accuracy = 1),
+      expand = expansion(mult = c(0.14, 0.04))
+    ) +
+    coord_cartesian(clip = "off") +
     labs(
-      x = "Extra annualised symptomatic cases per 100 000\npeople aged <18 years when the second-ranked\nscenario is used",
-      y = NULL,
+      x = "Settings retaining the reference choice (out of 128)",
+      y = paste0(
+        "95th-percentile regret\n",
+        "(percentage points of current-practice burden)"
+      ),
       tag = "b"
     ) +
-    theme_lancet_panel(base_size = journal_dense_text_size, plot_margin = margin(12, 4, 4, 7), show_y_grid = TRUE) +
-    theme(
-      axis.text.y = element_text(lineheight = 0.88),
-      axis.ticks.y = element_blank(),
+    theme_lancet_panel(
+      base_size = journal_dense_text_size,
+      plot_margin = margin(3, 9, 4, 6),
+      show_x_grid = FALSE,
+      show_y_grid = TRUE
     ) +
-    theme_lancet_inside_legend(
-      key_height = unit(0.46, "cm"),
-      title_lineheight = 0.90,
-      text_lineheight = 1.16,
-      text_margin = margin(t = 3, b = 3),
-      spacing_y = unit(8, "pt"),
-      box_margin = margin(0, 0, 1, 0),
-      legend_margin = margin(3, 0, 3, 0)
+    theme(
+      axis.title.x = element_text(
+        size = journal_dense_text_size - 0.55,
+        lineheight = 0.93
+      ),
+      axis.title.y = element_text(
+        size = journal_dense_text_size - 0.55,
+        lineheight = 0.93
+      ),
+      legend.position = "top",
+      legend.direction = "horizontal",
+      legend.justification = "left",
+      legend.title = element_text(size = journal_dense_text_size - 0.5),
+      legend.text = element_text(size = journal_dense_text_size - 0.65),
+      legend.key.width = unit(0.30, "cm"),
+      legend.spacing.x = unit(0.08, "cm"),
+      legend.margin = margin(0, 0, 0, 0),
+      legend.box.margin = margin(0, 0, 0, 0)
+    ) +
+    guides(
+      fill = guide_legend(
+        nrow = 1,
+        byrow = TRUE,
+        title.position = "left",
+        title.hjust = 0,
+        override.aes = list(shape = 21, size = 2.3)
+      )
     )
 }
 
 plot_figure_2_panel_c <- function(data) {
-  ggplot(data$program_heatmap, aes(x = strategy_axis, y = country_label, fill = primary_case_reduction_display)) +
-    geom_tile(colour = "white", linewidth = lancet_heatmap_tile_linewidth) +
-    geom_hline(
-      yintercept = data$heatmap_group_separators,
-      linewidth = 0.48,
-      colour = "white"
-    ) +
+  figure_2_visual_required_columns(
+    data$panel_c,
+    c(
+      "country", "strategy", "effect_label", "effect_text_colour",
+      "deterministic_relative_reduction", "preferred_in_program_only"
+    ),
+    "Figure 2 panel c"
+  )
+  panel_c <- figure_2_prepare_profile_factor(
+    data$panel_c,
+    data,
+    "Figure 2 panel c"
+  )
+  panel_c$strategy <- factor(
+    as.character(panel_c$strategy),
+    levels = as.character(data$strategy_order)
+  )
+  if (anyNA(panel_c$strategy) ||
+      any(!is.finite(panel_c$deterministic_relative_reduction)) ||
+      anyNA(panel_c$preferred_in_program_only)) {
+    stop("Figure 2 panel c contains an invalid effect-matrix value.", call. = FALSE)
+  }
+  matrix_labels <- figure_2_visual_strategy_labels(data)
+  matrix_labels <- stats::setNames(
+    stringr::str_wrap(unname(matrix_labels), width = 15),
+    names(matrix_labels)
+  )
+  panel_c_colourbar_breaks <- pretty(
+    range(panel_c$deterministic_relative_reduction),
+    n = 5
+  )
+  panel_c_colourbar_limits <- range(panel_c_colourbar_breaks)
+
+  ggplot(
+    panel_c,
+    aes(
+      x = strategy,
+      y = profile_factor,
+      fill = deterministic_relative_reduction
+    )
+  ) +
     geom_tile(
-      data = filter(data$program_heatmap, preferred_in_program_only),
-      fill = NA,
-      colour = manuscript_colour("black"),
-      linewidth = 0.22
+      width = 0.96,
+      height = 0.92,
+      colour = "white",
+      linewidth = lancet_heatmap_tile_linewidth
     ) +
     geom_text(
       aes(label = effect_label, colour = effect_text_colour),
-      size = journal_heatmap_cell_text_size_small - 0.30,
-      lineheight = 0.82
-    ) +
-    scale_x_discrete(
-      labels = data$strategy_heatmap_labels[data$strategy_order]
+      size = journal_heatmap_cell_text_size,
+      lineheight = 0.88,
+      family = lancet_font_family,
+      show.legend = FALSE
     ) +
     scale_fill_reduction(
       midpoint = 0,
-      limits = c(-0.10, 0.5),
-      breaks = seq(-0.10, 0.50, by = 0.10),
+      limits = panel_c_colourbar_limits,
+      breaks = panel_c_colourbar_breaks,
       labels = label_lancet_percent(accuracy = 1),
       oob = scales::squish,
-      name = data$primary_interval_legend_title,
+      name = "Under-18 case reduction: estimate [95% CI]",
       guide = guide_lancet_colourbar(
         barwidth = unit(0.30, "cm"),
-        barheight = unit(5.0, "cm"),
+        barheight = unit(6.0, "cm"),
         title.position = "left",
         title.hjust = 0
       )
     ) +
     scale_colour_identity() +
-    labs(x = NULL, y = NULL, tag = "c") +
-    theme_lancet_heatmap(
-      base_size = journal_dense_text_size,
-      plot_margin = margin(4, 4, 3, 7),
-      legend_position = "right",
-      legend_direction = "vertical"
-    ) +
-    theme(
-      legend.title = element_text(angle = 90, hjust = 0, vjust = 0.5, lineheight = 0.92),
-      legend.text = element_text(lineheight = 0.95),
-      legend.title.position = "left"
-    )
-}
-
-plot_figure_2_rank_distribution <- function(data) {
-  ggplot(data$rank_distribution) +
-    geom_rect(
-      aes(
-        xmin = xmin,
-        xmax = xmax,
-        ymin = strategy_y - 0.32,
-        ymax = strategy_y + 0.32,
-        fill = rank_label
-      ),
-      colour = "white",
-      linewidth = 0.18
-    ) +
-    geom_text(
-      data = filter(data$rank_distribution, profile_count > 0),
-      aes(x = xmid, y = strategy_y, label = segment_label, colour = segment_text_colour),
-      size = journal_heatmap_cell_text_size_small,
-      lineheight = 0.90,
-      show.legend = FALSE
-    ) +
-    scale_x_continuous(
-      breaks = seq(0, 10, by = 2),
-      labels = label_lancet_number(accuracy = 1),
-      expand = expansion(mult = c(0, 0.02))
-    ) +
-    scale_y_continuous(
-      breaks = seq_along(rev(data$strategy_order)),
-      labels = unname(data$strategy_overview_labels[rev(data$strategy_order)]),
-      expand = expansion(add = c(0.45, 0.45))
-    ) +
-    scale_fill_manual(
-      values = data$rank_colours,
-      breaks = data$rank_labels,
+    scale_x_discrete(
+      limits = as.character(data$strategy_order),
+      labels = matrix_labels,
       drop = FALSE,
-      name = "Scenario rank",
-      guide = guide_legend(
-        nrow = 1,
-        title.position = "left",
-        keywidth = unit(0.28, "cm"),
-        keyheight = unit(0.18, "cm")
-      )
+      expand = expansion(add = 0)
     ) +
-    scale_colour_identity() +
-    coord_cartesian(xlim = c(0, 10), clip = "off") +
+    scale_y_discrete(
+      limits = figure_2_profile_limits(data),
+      drop = FALSE,
+      expand = expansion(add = 0)
+    ) +
     labs(
-      x = paste0("Profiles (n=", length(data$publication_countries), ")"),
+      x = "Programme strategy",
       y = NULL,
       tag = "c"
     ) +
-    theme_lancet_panel(base_size = journal_base_text_size, plot_margin = margin(4, 8, 4, 7), show_y_grid = TRUE) +
+    theme_lancet_panel(
+      base_size = journal_dense_text_size,
+      plot_margin = margin(3, 5, 4, 7),
+      show_x_grid = FALSE,
+      show_y_grid = FALSE
+    ) +
     theme(
-      axis.text.y = element_text(lineheight = 0.88),
-      legend.position = "top",
-      legend.justification = "right",
-      legend.box.just = "right",
-      legend.direction = "horizontal",
-      legend.title = element_text(face = "bold", lineheight = 0.90),
-      legend.text = element_text(lineheight = 0.92),
-      legend.box.margin = margin(0, 0, 1, 0),
-      legend.margin = margin(0, 0, 0, 0),
-      legend.spacing.x = unit(2, "pt")
+      axis.text.x = element_text(
+        size = journal_dense_text_size - 0.35,
+        lineheight = 0.88,
+        margin = margin(t = 2)
+      ),
+      axis.text.y = element_text(
+        colour = lancet_text_colour,
+        size = journal_country_axis_text_size,
+        lineheight = 0.95
+      ),
+      axis.title.x = element_text(
+        size = journal_dense_text_size - 0.2,
+        margin = margin(t = 4)
+      ),
+      legend.position = "right",
+      legend.direction = "vertical",
+      legend.title = element_text(angle = 90, hjust = 0, vjust = 0.5),
+      legend.title.position = "left"
     )
 }
 
@@ -273,7 +439,6 @@ plot_figure_2_panels <- function(data) {
   list(
     a = plot_figure_2_panel_a(data),
     b = plot_figure_2_panel_b(data),
-    c = plot_figure_2_panel_c(data),
-    rank_distribution = plot_figure_2_rank_distribution(data)
+    c = plot_figure_2_panel_c(data)
   )
 }

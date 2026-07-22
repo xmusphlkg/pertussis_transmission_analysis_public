@@ -216,7 +216,7 @@ def compute_diagnostics(
     DataFrame with one row per non-constant (country, parameter) and columns:
         rhat, rhat_rank, bulk_ess, tail_ess, n_chains, total_draws,
         converged (minimum validity floor) and recommended_converged (stricter
-        threshold used by final Figure 2c CrI audit)
+        threshold used by the optional non-publication posterior research audit)
 
     Fixed parameters are excluded by default. Including them makes R-hat and ESS
     either undefined or spuriously tiny, which obscures the diagnostics for

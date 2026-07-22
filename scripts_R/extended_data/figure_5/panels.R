@@ -15,6 +15,10 @@ plot_extended_data_figure_5_panel_b <- function(data) {
     ggplot(aes(scenario_short, country_label, fill = value)) +
     geom_tile(colour = "white", linewidth = lancet_heatmap_tile_linewidth) +
     facet_wrap(~metric, nrow = 1) +
+    scale_y_discrete(
+      limits = rev(main_figure_country_order(as.character(data$vaccine_reduction_data$country_label))),
+      drop = FALSE
+    ) +
     scale_fill_reduction(
       midpoint = 0,
       limits = c(0, 1),

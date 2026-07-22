@@ -12,7 +12,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src_python.simulation.common import load_configs
+from src_python.simulation.common import load_configs, validate_run_metadata
+from src_python.simulation.run_joint_psa_rank_acceptability import (
+    FIGURE2B_PARAMETER_NAMES,
+    STEM as JOINT_PSA_STEM,
+)
 
 
 TARGET = ROOT / "manuscript" / "appendix_templates" / "supplementary_tables.md"
@@ -166,7 +170,7 @@ TEXT_FRAGMENT_COLUMNS = {
     "evidence_source",
     "expected_direction_of_bias",
     "explored_range_or_scenarios",
-    "figure2c_role",
+    "analysis_role",
     "fixed_or_conditioned",
     "fitness_or_comparator",
     "grid_values",
@@ -287,6 +291,66 @@ def read_csv_rows(path: Path | str) -> list[dict[str, str]]:
         raise FileNotFoundError(f"Supplementary table input is missing: {path}")
     with full_path.open(newline="", encoding="utf-8-sig") as handle:
         return [dict(row) for row in csv.DictReader(handle)]
+
+
+def _validate_joint_psa_parent() -> None:
+    metadata = validate_run_metadata(JOINT_PSA_STEM)
+    if metadata.get("run_status") != "complete":
+        raise ValueError("Joint PSA parent is not marked complete")
+    if tuple(metadata.get("figure2b_parameter_names", ())) != FIGURE2B_PARAMETER_NAMES:
+        raise ValueError("Joint PSA parent is not the exact six-input Figure 2b design")
+    if metadata.get("excluded_dead_dimensions") != ["resistance_management_uptake"]:
+        raise ValueError("Joint PSA parent does not explicitly exclude management uptake")
+
+
+def _validated_joint_psa_rows(
+    path: Path | str,
+    *,
+    table_kind: str,
+) -> list[dict[str, str]]:
+    _validate_joint_psa_parent()
+    full_path = ROOT / path
+    if not full_path.exists():
+        raise FileNotFoundError(f"Supplementary table input is missing: {path}")
+    with full_path.open(newline="", encoding="utf-8-sig") as handle:
+        reader = csv.DictReader(handle)
+        columns = set(reader.fieldnames or ())
+        rows = [dict(row) for row in reader]
+    if "resistance_management_uptake" in columns:
+        raise ValueError(f"Legacy seven-dimensional joint PSA table rejected: {path}")
+    if table_kind == "parameter_samples":
+        expected = {
+            "psa_sample_id",
+            "sample_design",
+            "uncertainty_schema_version",
+            *FIGURE2B_PARAMETER_NAMES,
+        }
+        if columns != expected:
+            raise ValueError(
+                "Joint PSA parameter table must have the exact six-input schema; "
+                f"missing={sorted(expected - columns)}, extra={sorted(columns - expected)}"
+            )
+    elif table_kind == "rank_samples":
+        missing = set(FIGURE2B_PARAMETER_NAMES) - columns
+        if missing:
+            raise ValueError(f"Joint PSA rank table lacks sampled inputs: {sorted(missing)}")
+    elif table_kind != "acceptability":
+        raise ValueError(f"Unknown joint PSA supplementary-table kind: {table_kind}")
+    return rows
+
+
+def joint_psa_parameter_rows() -> list[dict[str, str]]:
+    return _validated_joint_psa_rows(
+        "outputs/tables/joint_psa_parameter_samples.csv",
+        table_kind="parameter_samples",
+    )
+
+
+def joint_psa_acceptability_rows() -> list[dict[str, str]]:
+    return _validated_joint_psa_rows(
+        "outputs/tables/joint_psa_rank_acceptability.csv",
+        table_kind="acceptability",
+    )
 
 
 def separate_bare_url_list(text: str) -> str:
@@ -452,7 +516,7 @@ def pomp_validation_parameter_rows() -> list[dict[str, str]]:
             "uncertainty_range": "Not sampled as a posterior parameter",
             "unit": "reported cases",
             "distribution": "Fixed offset within each fold",
-            "figure2c_role": "Predictive validation only",
+            "analysis_role": "Predictive validation only",
             "interpretation": "The stochastic layer is a semi-mechanistic discrepancy POMP, not a full stochastic compartmental POMP.",
         },
         {
@@ -462,7 +526,7 @@ def pomp_validation_parameter_rows() -> list[dict[str, str]]:
             "uncertainty_range": "Selected using three preceding validation years",
             "unit": "log notification rate",
             "distribution": "Irregular-time transition laws",
-            "figure2c_role": "Inner-fold model selection",
+            "analysis_role": "Inner-fold model selection",
             "interpretation": "Country candidate scores are shrunk towards panel scores to reduce unstable local selection.",
         },
         {
@@ -472,7 +536,7 @@ def pomp_validation_parameter_rows() -> list[dict[str, str]]:
             "uncertainty_range": "Poisson event count scales with elapsed calendar time",
             "unit": "events per year; log scale",
             "distribution": "Compound Poisson with within-interval OU attenuation",
-            "figure2c_role": "Abrupt surveillance/transmission discrepancy candidate",
+            "analysis_role": "Abrupt surveillance/transmission discrepancy candidate",
             "interpretation": "Jump probability is scientifically scaled to irregular interval duration rather than applied once per row.",
         },
         {
@@ -482,7 +546,7 @@ def pomp_validation_parameter_rows() -> list[dict[str, str]]:
             "uncertainty_range": "Selected inside each outer fold",
             "unit": "size parameter",
             "distribution": "Exposure-scaled negative binomial",
-            "figure2c_role": "Predictive measurement dispersion",
+            "analysis_role": "Predictive measurement dispersion",
             "interpretation": "The interval size parameter scales with exposure duration so irregular reporting windows remain comparable.",
         },
         {
@@ -492,7 +556,7 @@ def pomp_validation_parameter_rows() -> list[dict[str, str]]:
             "uncertainty_range": "Independent deterministic seeds recorded by fold",
             "unit": "counts",
             "distribution": "Bootstrap particle filter and empirical predictive law",
-            "figure2c_role": "Monte Carlo stability gate",
+            "analysis_role": "Monte Carlo stability gate",
             "interpretation": "The three repeats quantify numerical Monte Carlo variability separately from epidemiological variation.",
         },
         {
@@ -502,7 +566,7 @@ def pomp_validation_parameter_rows() -> list[dict[str, str]]:
             "uncertainty_range": "Weights learned from past validation observations only",
             "unit": "mixture weight",
             "distribution": "Probability and point-prediction stacking",
-            "figure2c_role": "Prespecified comparator and ensemble layer",
+            "analysis_role": "Prespecified comparator and ensemble layer",
             "interpretation": "The ensemble must outperform every component baseline on country-balanced log score.",
         },
         {
@@ -512,7 +576,7 @@ def pomp_validation_parameter_rows() -> list[dict[str, str]]:
             "uncertainty_range": "Observation assimilated only after its forecast is scored",
             "unit": "folds and reporting intervals",
             "distribution": "One-reporting-interval-ahead",
-            "figure2c_role": "Canonical predictive publication gate",
+            "analysis_role": "Canonical predictive publication gate",
             "interpretation": "Primary metrics are country-balanced log score, coverage, sharpness, and point error.",
         },
         {
@@ -522,7 +586,7 @@ def pomp_validation_parameter_rows() -> list[dict[str, str]]:
             "uncertainty_range": "Failed annual joint-coverage gate",
             "unit": "one year",
             "distribution": "Unassimilated block forecast",
-            "figure2c_role": "Long-horizon interpretation boundary",
+            "analysis_role": "Long-horizon interpretation boundary",
             "interpretation": "2027-50 outputs are conditional scenarios, not validated annual forecasts or absolute-burden predictions.",
         },
     ]
@@ -955,6 +1019,10 @@ PARAMETER_GROUP_BY_NAME = {
 def parameter_table_rows() -> list[dict[str, str]]:
     rows = []
     for row in read_csv_rows("manuscript_notes/parameter_table.csv"):
+        _reject_legacy_figure2c_uncertainty_language(
+            row,
+            source="manuscript_notes/parameter_table.csv",
+        )
         parameter = row.get("parameter", "")
         rows.append(
             {
@@ -963,6 +1031,38 @@ def parameter_table_rows() -> list[dict[str, str]]:
             }
         )
     return rows
+
+
+_LEGACY_FIGURE2C_UNCERTAINTY = re.compile(
+    r"figure\s*2c|joint\s+(?:credible\s+interval|cri)|credible\s+interval",
+    flags=re.IGNORECASE,
+)
+
+
+def _reject_legacy_figure2c_uncertainty_language(
+    row: dict[str, str],
+    *,
+    source: str,
+) -> None:
+    text = " ".join(str(value) for value in row.values())
+    match = _LEGACY_FIGURE2C_UNCERTAINTY.search(text)
+    if match:
+        raise ValueError(
+            f"{source} retains prohibited Figure 2c uncertainty language: "
+            f"{match.group(0)!r}"
+        )
+
+
+_BAYESIAN_PARAMETER_ALIASES = {
+    "figure2c_adolescent_coverage_floor": "optional_research_adolescent_coverage_floor",
+    "figure2c_maternal_coverage_floor": "optional_research_maternal_coverage_floor",
+    "figure2c_young_adult_coverage_floor": "optional_research_young_adult_coverage_floor",
+    "figure2c_contact_reduction_fraction": "optional_research_contact_reduction_fraction",
+    "figure2c_targeted_pep_coverage": "optional_research_targeted_pep_coverage",
+    "figure2c_maternal_protection_duration_days": (
+        "optional_research_maternal_protection_duration_days"
+    ),
+}
 
 
 BAYESIAN_PARAMETER_LABELS = {
@@ -978,19 +1078,41 @@ BAYESIAN_PARAMETER_LABELS = {
     "resistance_prevalence": "$p_R$",
     "maternal_VE_sus": "$VE^{\\mathrm{mat}}_{\\mathrm{sus}}$",
     "maternal_VE_sym": "$VE^{\\mathrm{mat}}_{\\mathrm{sym}}$",
-    "figure2c_adolescent_coverage_floor": "Adolescent booster coverage floor",
-    "figure2c_maternal_coverage_floor": "Pregnancy Tdap coverage floor",
-    "figure2c_young_adult_coverage_floor": "Reproductive-age adult coverage floor",
-    "figure2c_contact_reduction_fraction": "Adult-to-infant contact-reduction fraction",
-    "figure2c_targeted_pep_coverage": "Targeted household-contact PEP coverage",
-    "figure2c_maternal_protection_duration_days": "Passive maternal-protection duration",
+    "optional_research_adolescent_coverage_floor": "Adolescent booster coverage floor",
+    "optional_research_maternal_coverage_floor": "Pregnancy Tdap coverage floor",
+    "optional_research_young_adult_coverage_floor": "Reproductive-age adult coverage floor",
+    "optional_research_contact_reduction_fraction": "Adult-to-infant contact-reduction fraction",
+    "optional_research_targeted_pep_coverage": "Targeted household-contact PEP coverage",
+    "optional_research_maternal_protection_duration_days": "Passive maternal-protection duration",
 }
 
 
 def bayesian_prior_rows() -> list[dict[str, str]]:
     rows = []
-    for row in read_csv_rows("manuscript_notes/bayesian_prior_table.csv"):
-        parameter = row.get("parameter", "")
+    for raw_row in read_csv_rows("manuscript_notes/bayesian_prior_table.csv"):
+        row = dict(raw_row)
+        if "analysis_role" not in row and "figure2c_role" in row:
+            legacy_role = row.pop("figure2c_role", "")
+            if "optional legacy nonpublication" not in legacy_role.lower():
+                raise ValueError(
+                    "Legacy bayesian_prior_table figure2c_role can be normalized only "
+                    "when it is explicitly optional nonpublication research."
+                )
+            row["analysis_role"] = "optional_nonpublication_legacy_research"
+        parameter = _BAYESIAN_PARAMETER_ALIASES.get(
+            row.get("parameter", ""),
+            row.get("parameter", ""),
+        )
+        row["parameter"] = parameter
+        _reject_legacy_figure2c_uncertainty_language(
+            row,
+            source="manuscript_notes/bayesian_prior_table.csv",
+        )
+        if row.get("analysis_role") != "optional_nonpublication_legacy_research":
+            raise ValueError(
+                "Every bayesian_prior_table row must be labelled "
+                "optional_nonpublication_legacy_research."
+            )
         rows.append(
             {
                 **row,
@@ -1453,7 +1575,10 @@ def event_scale_summary_rows() -> list[dict[str, str]]:
 
 def joint_psa_summary_rows() -> list[dict[str, str]]:
     reduction_ranges: dict[str, str] = {}
-    rank_samples = read_csv_rows("outputs/tables/joint_psa_infant_rank_samples.csv")
+    rank_samples = _validated_joint_psa_rows(
+        "outputs/tables/joint_psa_infant_rank_samples.csv",
+        table_kind="rank_samples",
+    )
     reductions_by_strategy: dict[str, list[float]] = {}
     for rank_row in rank_samples:
         strategy = rank_row.get("strategy", "")
@@ -1467,7 +1592,7 @@ def joint_psa_summary_rows() -> list[dict[str, str]]:
             reduction_ranges[strategy] = f"{q025:.4g} to {q975:.4g}"
 
     rows = []
-    for row in read_csv_rows("outputs/tables/joint_psa_rank_acceptability.csv"):
+    for row in joint_psa_acceptability_rows():
         if row.get("country") != "All_countries_pooled" or row.get("rank") != "1":
             continue
         row = dict(row)
@@ -1617,7 +1742,12 @@ def study_parameter_design_rows() -> list[dict[str, str]]:
                     scenario,
                     "Vaccine-mechanism scenario derived from manuscript_notes/scenario_table.csv and interpreted through figure S10 and table S17.",
                 ),
-                "fixed_or_conditioned": "Other natural-history, contact, reporting, and resistance settings held to the scenario-specific country baseline unless explicitly crossed in grid analyses.",
+                "fixed_or_conditioned": (
+                    "All five vaccine settings branch from the same current-aP state at the "
+                    "2027 policy origin; post-start mechanism parameters apply immediately "
+                    "to existing and subsequent vaccine-origin compartments. Other natural-history, "
+                    "contact, reporting, and resistance settings are held to the country baseline."
+                ),
                 "primary_role": row.get("description", "").strip(),
                 "detail_location": "Figure S10 and table S17.",
             }
@@ -1740,7 +1870,7 @@ def study_parameter_design_rows() -> list[dict[str, str]]:
         {
             "analysis_component": "Exploratory uncertainty and robustness diagnostics",
             "design_level": "Sensitivity screens and robustness diagnostics",
-            "parameter_settings": "128-draw evidence-prior inverse-CDF Latin-hypercube screening; 128 selected-parameter joint strategy-ordering samples; routine timeliness, temporal, infant-contact, maternal-duration, treatment/PEP, event-scale, and stochastic toy diagnostics.",
+            "parameter_settings": "128-draw evidence-prior inverse-CDF Latin-hypercube screening; 128 selected-input joint strategy-ordering samples; routine timeliness, temporal, infant-contact, maternal-duration, treatment/PEP, event-scale, and stochastic toy diagnostics.",
             "source_provenance": "Designed as robustness diagnostics following immunisation-model reporting guidance [35], using evidence distributions and explicitly labelled weak or implementation priors documented in the retained uncertainty registry and summarised graphically in figure S6.",
             "fixed_or_conditioned": "Diagnostics are not full posterior or decision analyses; they support strategy-ordering and structural-robustness interpretation.",
             "primary_role": "Quantifies which assumptions threaten interpretation of age-stratified burden and strategy-ordering conclusions.",
@@ -1980,7 +2110,7 @@ FULL_TABLES: tuple[TableSpec, ...] = (
             "uncertainty_range",
             "unit",
             "distribution",
-            "figure2c_role",
+            "analysis_role",
             "interpretation",
         ),
         labels=(
@@ -2627,8 +2757,9 @@ FULL_TABLES: tuple[TableSpec, ...] = (
     ),
     TableSpec(
         number="S37",
-        title="Selected-parameter deterministic sensitivity diagnostics for country-differentiated infant-case strategy ordering.",
+        title="Secondary infant-case ordering frequencies across the selected deterministic input design.",
         source="outputs/tables/joint_psa_rank_acceptability.csv",
+        rows=joint_psa_acceptability_rows,
         columns=(
             "country",
             "strategy",
@@ -2650,10 +2781,10 @@ FULL_TABLES: tuple[TableSpec, ...] = (
             "Country",
             "Strategy",
             "Order position",
-            "Order-position probability",
-            "Pr(lowest burden)",
-            "Pr(two lowest burdens)",
-            "Pr(within 10% of best)",
+            "Design frequency at order position",
+            "Frequency lowest burden",
+            "Frequency among two lowest burdens",
+            "Frequency within 10% of best",
             "Mean order position",
             "Median order position",
             "Median infant cases per 100k/y",
@@ -2667,8 +2798,9 @@ FULL_TABLES: tuple[TableSpec, ...] = (
     ),
     TableSpec(
         number="S38",
-        title="Selected-parameter deterministic sensitivity sampled parameter sets.",
+        title="Selected-input deterministic sensitivity sampled parameter sets.",
         source="outputs/tables/joint_psa_parameter_samples.csv",
+        rows=joint_psa_parameter_rows,
         columns=(
             "psa_sample_id",
             "sample_design",
@@ -2678,7 +2810,6 @@ FULL_TABLES: tuple[TableSpec, ...] = (
             "relative_infectiousness_asymptomatic",
             "infectious_duration_asymptomatic",
             "fitness_R",
-            "resistance_management_uptake",
             "PEP_coverage_multiplier",
         ),
         labels=(
@@ -2690,7 +2821,6 @@ FULL_TABLES: tuple[TableSpec, ...] = (
             "Asymptomatic infectiousness",
             "Asymptomatic duration",
             "$f_R$",
-            "Treatment/PEP uptake",
             "PEP coverage multiplier",
         ),
         sort_by=("psa_sample_id",),
@@ -3046,7 +3176,7 @@ TABLES = (
             "uncertainty_range",
             "unit",
             "distribution",
-            "figure2c_role",
+            "analysis_role",
             "interpretation",
         ),
         labels=(
@@ -3430,7 +3560,7 @@ TABLES = (
     ),
     TableSpec(
         number="S25",
-        title="Selected-parameter deterministic sensitivity diagnostics for country-differentiated infant-case strategy ordering.",
+        title="Selected-input deterministic sensitivity diagnostics for country-differentiated infant-case strategy ordering.",
         source="outputs/tables/joint_psa_rank_acceptability.csv",
         rows=joint_psa_summary_rows,
         columns=(
@@ -3450,10 +3580,10 @@ TABLES = (
         ),
         labels=(
             "Strategy",
-            "Pr(ordered first)",
-            "Pr(top 2)",
-            "Pr(top 3)",
-            "Pr(within 10% of best)",
+            "Design frequency ordered first",
+            "Design frequency among top 2",
+            "Design frequency among top 3",
+            "Design frequency within 10% of best",
             "Mean order position",
             "Median order position",
             "Median infant cases per 100k/y",
@@ -3657,7 +3787,7 @@ FOLDED_OR_FIGURE_CONVERTED_TABLE_TITLES = {
     "Intervention scenario-ordering sensitivity to analysis-window choice.",
     "Cross-diagnostic intervention scenario-ordering stability across countries, analysis windows, and infant age strata.",
     "Infant age-stratified intervention outcomes summarized by analysis window.",
-    "Selected-parameter deterministic sensitivity diagnostics for country-differentiated infant-case strategy ordering.",
+    "Selected-input deterministic sensitivity diagnostics for country-differentiated infant-case strategy ordering.",
     "External age-pattern weighted scenario-class ordering sensitivity.",
     "Macrolide-resistance mechanism decomposition across importation, treatment, PEP, and fitness assumptions.",
     "Vaccine infectiousness-effect threshold diagnostics.",

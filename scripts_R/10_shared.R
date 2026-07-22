@@ -651,11 +651,47 @@ interval_label <- function(median, low, high, formatter = label_lancet_number(ac
 
 source(file.path(script_dir, "10_plot_helpers.R"))
 
-country_levels <- c(
-  "Australia", "China", "Japan", "New_Zealand",
-  "South_Africa", "Sweden", "United_Kingdom", "United_States", "Brazil", "Thailand"
+# WHO-region-first display order used across manuscript and appendix figures.
+# Thailand is a South-East Asia Region profile, not a Western Pacific profile.
+country_region_levels <- c(
+  "European Region",
+  "Western Pacific Region",
+  "South-East Asia Region",
+  "Region of the Americas",
+  "African Region"
 )
+country_who_regions <- c(
+  Sweden = "European Region",
+  United_Kingdom = "European Region",
+  Australia = "Western Pacific Region",
+  China = "Western Pacific Region",
+  Japan = "Western Pacific Region",
+  New_Zealand = "Western Pacific Region",
+  Thailand = "South-East Asia Region",
+  Brazil = "Region of the Americas",
+  United_States = "Region of the Americas",
+  South_Africa = "African Region"
+)
+country_levels <- names(country_who_regions)
 country_label_levels <- stringr::str_replace_all(country_levels, "_", " ")
+
+# Fixed order for the nine calibrated profiles in all main-figure country axes.
+main_figure_country_levels <- country_levels[country_levels != "South_Africa"]
+main_figure_country_label_levels <- stringr::str_replace_all(
+  main_figure_country_levels,
+  "_",
+  " "
+)
+
+main_figure_country_order <- function(countries) {
+  labels <- unique(stringr::str_replace_all(as.character(countries), "_", " "))
+  c(
+    main_figure_country_label_levels[
+      main_figure_country_label_levels %in% labels
+    ],
+    sort(setdiff(labels, main_figure_country_label_levels))
+  )
+}
 country_codes <- c(
   Australia = "AUS",
   China = "CHN",
@@ -779,7 +815,14 @@ region_short_colours <- c(
   Other = manuscript_colours[["mid_grey"]]
 )
 
-country_colours <- setNames(palette_discrete_10, country_label_levels)
+country_colour_levels <- c(
+  "Australia", "China", "Japan", "New_Zealand", "South_Africa",
+  "Sweden", "United_Kingdom", "United_States", "Brazil", "Thailand"
+)
+country_colours <- setNames(
+  palette_discrete_10,
+  stringr::str_replace_all(country_colour_levels, "_", " ")
+)
 
 vaccine_colours <- c(
   "No vaccine" = manuscript_discrete_core[["grey"]],
@@ -817,8 +860,8 @@ strategy_colours <- c(
   current = manuscript_colours[["mid_grey"]],
   higher_child_coverage = manuscript_colours[["mid_grey"]],
   timeliness_only = manuscript_discrete_core[["blue"]],
-  adolescent_booster = manuscript_discrete_core[["purple"]],
-  pregnancy_tdap_scaleup = manuscript_discrete_core[["orange"]],
+  adolescent_booster = manuscript_discrete_core[["orange"]],
+  pregnancy_tdap_scaleup = manuscript_discrete_core[["purple"]],
   cocooning_adjunct = manuscript_discrete_core[["deep_teal"]],
   maternal_immunization = manuscript_discrete_core[["green"]],
   targeted_pep_high_risk = manuscript_discrete_core[["vermillion"]],
@@ -980,10 +1023,7 @@ if (nrow(bayesian_summary) > 0) {
   bayesian_summary <- bayesian_summary %>% add_country_label()
 }
 
-baseline_order <- baseline %>%
-  arrange(desc(annualized_infant_cases_per_100k)) %>%
-  pull(country_label) %>%
-  as.character()
+baseline_order <- main_figure_country_order(as.character(baseline$country_label))
 
 baseline <- baseline %>%
   mutate(country_burden_order = factor(as.character(country_label), levels = rev(baseline_order)))

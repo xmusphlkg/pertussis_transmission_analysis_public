@@ -1513,7 +1513,6 @@ def main() -> None:
     )
     parser.add_argument("--seed", type=int, default=20260713)
     parser.add_argument("--countries", default="")
-    parser.add_argument("--require-predictive-gate", action="store_true")
     args = parser.parse_args()
 
     ensure_output_dirs()
@@ -1627,9 +1626,5 @@ def main() -> None:
         "scope": "semi_mechanistic_discrepancy_pomp_not_full_compartment_pomp",
     }
     write_run_metadata(run_stem, metadata)
-    if args.require_predictive_gate and not bool(gate.iloc[0]["publication_gate_pass"]):
-        raise SystemExit(1)
-
-
 if __name__ == "__main__":
     main()

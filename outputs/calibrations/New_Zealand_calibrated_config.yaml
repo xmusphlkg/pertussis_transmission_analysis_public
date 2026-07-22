@@ -147,7 +147,7 @@ config:
       - 2.434354
       - 1.762875
   transmission:
-    beta_S: 0.024984462635178253
+    beta_S: 0.030329029565183418
     fitness_R: 1.0
     relative_infectiousness_asymptomatic: 0.35
     seasonal_amplitude: 0.1962753373188827
@@ -190,117 +190,117 @@ config:
       periods:
       - start_date: '2021-01-01'
         end_date: '2021-12-31'
-        log_multiplier: 0.9835581689801194
+        log_multiplier: 0.4629679071226053
       - start_date: '2022-01-01'
         end_date: '2022-12-31'
-        log_multiplier: -0.31725158488694144
+        log_multiplier: 0.17566604078568496
       - start_date: '2023-01-01'
         end_date: '2023-12-31'
-        log_multiplier: 0.29114562849516684
+        log_multiplier: -0.0397032859615915
       - start_date: '2024-01-01'
         end_date: '2024-12-31'
-        log_multiplier: -0.005885361698920217
+        log_multiplier: -0.20252269905920534
       - start_date: '2025-01-01'
         end_date: '2025-12-31'
-        log_multiplier: -0.34188179113790834
+        log_multiplier: -0.5917821556799969
       - start_date: '2026-01-01'
         end_date: '2026-12-31'
-        log_multiplier: -0.35898138982613453
+        log_multiplier: -0.3673090048093021
       - start_date: '2027-01-01'
         end_date: '2027-12-31'
-        log_multiplier: -0.17949069491306727
+        log_multiplier: -0.18365450240465106
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2028-01-01'
         end_date: '2028-12-31'
-        log_multiplier: -0.08974534745653363
+        log_multiplier: -0.09182725120232553
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2029-01-01'
         end_date: '2029-12-31'
-        log_multiplier: -0.04487267372826682
+        log_multiplier: -0.045913625601162765
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2030-01-01'
         end_date: '2030-12-31'
-        log_multiplier: -0.02243633686413341
+        log_multiplier: -0.022956812800581382
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2031-01-01'
         end_date: '2031-12-31'
-        log_multiplier: -0.011218168432066704
+        log_multiplier: -0.011478406400290691
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2032-01-01'
         end_date: '2032-12-31'
-        log_multiplier: -0.005609084216033352
+        log_multiplier: -0.005739203200145346
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2033-01-01'
         end_date: '2033-12-31'
-        log_multiplier: -0.002804542108016676
+        log_multiplier: -0.002869601600072673
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2034-01-01'
         end_date: '2034-12-31'
-        log_multiplier: -0.001402271054008338
+        log_multiplier: -0.0014348008000363364
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2035-01-01'
         end_date: '2035-12-31'
-        log_multiplier: -0.000701135527004169
+        log_multiplier: -0.0007174004000181682
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2036-01-01'
         end_date: '2036-12-31'
-        log_multiplier: -0.0003505677635020845
+        log_multiplier: -0.0003587002000090841
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2037-01-01'
         end_date: '2037-12-31'
-        log_multiplier: -0.00017528388175104225
+        log_multiplier: -0.00017935010000454205
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2038-01-01'
         end_date: '2038-12-31'
-        log_multiplier: -8.764194087552113e-05
+        log_multiplier: -8.967505000227103e-05
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2039-01-01'
         end_date: '2039-12-31'
-        log_multiplier: -4.382097043776056e-05
+        log_multiplier: -4.483752500113551e-05
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2040-01-01'
         end_date: '2040-12-31'
-        log_multiplier: -2.191048521888028e-05
+        log_multiplier: -2.2418762500567756e-05
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2041-01-01'
         end_date: '2041-12-31'
-        log_multiplier: -1.095524260944014e-05
+        log_multiplier: -1.1209381250283878e-05
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2042-01-01'
         end_date: '2042-12-31'
-        log_multiplier: -5.47762130472007e-06
+        log_multiplier: -5.604690625141939e-06
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2043-01-01'
         end_date: '2043-12-31'
-        log_multiplier: -2.738810652360035e-06
+        log_multiplier: -2.8023453125709695e-06
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2044-01-01'
         end_date: '2044-12-31'
-        log_multiplier: -1.3694053261800176e-06
+        log_multiplier: -1.4011726562854848e-06
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2045-01-01'
         end_date: '2045-12-31'
-        log_multiplier: -6.847026630900088e-07
+        log_multiplier: -7.005863281427424e-07
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2046-01-01'
         end_date: '2046-12-31'
-        log_multiplier: -3.423513315450044e-07
+        log_multiplier: -3.502931640713712e-07
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2047-01-01'
         end_date: '2047-12-31'
-        log_multiplier: -1.711756657725022e-07
+        log_multiplier: -1.751465820356856e-07
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2048-01-01'
         end_date: '2048-12-31'
-        log_multiplier: -8.55878328862511e-08
+        log_multiplier: -8.75732910178428e-08
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2049-01-01'
         end_date: '2049-12-31'
-        log_multiplier: -4.279391644312555e-08
+        log_multiplier: -4.37866455089214e-08
         state_origin: AR1_conditional_mean_forecast
       - start_date: '2050-01-01'
         end_date: '2050-12-31'
-        log_multiplier: -2.1396958221562775e-08
+        log_multiplier: -2.18933227544607e-08
         state_origin: AR1_conditional_mean_forecast
       historical_state_end_year: 2026
       forecast_process_contract: AR1_conditional_mean
@@ -496,8 +496,8 @@ config:
       - 0.0005
       - 0.5
       reporting_multiplier_bounds:
-      - 0.5
-      - 1.5
+      - 0.1
+      - 10.0
       max_abs_log_beta_deviation: 2.5
       max_posterior_condition_number: 1.0e8
       max_nfev: 256
@@ -1307,17 +1307,23 @@ config:
         calibration model is supplied.
 
         '
-    inference_structure: reference_structure_state_space_exact_importance_cut
+    inference_structure: cross_country_joint_state_space_tempered_smc
     shared_structural_seed: 20260712
     n_chains: 4
     warmup: 0
-    draws: 128
+    draws: 1024
     thin: 1
     proposal_scale: 1.0
     smc_particles: 1024
-    smc_ess_fraction: 0.65
+    smc_islands: 4
+    smc_ess_fraction: 0.7
     smc_move_steps: 4
+    smc_global_covariance_fraction: 0.25
+    smc_guided_state_covariance_scale: 4.0
+    smc_guided_bridge_temperature_scale: 0.0001
+    smc_shared_population_guide_switch_temperature: 0.001
     smc_max_stages: 100
+    smc_final_move_rounds: 4
     posterior_predictive_draws_per_country: 100
     dispersion: 50.0
     enable_time_varying_reporting: false
@@ -1346,23 +1352,69 @@ config:
       - 1.0
       - 2.0
       - 4.0
-      note: 'The multi-scale Gauss-Newton Gaussian mixture is only a normalized proposal.
-        Candidate states are reweighted by the exact NB2 plus AR(1) plus beta/reporting-prior
-        target before stratified resampling. Final acceptance requires adequate exact-target
-        importance ESS, maximum normalized weight, Pareto-tail shape, coordinate-wise
-        2.5%/97.5% tail effective support, and bounded-proposal support. Failure writes
-        a full candidate audit but no posterior sample or publication interval.
+      note: 'Legacy rejected route. Multi-scale exact-target importance tests showed
+        severe local and global weight collapse and cannot generate the publication
+        95% credible interval. These controls are not consumed by run_hierarchical_joint_smc.
 
         '
-    figure2c_conditional_uncertainty:
-      posterior_draws_per_country: 512
-      note: 'Figure 2c uses paired conditional uncertainty draws. Surveillance is
-        used once in the annual latent-log-beta state reconstruction; beta, reporting,
-        and historical states are proposed by a bounded multi-scale Gauss-Newton mixture
-        and corrected against the exact NB2 plus AR(1) target before resampling. Future
-        AR(1) innovations, shared external structural-prior draws, and intervention
-        implementation/effect draws are then paired across current practice and interventions.
-        These are conditional intervals, not full joint Bayesian credible intervals.
+    figure2c_parametric_bootstrap_confidence_interval:
+      replicates_per_country: 1024
+      minimum_successful_replicates: 1000
+      minimum_success_fraction: 0.95
+      maximum_tail_probability_mcse: 0.005
+      stability_blocks: 8
+      parallel_workers: 100
+      checkpoint_chunk_size: 100
+      retry_maxiter_schedule:
+      - 64
+      - 128
+      seed: 20260716
+      note: 'Canonical Figure 2c uncertainty route. Each replicate regenerates a complete
+        annual latent transmission path from the prespecified bounded AR(1) process
+        and grouped surveillance counts from the fitted NB2 model, fully refits the
+        country state-space MAP model, and propagates that same refit through current
+        practice and every intervention strategy. The 2.5% and 97.5% percentile endpoints
+        are paired parametric-bootstrap 95% confidence intervals for the fitted scenario-reduction
+        estimand. They are neither posterior credible intervals nor future-observation
+        prediction intervals. Biological quantities, intervention definitions, AR(1)
+        hyperparameters, and NB2 dispersion remain fixed at prespecified reference
+        values.
+
+        '
+    figure1b_current_practice_conditional_parametric_bootstrap_confidence_interval:
+      replicates_per_country: 1024
+      minimum_successful_replicates: 1000
+      minimum_success_fraction: 0.95
+      maximum_tail_probability_mcse: 0.005
+      stability_blocks: 8
+      parallel_workers: 48
+      checkpoint_chunk_size: 50
+      retry_maxiter_schedule:
+      - 64
+      - 128
+      seed: 20260718
+      note: 'Figure 1b current-practice-only conditional uncertainty route. Each replicate
+        holds the accepted fitted annual latent transmission path as the generating
+        trajectory, regenerates grouped NB2 surveillance counts, fully refits the
+        country state-space MAP model, and runs current practice once. The reported-case,
+        symptomatic-case, and infection indices are retained from the same fitted
+        replicate. Percentile endpoints are conditional parametric-bootstrap confidence
+        intervals, not posterior credible intervals or future-observation prediction
+        intervals. Biological quantities, AR(1) hyperparameters, and NB2 dispersion
+        remain fixed at prespecified reference values.
+
+        '
+    figure2c_joint_credible_interval:
+      posterior_draws_per_country: 4096
+      note: 'Retired checkpoint-compatible route, retained only for provenance. Figure
+        2c previously used paired draws from the multi-country full-feedback joint
+        posterior. Shared biological parameters, country beta/reporting, and annual
+        latent transmission states are jointly weighted by the exact NB2 plus AR(1)
+        plus mechanistic ODE target. Intervention implementation and effect quantities
+        have prespecified priors and no direct likelihood, so their posterior equals
+        their prior; the same complete draw is propagated through current practice
+        and each intervention. The plotted 2.5% and 97.5% quantiles are joint-posterior
+        95% credible intervals.
 
         '
       intervention_priors:
@@ -1405,15 +1457,13 @@ config:
           high: 270.0
           distribution: triangular
           note: Duration of passive maternal protection in early infancy.
-    note: 'The default route is reference_structure_state_space_exact_importance_cut.
-      The canonical CLI sampler is state_space_exact_importance_cut; state_space_laplace_cut
-      is accepted only as a legacy input alias and is never written to new outputs.
-      Externally informed vaccine, duration, asymptomatic-infectiousness, and resistance-fitness
-      uncertainty is shared across countries and propagated, but sparse surveillance
-      is not allowed to update those structural priors. Legacy grid, Adaptive Metropolis,
-      importance, and SMC engines target a separate deterministic no-process likelihood
-      from pre-surveillance priors and must be labelled as alternative sensitivity
-      analyses.
+    note: 'The canonical route is multi-country adaptive tempered SMC over the full
+      joint state: seven shared biological parameters plus country-specific beta,
+      reporting, and annual AR(1) transmission paths. Tempering proceeds from the
+      normalized joint prior to the exact NB2/ODE target, with island-wise resampling
+      and exact-target shared/state rejuvenation moves. The former conditional cut
+      and nested importance routes are retained only as rejected sensitivity implementations
+      and are not publication inputs.
 
       '
     convergence_criteria:
@@ -1423,13 +1473,11 @@ config:
       recommended_rhat_threshold: 1.01
       recommended_min_bulk_ess: 400
       recommended_min_tail_ess: 400
-      note: 'R-hat/ESS thresholds apply only to genuine MCMC/SMC alternatives. The
-        default state-space route instead gates Hessian rank/conditioning, bounded-mixture
-        rejection mass, exact-target importance ESS, maximum weight, Pareto-tail shape
-        and coordinate-tail support, state-draw count, structural design size, complete
-        annual process paths, cross-country structural pairing, and rolling-origin
-        predictive checks. Synthetic chain labels are output batching, not Markov
-        chains.
+      note: 'SMC islands are independent diagnostic chains. Publication acceptance
+        requires final temperature 1, stage-wise island ESS control, active rejuvenation,
+        adequate particle and island diversity, rank-normalized cross-island R-hat/bulk/tail
+        ESS, complete annual process paths, cross-country shared-draw pairing, and
+        rolling-origin predictive checks.
 
         '
     adaptive_metropolis:
@@ -1692,23 +1740,23 @@ config:
     young_adult_18_39y: 0.05
     middle_adult_40_64y: 0.03
     elderly_65plus: 0.04
-  reporting_multiplier: 0.9728435912560729
+  reporting_multiplier: 1.0114510291605256
 metadata:
   country: New_Zealand
   accepted: true
   optimizer_success: true
   calibration_status: state_reconstruction_accepted
-  fit_score: 32.1464548944196
-  data_fit_score: 29.28661041270576
+  fit_score: 30.018541530691316
+  data_fit_score: 28.765002611277744
   n_starts: 1
   maxiter: 12
-  config_hash: e07d2d9623bba63452e5939f83db5c87901a902d0a71c99df08b4ecdc3550c54
-  calibration_config_hash: c36eefa5b9e490f39c68369d7b2ec545f1003c465b2d7a3d65a4f58b53b37bf6
-  source_code_hash: 1b39feb5574028211a6cbd5c7ef247152b81925a64cd082bcab52ffa09d72af1
-  calibration_source_code_hash: 66ac2d3e7fa864c9f10636feb83f14fc28153b6aa0c0adc9547e1d6118895239
+  config_hash: fe4b0945dbc60905bca91e1dac7a67bb5863846eea9d42ff0fc0dbee6b1fb742
+  calibration_config_hash: fbaadbe47d956b3f84d024d1fe55f5b483b9cf95f7db1635c7b7f23a7bb227b0
+  source_code_hash: ba497202d4e1ede62d2c1a8500cff7ecee3ba54aecc2d558e44ac80fa19aac74
+  calibration_source_code_hash: d65e7bcf557868b367d7678df6f1f05e7680b80d7dbf5f357913ea809584fd60
   baseline_vaccine_scenario: symptom_protective
   baseline_resistance_scenario: country_timeline
-  generated_at_utc: '2026-07-13T22:50:38.236942+00:00'
+  generated_at_utc: '2026-07-20T05:48:44.972346+00:00'
   state_posterior_approximation:
     method: gauss_newton_laplace_conditional
     scope: conditional_on_fixed_rho_innovation_sd_dispersion_and_reference_structure
@@ -1722,82 +1770,82 @@ metadata:
     - log_beta_process_2025
     - log_beta_process_2026
     map_vector:
-    - -3.6895011419146266
-    - -0.02753195868364116
-    - 0.9835581689801194
-    - -0.31725158488694144
-    - 0.29114562849516684
-    - -0.005885361698920217
-    - -0.34188179113790834
-    - -0.35898138982613453
+    - -3.4956499536661467
+    - 0.011385962376081717
+    - 0.4629679071226053
+    - 0.17566604078568496
+    - -0.0397032859615915
+    - -0.20252269905920534
+    - -0.5917821556799969
+    - -0.3673090048093021
     covariance:
-    - - 0.05653383990658686
-      - -0.011592149113594859
-      - -0.09423369078638152
-      - -0.11071135724567638
-      - -0.09554578904709207
-      - -0.09693187393497671
-      - -0.09499932901823416
-      - -0.0856210552314018
-    - - -0.011592149113594859
-      - 0.24016713702567444
-      - -0.007763607119343543
-      - 0.018324050135677637
-      - -0.002850351125763776
-      - 0.024111757669552824
-      - 0.007346374682676985
-      - -0.03758207602704703
-    - - -0.09423369078638152
-      - -0.007763607119343543
-      - 0.16058305734409792
-      - 0.18227868936733496
-      - 0.1620913167693746
-      - 0.16117689927456325
-      - 0.1599579722818608
-      - 0.1485803421702772
-    - - -0.11071135724567638
-      - 0.018324050135677637
-      - 0.18227868936733496
-      - 0.28612830879286993
-      - 0.18027330231869285
-      - 0.1865196941448713
-      - 0.179151057624223
-      - 0.18189446852657776
-    - - -0.09554578904709207
-      - -0.002850351125763776
-      - 0.1620913167693746
-      - 0.18027330231869285
-      - 0.16463055889548042
-      - 0.16341815029651438
-      - 0.1627113282486929
-      - 0.1477436962545532
-    - - -0.09693187393497671
-      - 0.024111757669552824
-      - 0.16117689927456325
-      - 0.1865196941448713
-      - 0.16341815029651438
-      - 0.1671780542832336
-      - 0.1620431149853757
-      - 0.14838859147493702
-    - - -0.09499932901823416
-      - 0.007346374682676985
-      - 0.1599579722818608
-      - 0.179151057624223
-      - 0.1627113282486929
-      - 0.1620431149853757
-      - 0.16351078101469355
-      - 0.13664235952023307
-    - - -0.0856210552314018
-      - -0.03758207602704703
-      - 0.1485803421702772
-      - 0.18189446852657776
-      - 0.1477436962545532
-      - 0.14838859147493702
-      - 0.13664235952023307
-      - 0.1783355169412981
+    - - 0.005277137456493524
+      - -0.006374985373039393
+      - 0.01798714972530143
+      - 0.0412894218491089
+      - 0.017680071611792397
+      - 0.02312264373688688
+      - 0.018358271265236162
+      - 0.022498314857042526
+    - - -0.006374985373039393
+      - 0.22101900752406758
+      - -0.07274028838178284
+      - -0.014758929404824012
+      - -0.04987660231419831
+      - -0.007580438855118473
+      - -0.048905844714632926
+      - -0.04078170939209027
+    - - 0.01798714972530143
+      - -0.07274028838178284
+      - 0.07558943735261184
+      - 0.12843996738307298
+      - 0.06873706750944862
+      - 0.0734841253115649
+      - 0.06951533818166131
+      - 0.07865135727598271
+    - - 0.0412894218491089
+      - -0.014758929404824012
+      - 0.12843996738307298
+      - 0.3423604207420636
+      - 0.1266621887164645
+      - 0.18494693069799947
+      - 0.13704017772159766
+      - 0.1786964577445927
+    - - 0.017680071611792397
+      - -0.04987660231419831
+      - 0.06873706750944862
+      - 0.1266621887164645
+      - 0.06716171282819844
+      - 0.07403373582791017
+      - 0.06663306915694109
+      - 0.07368012524207751
+    - - 0.02312264373688688
+      - -0.007580438855118473
+      - 0.0734841253115649
+      - 0.18494693069799947
+      - 0.07403373582791017
+      - 0.10416392247458647
+      - 0.07674934824752805
+      - 0.10038686123772747
+    - - 0.018358271265236162
+      - -0.048905844714632926
+      - 0.06951533818166131
+      - 0.13704017772159766
+      - 0.06663306915694109
+      - 0.07674934824752805
+      - 0.0707594743144114
+      - 0.07003556865421814
+    - - 0.022498314857042526
+      - -0.04078170939209027
+      - 0.07865135727598271
+      - 0.1786964577445927
+      - 0.07368012524207751
+      - 0.10038686123772747
+      - 0.07003556865421814
+      - 0.12730117963931384
     lower_bounds:
     - -7.600902459542082
-    - -0.6931471805599453
+    - -2.3025850929940455
     - -2.5
     - -2.5
     - -2.5
@@ -1806,7 +1854,7 @@ metadata:
     - -2.5
     upper_bounds:
     - -0.6931471805599453
-    - 0.4054651081081644
+    - 2.302585092994046
     - 2.5
     - 2.5
     - 2.5
@@ -1814,7 +1862,7 @@ metadata:
     - 2.5
     - 2.5
     rank: 8
-    condition_number: 467.15867276559277
+    condition_number: 1320.5606260444142
     prior_center_source: pre_surveillance_country_config
     measurement_dispersion: 50.0
     likelihood_observation_frequency: annual

@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 import src_python.simulation.audit_figure2c_full_cri as audit_module
+import src_python.simulation.programme_uncertainty_helpers as programme_helpers
 import src_python.simulation.run_figure2c_paired_uncertainty as figure2c_module
 from src_python.simulation.audit_figure2c_full_cri import (
     REQUIRED_INTERVENTION_UNCERTAINTY_COLUMNS,
@@ -105,7 +106,7 @@ def test_retired_full_joint_stem_is_rejected_before_reading_outputs() -> None:
 
 
 def test_figure2c_rejects_exploratory_country_before_reading_samples() -> None:
-    with pytest.raises(ValueError, match="outside the prespecified publication set"):
+    with pytest.raises(ValueError, match="restricted to the configured country set"):
         figure2c_module.main(
             countries_filter=["Australia", "South_Africa"],
             posterior_samples_path="does-not-exist.parquet",
@@ -113,8 +114,20 @@ def test_figure2c_rejects_exploratory_country_before_reading_samples() -> None:
 
 
 def test_figure2c_quality_bypass_cannot_write_canonical_outputs() -> None:
-    with pytest.raises(ValueError, match="retired for the canonical Figure 2c"):
+    with pytest.raises(ValueError, match="retired because it bypassed"):
         figure2c_module.main(allow_conditional_posterior=True)
+
+
+def test_paired_posterior_runner_is_explicitly_legacy_nonpublication() -> None:
+    assert (
+        figure2c_module.ANALYSIS_ROLE
+        == "optional_nonpublication_legacy_research"
+    )
+    assert figure2c_module.PUBLICATION_PATH is False
+    assert figure2c_module.FIGURE2C_INTERVAL_SOURCE is False
+    description = " ".join(figure2c_module.__doc__.split())
+    assert "not a Figure 2c interval source" in description
+    assert "not part of the publication pipeline" in description
 
 
 def test_interval_summary_uses_draw_level_quantiles() -> None:
@@ -166,14 +179,38 @@ def test_interval_summary_labels_exact_state_route_as_conditional_uncertainty() 
     assert interval["uncertainty_draws"] == 4
 
 
+def test_interval_summary_labels_joint_smc_route_as_credible_interval() -> None:
+    draws = pd.DataFrame(
+        {
+            "country": ["A"] * 4,
+            "posterior_draw": [1, 2, 3, 4],
+            "strategy": ["timeliness_only"] * 4,
+            "strategy_label": ["Routine timeliness"] * 4,
+            "current_rate": [100.0] * 4,
+            "intervention_rate": [90.0, 85.0, 80.0, 75.0],
+            PRIMARY_REDUCTION: [0.10, 0.15, 0.20, 0.25],
+            "inference_structure": [
+                "cross_country_joint_state_space_tempered_smc"
+            ]
+            * 4,
+        }
+    )
+
+    interval = _interval_summary(draws).iloc[0]
+
+    assert interval["interval_type"] == "95% joint posterior credible interval"
+    assert "full-feedback posterior draw" in interval["interval_basis"]
+    assert "updated jointly" in interval["interval_basis"]
+
+
 def test_build_scenarios_retains_structural_draw_metadata(monkeypatch) -> None:
     monkeypatch.setattr(
-        figure2c_module,
+        programme_helpers,
         "make_intervention_config",
         lambda *args, **kwargs: ({"simulation": {}}, "current_vaccine"),
     )
     monkeypatch.setattr(
-        figure2c_module,
+        programme_helpers,
         "_apply_sample",
         lambda config, sample: config,
     )
@@ -478,8 +515,10 @@ def test_full_cri_audit_records_missing_required_outputs(tmp_path, monkeypatch) 
         name = str(parts[-1]) if parts else ""
         if name.endswith("_posterior_samples.parquet"):
             return tmp_path / "missing_posterior.parquet"
-        if name.endswith("_convergence_diagnostics.csv"):
-            return tmp_path / "missing_convergence.csv"
+        if name.endswith("_structural_importance_audit.csv"):
+            return tmp_path / "missing_structural_importance.csv"
+        if name.endswith("_local_state_importance_audit.csv"):
+            return tmp_path / "missing_local_importance.csv"
         return original_project_path(*parts)
 
     monkeypatch.setattr(audit_module, "project_path", _isolated_project_path)
@@ -492,12 +531,6 @@ def test_full_cri_audit_records_missing_required_outputs(tmp_path, monkeypatch) 
 
     monkeypatch.setattr(audit_module, "validate_run_metadata", _missing_metadata)
     monkeypatch.setattr(audit_module, "write_run_metadata", lambda *args, **kwargs: None)
-    monkeypatch.setattr(
-        audit_module,
-        "require_predictive_publication_gate",
-        lambda **_kwargs: {},
-    )
-
     with pytest.raises(SystemExit) as exc:
         audit_module.main(expected_draws=200, expected_chains=10, fail_on_warnings=True)
 
@@ -506,7 +539,8 @@ def test_full_cri_audit_records_missing_required_outputs(tmp_path, monkeypatch) 
     missing_checks = audit.loc[audit["status"].eq("fail"), "check"].tolist()
     assert "run_metadata_file_exists" in missing_checks
     assert "posterior_sample_file_exists" in missing_checks
-    assert "diagnostics_file_exists" in missing_checks
+    assert "structural_importance_file_exists" in missing_checks
+    assert "local_state_importance_file_exists" in missing_checks
     assert "interval_file_exists" in missing_checks
     assert "draw_file_exists" in missing_checks
 
@@ -531,8 +565,8 @@ def test_full_cri_audit_rejects_stale_figure2c_source_metadata() -> None:
         for row in rows
         if row["severity"] == "fatal" and row["status"] == "fail"
     }
-    assert "posterior_source_stem_matches_conditional_release" in failures
-    assert "posterior_source_path_matches_conditional_release" in failures
+    assert "posterior_source_stem_matches_joint_release" in failures
+    assert "posterior_source_path_matches_joint_release" in failures
     assert "all_configured_countries_included" in failures
     assert "uncertainty_draws_per_country_matches_expected" in failures
 

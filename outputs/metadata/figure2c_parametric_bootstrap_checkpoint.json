@@ -1,0 +1,17 @@
+{
+  "countries": [
+    "Australia",
+    "China",
+    "United_Kingdom",
+    "Japan",
+    "New_Zealand",
+    "Sweden",
+    "United_States",
+    "Brazil",
+    "Thailand"
+  ],
+  "fingerprint": "d2fc3122cb7031c3c8e473225dadc3a49b783ecd039fb98d539da4f26eea912a",
+  "maxiter": 12,
+  "replicates": 1024,
+  "seed": 20260716
+}

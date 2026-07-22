@@ -92,7 +92,7 @@ plot_extended_data_figure_9_panel_e <- function(data) {
     geom_point(aes(x = frequency_top_2), size = 1.5, colour = manuscript_diagnostic_colours["Within 10% of best"]) +
     scale_x_continuous(labels = pct_label, limits = c(0, 1), expand = expansion(mult = c(0.01, 0.04))) +
     labs(
-      x = "Selected-parameter frequency",
+      x = "Selected-input design frequency",
       y = NULL,
       caption = "Primary <18 endpoint; bars: rank 1; dots: top 2"
     ) +

@@ -1,28 +1,28 @@
 country,optimization_constraint,preferred_strategy,preferred_strategy_label,preferred_primary_cases_per_100k,preferred_primary_case_reduction,primary_case_metric,metric_availability_note
-Australia,future_product_target,combined_strategy,Combined future stress-test profile,640.2852503454919,0.4082424375026249,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Australia,program_only,timeliness_only,Routine timeliness,929.4317832502815,0.14540345344780214,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Australia,program_plus_resistance,timeliness_only,Routine timeliness,929.4317832502815,0.14540345344780214,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Brazil,future_product_target,combined_strategy,Combined future stress-test profile,32.651828578152326,0.9299016419498977,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Brazil,program_only,timeliness_only,Routine timeliness,361.34105541568994,0.22501978523026356,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Brazil,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,301.5495315925536,0.3526204210274172,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-China,future_product_target,combined_strategy,Combined future stress-test profile,484.31578663724014,0.45771847408654176,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-China,program_only,timeliness_only,Routine timeliness,830.6678083221036,0.07071577888227709,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-China,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,784.9511420647198,0.12110132491907255,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Japan,future_product_target,combined_strategy,Combined future stress-test profile,552.5042750751321,0.47270398645016654,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Japan,program_only,timeliness_only,Routine timeliness,972.8402637155392,0.07154103424970493,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Japan,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,904.8373100178366,0.13644630813325798,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-New_Zealand,future_product_target,combined_strategy,Combined future stress-test profile,527.7186417480065,0.5038165123719254,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-New_Zealand,program_only,timeliness_only,Routine timeliness,881.2137863322911,0.17158234423782082,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-New_Zealand,program_plus_resistance,timeliness_only,Routine timeliness,881.2137863322911,0.17158234423782082,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Sweden,future_product_target,next_generation_vaccine,High-transmission-blocking vaccine target,103.56559356591798,0.40839644505093997,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Sweden,program_only,maternal_immunization,Infant-exposure package,157.1458823303691,0.1023267529989268,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Sweden,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,152.82960482755837,0.12698286719251461,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Thailand,future_product_target,combined_strategy,Combined future stress-test profile,22.853715019521943,0.954333977268157,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Thailand,program_only,timeliness_only,Routine timeliness,368.01580256057406,0.2648215904760386,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-Thailand,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,272.7767664755529,0.4549406957770614,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-United_Kingdom,future_product_target,combined_strategy,Combined future stress-test profile,285.94577486549616,0.6684808670969479,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-United_Kingdom,program_only,timeliness_only,Routine timeliness,712.9139313523726,0.1733916985563475,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-United_Kingdom,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,705.1948273628324,0.18241289685790174,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-United_States,future_product_target,combined_strategy,Combined future stress-test profile,202.47383247163873,0.7164444731209388,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-United_States,program_only,timeliness_only,Routine timeliness,609.3703830698836,0.14666964821875306,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
-United_States,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,570.4496050811811,0.20111089721621678,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Australia,future_product_target,combined_strategy,Combined future stress-test profile,641.0093321785847,0.407986079816941,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Australia,program_only,timeliness_only,Routine timeliness,924.7515961765625,0.14593159543033873,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Australia,program_plus_resistance,timeliness_only,Routine timeliness,924.7515961765625,0.14593159543033873,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Brazil,future_product_target,combined_strategy,Combined future stress-test profile,32.20695244627713,0.9304454563569415,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Brazil,program_only,timeliness_only,Routine timeliness,358.4527500983109,0.2258808872936613,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Brazil,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,297.7551393900705,0.35696421844949955,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+China,future_product_target,combined_strategy,Combined future stress-test profile,12.869354174197518,0.9556942369630005,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+China,program_only,maternal_immunization,Infant-exposure package,274.0380124302636,0.0565600202216302,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+China,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,210.1747718048462,0.27642416939530556,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Japan,future_product_target,combined_strategy,Combined future stress-test profile,552.2594869457404,0.47242944181478863,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Japan,program_only,timeliness_only,Routine timeliness,972.417267421913,0.07105494303057425,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Japan,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,904.5791608090799,0.13586032640188173,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+New_Zealand,future_product_target,next_generation_vaccine,High-transmission-blocking vaccine target,744.5309498855569,0.4246154011801412,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+New_Zealand,program_only,timeliness_only,Routine timeliness,1032.916832789019,0.2017464988662412,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+New_Zealand,program_plus_resistance,timeliness_only,Routine timeliness,1032.916832789019,0.2017464988662412,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Sweden,future_product_target,next_generation_vaccine,High-transmission-blocking vaccine target,103.5031772274012,0.4090064116858583,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Sweden,program_only,timeliness_only,Routine timeliness,148.17757340456384,0.15391973309528795,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Sweden,program_plus_resistance,timeliness_only,Routine timeliness,148.17757340456384,0.15391973309528795,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Thailand,future_product_target,combined_strategy,Combined future stress-test profile,22.856491195998004,0.9543303633955088,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Thailand,program_only,timeliness_only,Routine timeliness,367.9158914417158,0.26486594468609437,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+Thailand,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,272.786250133047,0.4549448203817301,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+United_Kingdom,future_product_target,combined_strategy,Combined future stress-test profile,283.67292781485696,0.6949479638247844,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+United_Kingdom,program_only,timeliness_only,Routine timeliness,679.1120982064097,0.2697063835280855,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+United_Kingdom,program_plus_resistance,timeliness_only,Routine timeliness,679.1120982064097,0.2697063835280855,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+United_States,future_product_target,combined_strategy,Combined future stress-test profile,202.46467656147132,0.7164569283460103,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+United_States,program_only,timeliness_only,Routine timeliness,609.3439658269568,0.14663998333584904,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.
+United_States,program_plus_resistance,resistance_guided_treatment,Resistance-guided management,570.4349637667533,0.20113036727100397,child_adolescent_0_17y,Primary Lancet metric generated from model age groups <18 years.

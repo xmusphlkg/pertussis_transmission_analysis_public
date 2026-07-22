@@ -1,0 +1,58 @@
+{
+  "analysis_role": "publication_estimation_confidence_interval_quality_audit",
+  "audit_table_sha256": "e9e9daab20afc6d11968ad9713adc7945d646e1cb7325c9eda140c91fa8f347e",
+  "audited_artifact_sha256": {
+    "confidence_intervals_sha256": "e640e519328d26cea05ef527f3708b4d328d95b09947342f1e7bbc3cc2ae17ed",
+    "fit_diagnostics_sha256": "815ef282d3ed9b52347e74222294d9340d17b6afff553e00801c06868cd0e768",
+    "interval_stability_sha256": "8bb5ffce873ce0ad6cb14e7f4429a07b458517d9fd8c92fc58bb05fadec46cfd",
+    "paired_bootstrap_draws_sha256": "b75afc4b80415085879340ef86ffb3f4a00fe782ab08f30161bec98743dcef03"
+  },
+  "audits_figure2c_interval_source": true,
+  "config_hash": "fe4b0945dbc60905bca91e1dac7a67bb5863846eea9d42ff0fc0dbee6b1fb742",
+  "dependency_versions": {
+    "joblib": "1.5.3",
+    "numba": "0.65.1",
+    "numpy": "2.4.4",
+    "pandas": "3.0.3",
+    "pyarrow": "24.0.0",
+    "python": "3.12.3",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "figure2c_interval_source": false,
+  "figure2c_source_stem": "figure2c_parametric_bootstrap",
+  "generated_at_utc": "2026-07-20T19:23:12.317820+00:00",
+  "git": {
+    "branch": "main",
+    "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
+    "dirty": true
+  },
+  "passed": true,
+  "publication_path": true,
+  "row_counts": {
+    "audit_checks": 18
+  },
+  "schema_version": 1,
+  "source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+  "source_hash_reattestation": {
+    "attested_at_utc": "2026-07-22T00:32:28.958887+00:00",
+    "change_class": "validation_contract_and_fingerprint_scope_no_numerical_change",
+    "changed_source_paths": [
+      "src_python/utils/validation.py",
+      "src_python/simulation/common.py",
+      "Makefile"
+    ],
+    "new_common_file_sha256": "f2013608cacb158e80dd138c0003228bab0a3e98cd42520d22cf4e76b65be845",
+    "new_makefile_sha256": "6fb613b2f04c0bb304f20849acab1ce3d304a8fce53404bd4c8dc68778bcdd9f",
+    "new_source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+    "new_validation_file_sha256": "e53bb5c63197063bcb45a1b020b0d5662f8d2855c2d6d33310a4f27786243f16",
+    "numerical_artifacts_regenerated": false,
+    "old_common_file_sha256": "271d625b719f7f5364a90a57e69488ad5ff091601b35c5ce4e0dd7dce9a899e3",
+    "old_makefile_sha256": "4f920081b277eaabbb0088ce5507676363703344081305fa8aea3b5c09a2c5cd",
+    "old_source_code_hash": "ba497202d4e1ede62d2c1a8500cff7ecee3ba54aecc2d558e44ac80fa19aac74",
+    "old_validation_file_sha256": "40bef8420b07823ff83d7209c23660194201c6bb247a5c5f95bfb6abb7c50f82",
+    "reason": "Removed retired posterior publication requirements, added the active Figure 1b and Figure 2 publication stems, unified the generic and manuscript publication inventories, and excluded the non-generating validator from numerical fingerprints/prerequisites."
+  },
+  "stem": "figure2c_parametric_bootstrap_quality_audit",
+  "warnings_are_fatal": true
+}

@@ -1,6 +1,9 @@
 ## Figure 3 panels -------------------------------------------------------------
 
 plot_figure_3_panel_a <- function(data) {
+  panel_a_colourbar_limits <- c(-0.10, 0.50)
+  panel_a_colourbar_breaks <- pretty(panel_a_colourbar_limits, n = 5)
+
   ggplot(data$endpoint_effect_matrix, aes(endpoint, strategy_label_plot, fill = median_relative_case_reduction)) +
     geom_tile(colour = "white", linewidth = lancet_heatmap_tile_linewidth) +
     geom_vline(xintercept = c(3.5, 5.5), colour = "white", linewidth = 1.05) +
@@ -10,13 +13,13 @@ plot_figure_3_panel_a <- function(data) {
       lineheight = 0.82
     ) +
     scale_x_discrete(labels = data$endpoint_axis_labels) +
-    scale_fill_gradientn(
-      colours = c(manuscript_colour("light_grey"), manuscript_colour("sky"), manuscript_colour("blue")),
-      limits = c(0, 0.50),
-      breaks = seq(0, 0.50, by = 0.10),
+    scale_fill_reduction(
+      midpoint = 0,
+      limits = panel_a_colourbar_limits,
+      breaks = panel_a_colourbar_breaks,
       labels = label_lancet_percent(accuracy = 1),
       oob = scales::squish,
-      name = "Median [cross-profile IQR] of reduction",
+      name = "Median reduction",
       guide = guide_lancet_colourbar(
         barwidth = unit(0.30, "cm"),
         barheight = unit(5.5, "cm"),
@@ -26,17 +29,22 @@ plot_figure_3_panel_a <- function(data) {
     ) +
     scale_colour_identity() +
     labs(x = NULL, y = NULL, tag = "a") +
-    theme_lancet_heatmap(
+    theme_lancet_panel(
       base_size = journal_dense_text_size,
       plot_margin = margin(4, 5, 4, 4),
-      x_size = journal_dense_text_size - 0.7,
-      legend_position = "right",
-      legend_direction = "vertical"
+      show_y_grid = TRUE
     ) +
     theme(
+      axis.text.x = element_text(
+        size = journal_dense_text_size - 0.7,
+        lineheight = 0.90,
+        margin = margin(t = 2)
+      ),
       legend.title = element_text(angle = 90, hjust = 0, vjust = 0.5, lineheight = 0.92),
       legend.text = element_text(lineheight = 0.95),
-      legend.title.position = "left"
+      legend.title.position = "left",
+      legend.position = "right",
+      legend.direction = "vertical"
     )
 }
 
@@ -86,7 +94,7 @@ plot_figure_3_panel_b <- function(data) {
     scale_linetype_iqr() +
     coord_cartesian(xlim = c(-12, 30), clip = "off") +
     labs(
-      x = "Infant-case reduction minus\nall-<18-case reduction (percentage points)",
+      x = "Infant minus all <18 benefit (pp)",
       y = NULL,
       tag = "b"
     ) +
@@ -159,7 +167,7 @@ plot_figure_3_panel_c <- function(data) {
   ggplot() +
     geom_vline(xintercept = 0, linewidth = 0.24, colour = manuscript_colour("pale_grey")) +
     geom_segment(
-      data = data$booster_effect_profile %>% filter(!china_profile),
+      data = data$booster_effect_profile %>% filter(!highlight_profile),
       aes(
         x = all_under18_symptomatic_case_reduction,
         xend = adolescent_case_reduction,
@@ -170,7 +178,7 @@ plot_figure_3_panel_c <- function(data) {
       colour = manuscript_colour("light_grey")
     ) +
     geom_segment(
-      data = data$booster_effect_profile %>% filter(china_profile),
+      data = data$booster_effect_profile %>% filter(highlight_profile),
       aes(
         x = all_under18_symptomatic_case_reduction,
         xend = adolescent_case_reduction,
@@ -181,7 +189,7 @@ plot_figure_3_panel_c <- function(data) {
       colour = manuscript_colour("black")
     ) +
     geom_point(
-      data = data$booster_effect_long %>% filter(!china_profile),
+      data = data$booster_effect_long %>% filter(!highlight_profile),
       aes(case_reduction, country_label_booster, shape = outcome_label),
       size = 1.85,
       stroke = 0.30,
@@ -190,7 +198,7 @@ plot_figure_3_panel_c <- function(data) {
       alpha = 0.86
     ) +
     geom_point(
-      data = data$booster_effect_long %>% filter(china_profile),
+      data = data$booster_effect_long %>% filter(highlight_profile),
       aes(case_reduction, country_label_booster, shape = outcome_label),
       size = 2.45,
       stroke = 0.35,
@@ -198,7 +206,7 @@ plot_figure_3_panel_c <- function(data) {
       fill = lancet_text_colour
     ) +
     geom_text(
-      data = data$booster_china_labels,
+      data = data$booster_highlight_labels,
       aes(
         x = case_reduction + label_nudge_x,
         y = country_label_booster,
@@ -209,6 +217,7 @@ plot_figure_3_panel_c <- function(data) {
       colour = lancet_text_colour
     ) +
     scale_x_continuous(labels = label_lancet_percent(accuracy = 1), breaks = data$booster_x_breaks) +
+    scale_y_discrete(limits = rev(data$country_order), drop = FALSE) +
     scale_shape_manual(
       values = c("All <18 symptomatic cases" = 21, "Adolescent cases" = 24),
       labels = c("All <18 cases", "Adolescent cases"),
@@ -225,7 +234,7 @@ plot_figure_3_panel_c <- function(data) {
     ) +
     coord_cartesian(xlim = data$booster_x_limits, clip = "off") +
     labs(
-      x = "Reduction in symptomatic cases\nunder adolescent booster scale-up (%)",
+      x = "Reduction (%)",
       y = NULL,
       tag = "c"
     ) +
@@ -236,6 +245,8 @@ plot_figure_3_panel_c <- function(data) {
     ) +
     theme_lancet_inside_legend(
       key_height = unit(0.46, "cm"),
+      position = c(1, 1),
+      justification = c(1, 1),
       title_lineheight = 0.90,
       text_lineheight = 1.16,
       text_margin = margin(t = 3, b = 3),

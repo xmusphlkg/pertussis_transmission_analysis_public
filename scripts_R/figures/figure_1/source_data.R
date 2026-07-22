@@ -18,7 +18,22 @@ make_figure_1_source_data <- function(data) {
         total_child_adolescent_cases,
         total_child_adolescent_reported_cases,
         total_child_adolescent_infections,
-        rate_per_100k
+        rate_per_100k,
+        point_estimate_type = "deterministic conditional index",
+        parent_config_hash,
+        parent_source_code_hash,
+        interval_applies,
+        interval_lower_per_100k,
+        interval_upper_per_100k,
+        bootstrap_replicates,
+        interval_type,
+        interval_basis,
+        confidence_interval_method,
+        interval_scope = if_else(
+          interval_applies,
+          "All three conditional burden indices",
+          "No interval; conditional point index"
+        )
       ),
     decision_map = data$decision_map %>%
       transmute(

@@ -29,6 +29,10 @@ from src_python.simulation import common as simulation_common
 from src_python.simulation.common import make_config
 from src_python.simulation.common import load_configs, publication_country_names
 from src_python.simulation.run_reporting_scenarios import _apply_reporting_scenario
+from src_python.simulation.run_vaccine_scenarios import (
+    VACCINE_TRANSITION_DESIGN,
+    build_scenarios as build_vaccine_scenarios,
+)
 
 
 def _prepared_params(
@@ -344,6 +348,37 @@ def test_prospective_scenario_bundle_prepares_one_shared_history(monkeypatch) ->
     second = prepared[1]["initial_state_override"]
     np.testing.assert_array_equal(first, second)
     assert not np.shares_memory(first, second)
+
+
+def test_vaccine_mechanism_grid_branches_from_current_ap_history() -> None:
+    """Vaccine targets must never create policy-specific historical states."""
+
+    configs = load_configs()
+    scenarios = build_vaccine_scenarios(configs)
+    expected_settings = tuple(configs["vaccines"])
+    baseline_vaccine = str(configs["baseline"]["baseline_vaccine_scenario"])
+
+    assert len(scenarios) == len(publication_country_names(configs)) * len(expected_settings)
+    for country in publication_country_names(configs):
+        country_items = [
+            item for item in scenarios if item["metadata"]["country"] == country
+        ]
+        assert tuple(item["scenario"] for item in country_items) == expected_settings
+        history_fingerprints = {
+            simulation_common._history_config_fingerprint(
+                simulation_common.prospective_policy_history(item["config"])
+            )
+            for item in country_items
+        }
+        assert len(history_fingerprints) == 1
+        for item in country_items:
+            spec = item["config"][simulation_common.PROSPECTIVE_POLICY_KEY]
+            assert spec["history_vaccine_scenario"] == baseline_vaccine
+            assert item["metadata"]["history_vaccine_scenario"] == baseline_vaccine
+            assert item["metadata"]["vaccine_transition_design"] == VACCINE_TRANSITION_DESIGN
+            assert item["metadata"]["vaccine_transition_interpretation"] == (
+                "mechanism_target_not_cohort_rollout"
+            )
 
 
 def test_age_reporting_scenario_cannot_change_diagnosis_or_treatment_dynamics() -> None:

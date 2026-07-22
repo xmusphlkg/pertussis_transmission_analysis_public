@@ -9,6 +9,7 @@ packages <- c(
   "cowplot",
   "RColorBrewer",
   "readr",
+  "svglite",
   "arrow",
   "yaml",
   "contactdata"

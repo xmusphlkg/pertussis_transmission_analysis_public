@@ -1,5 +1,26 @@
 {
-  "config_hash": "e07d2d9623bba63452e5939f83db5c87901a902d0a71c99df08b4ecdc3550c54",
+  "archived_previous_run": "/home/ctm/pertussis_transmission_analysis/outputs/archive/joint_psa_rank_acceptability/run_20260720T054949387018Z_old-e5fe1feb_new-a5100d5f",
+  "archived_previous_runs": [
+    "/home/ctm/pertussis_transmission_analysis/outputs/archive/joint_psa_rank_acceptability/run_20260720T012529548044Z_old-ccc85916_new-fe9edbaf",
+    "/home/ctm/pertussis_transmission_analysis/outputs/archive/joint_psa_rank_acceptability/run_20260720T021805638421Z_old-fe9edbaf_new-84f417fe",
+    "/home/ctm/pertussis_transmission_analysis/outputs/archive/joint_psa_rank_acceptability/run_20260720T030927214338Z_old-84f417fe_new-76b08eba",
+    "/home/ctm/pertussis_transmission_analysis/outputs/archive/joint_psa_rank_acceptability/run_20260720T034615888012Z_old-76b08eba_new-cbd43d41",
+    "/home/ctm/pertussis_transmission_analysis/outputs/archive/joint_psa_rank_acceptability/run_20260720T042526562973Z_old-cbd43d41_new-fc9f7e43",
+    "/home/ctm/pertussis_transmission_analysis/outputs/archive/joint_psa_rank_acceptability/run_20260720T054949387018Z_old-e5fe1feb_new-a5100d5f"
+  ],
+  "completed_at_utc": "2026-07-20T07:27:43.870103+00:00",
+  "completed_sample_count": 128,
+  "completion_audit": {
+    "all_profiles_complete": true,
+    "exact_one_rank1_strategy_per_profile_sample": true,
+    "exact_requested_samples_per_profile": true,
+    "parameter_sample_ids_match_rank_parent": true,
+    "parameter_sample_values_match_rank_parent": true,
+    "programme_strategy_count": 6,
+    "ranks_recomputed_from_unrounded_burdens": true,
+    "shared_sample_ids_across_profiles": true
+  },
+  "config_hash": "fe4b0945dbc60905bca91e1dac7a67bb5863846eea9d42ff0fc0dbee6b1fb742",
   "countries": [
     "Australia",
     "China",
@@ -21,85 +42,164 @@
     "pyyaml": "6.0.3",
     "scipy": "1.17.1"
   },
-  "generated_at_utc": "2026-07-14T00:45:59.232507+00:00",
+  "excluded_dead_dimensions": [
+    "resistance_management_uptake"
+  ],
+  "expected_under18_programme_rank_rows": 6912,
+  "figure2b_parameter_names": [
+    "infant_contact_multiplier",
+    "VE_inf_baseline",
+    "relative_infectiousness_asymptomatic",
+    "infectious_duration_asymptomatic",
+    "fitness_R",
+    "PEP_coverage_multiplier"
+  ],
+  "generated_at_utc": "2026-07-20T07:27:43.870103+00:00",
   "git": {
     "branch": "main",
     "commit": "a968f1728676e717839fae9b172b7ec0d6401941",
     "dirty": true
   },
+  "input_artifact_path_sha256": {
+    "outputs/calibrations/Australia_calibrated_config.yaml": "3deffa94a7732a6ec0ee2bd7c200dfef3505d15c3ebb1991fa4a3a2b8b5b17a0",
+    "outputs/calibrations/Brazil_calibrated_config.yaml": "e6a51ab6b8297f4bae0df394d67910053d8728b42653e5ae82e2e96ce69d572e",
+    "outputs/calibrations/China_calibrated_config.yaml": "640a0ee643356fda4081af042537de20636586f0b3c8b1f62b53b003e09b3347",
+    "outputs/calibrations/Japan_calibrated_config.yaml": "6ee9c8a013d9a7150fd76fc04de12026398c38bfb919b1db44d95d3e2bde3da6",
+    "outputs/calibrations/New_Zealand_calibrated_config.yaml": "c7aef32af4997b19123e90faa9054719d8b7011c28753bee0107ae1b956fe30c",
+    "outputs/calibrations/Sweden_calibrated_config.yaml": "1765ea41d577fb7d7902273a29233abed075404f676169e98463e52a76bb552f",
+    "outputs/calibrations/Thailand_calibrated_config.yaml": "c8cd63d95e3a8dc372e4f11f55d4ad895484d2b91f880ed413f6450c61894610",
+    "outputs/calibrations/United_Kingdom_calibrated_config.yaml": "123dff4b095f18e4bcf27beb0735f361d2b2998ae14ee68c534017f1561940d1",
+    "outputs/calibrations/United_States_calibrated_config.yaml": "d92de493c14f490597885b1ccc54c894eab92a4fc9b5f31f2a6e23a3d9c9f54b"
+  },
   "keep_timeseries": false,
+  "output_artifact_sha256": {
+    "parameter_samples": "d575a1afd38ea9bcbcaa33a6d6e46325db55c6e96209ebf20478f58da91bdfb0",
+    "under18_programme_rank_acceptability": "723919c3dd77804300468dc8ff4c614493bab3e3d6e52af4b8ba470b9fef2ebf",
+    "under18_programme_rank_samples": "4b859372d1c9eca7ecf38b2fc2b1878790c567d235764e661e61962456cf9f08",
+    "under18_programme_run_summary": "1467cca214d4c7182daa0902bb3fa9b6effd27433b81c2638ea98aac5e1d2767"
+  },
   "parameter_distributions": {
     "PEP_coverage_multiplier": {
       "_log_location": 0.01836117075931979,
       "_log_probability_width": -0.06504477557416402,
+      "consumers": [
+        "src_python.simulation.run_joint_psa_rank_acceptability",
+        "src_python.simulation.run_fitness_grid"
+      ],
       "distribution": "truncated_lognormal",
       "evidence_class": "implementation_prior",
       "high": 1.5,
       "log_sd": 0.25,
       "low": 0.5,
-      "median": 1.0
+      "median": 1.0,
+      "source_ids": [],
+      "time_scope": "prospective_implementation"
     },
     "VE_inf_baseline": {
       "_alpha": 2.454545454545455,
       "_beta": 3.545454545454545,
+      "consumer_note": "The fitness-grid loader requires this source column for the exact six-column upstream contract, but replaces its sampled value with the crossed grid_VE_inf axis before model construction.\n",
+      "consumers": [
+        "src_python.simulation.run_joint_psa_rank_acceptability"
+      ],
+      "contract_readers": [
+        "src_python.simulation.run_fitness_grid"
+      ],
       "distribution": "beta_pert",
       "evidence_class": "vaccine_mechanism_scenario_prior",
       "high": 0.6,
       "low": 0.05,
       "mode": 0.25,
-      "shape": 4.0
+      "shape": 4.0,
+      "source_ids": [
+        "warfel_ap_transmission"
+      ],
+      "time_scope": "structural_all_time"
     },
     "fitness_R": {
       "_log_location": 0.014124903622077427,
       "_log_probability_width": -0.09261839374541132,
+      "consumer_note": "The fitness-grid loader requires this source column for the exact six-column upstream contract, but replaces its sampled value with the crossed grid_fitness_R axis before model construction.\n",
+      "consumers": [
+        "src_python.simulation.run_joint_psa_rank_acceptability"
+      ],
+      "contract_readers": [
+        "src_python.simulation.run_fitness_grid"
+      ],
       "distribution": "truncated_lognormal",
       "evidence_class": "weak_model_prior",
       "high": 1.25,
       "log_sd": 0.15,
       "low": 0.7,
-      "median": 1.0
+      "median": 1.0,
+      "source_ids": [
+        "resistance_surveillance"
+      ],
+      "time_scope": "structural_all_time"
     },
     "infant_contact_multiplier": {
       "_log_location": -0.011852514334111454,
       "_log_probability_width": -0.07572242811639977,
+      "consumers": [
+        "src_python.simulation.run_joint_psa_rank_acceptability",
+        "src_python.simulation.run_fitness_grid"
+      ],
       "distribution": "truncated_lognormal",
       "evidence_class": "contact_structure_scenario_prior",
       "high": 1.5,
       "log_sd": 0.18,
       "low": 0.75,
-      "median": 1.0
+      "median": 1.0,
+      "source_ids": [],
+      "time_scope": "structural_all_time"
     },
     "infectious_duration_asymptomatic": {
       "_log_location": 2.874206218225211,
       "_log_probability_width": -0.06657685371586919,
+      "consumers": [
+        "src_python.simulation.run_joint_psa_rank_acceptability",
+        "src_python.simulation.run_fitness_grid"
+      ],
       "distribution": "truncated_lognormal",
       "evidence_class": "weak_model_prior",
       "high": 28.0,
       "log_sd": 0.3,
       "low": 7.0,
-      "median": 17.3
+      "median": 17.3,
+      "source_ids": [
+        "asymptomatic_household_review",
+        "warfel_ap_transmission"
+      ],
+      "time_scope": "structural_all_time"
     },
     "relative_infectiousness_asymptomatic": {
       "_alpha": 1.5,
       "_beta": 1.5,
       "_log_probability_width": -0.03810285459727459,
+      "consumers": [
+        "src_python.simulation.run_joint_psa_rank_acceptability",
+        "src_python.simulation.run_fitness_grid"
+      ],
       "distribution": "beta",
       "evidence_class": "weak_model_prior",
       "high": 0.95,
       "low": 0.05,
       "mean": 0.5,
-      "sd": 0.25
-    },
-    "resistance_management_uptake": {
-      "_alpha": 3.3333333333333335,
-      "_beta": 2.6666666666666665,
-      "distribution": "beta_pert",
-      "evidence_class": "implementation_prior",
-      "high": 1.0,
-      "low": 0.4,
-      "mode": 0.75,
-      "shape": 4.0
+      "sd": 0.25,
+      "source_ids": [
+        "asymptomatic_household_review",
+        "warfel_ap_transmission"
+      ],
+      "time_scope": "structural_all_time"
     }
+  },
+  "parameter_time_scopes": {
+    "PEP_coverage_multiplier": "prospective_implementation",
+    "VE_inf_baseline": "structural_all_time",
+    "fitness_R": "structural_all_time",
+    "infant_contact_multiplier": "structural_all_time",
+    "infectious_duration_asymptomatic": "structural_all_time",
+    "relative_infectiousness_asymptomatic": "structural_all_time"
   },
   "primary_policy_endpoint": "annualized_child_adolescent_cases_per_100k",
   "programme_only_strategies": [
@@ -120,13 +220,33 @@
     "under18_programme_rank_samples": 6912,
     "under18_programme_run_summary": 60
   },
+  "run_status": "complete",
   "sample_batch_size": 4,
   "sample_design": "latin_hypercube_inverse_cdf",
   "sample_seed": 20260521,
   "sample_size_requested": 128,
   "schema_version": 1,
   "smoke_runtime": false,
-  "source_code_hash": "1b39feb5574028211a6cbd5c7ef247152b81925a64cd082bcab52ffa09d72af1",
+  "source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+  "source_hash_reattestation": {
+    "attested_at_utc": "2026-07-22T00:32:28.958887+00:00",
+    "change_class": "validation_contract_and_fingerprint_scope_no_numerical_change",
+    "changed_source_paths": [
+      "src_python/utils/validation.py",
+      "src_python/simulation/common.py",
+      "Makefile"
+    ],
+    "new_common_file_sha256": "f2013608cacb158e80dd138c0003228bab0a3e98cd42520d22cf4e76b65be845",
+    "new_makefile_sha256": "6fb613b2f04c0bb304f20849acab1ce3d304a8fce53404bd4c8dc68778bcdd9f",
+    "new_source_code_hash": "6ae5826e30dd6412f7b6c0f051efdcbaf9af47b31ed92dc92b506fd2f9b1fccb",
+    "new_validation_file_sha256": "e53bb5c63197063bcb45a1b020b0d5662f8d2855c2d6d33310a4f27786243f16",
+    "numerical_artifacts_regenerated": false,
+    "old_common_file_sha256": "271d625b719f7f5364a90a57e69488ad5ff091601b35c5ce4e0dd7dce9a899e3",
+    "old_makefile_sha256": "4f920081b277eaabbb0088ce5507676363703344081305fa8aea3b5c09a2c5cd",
+    "old_source_code_hash": "ba497202d4e1ede62d2c1a8500cff7ecee3ba54aecc2d558e44ac80fa19aac74",
+    "old_validation_file_sha256": "40bef8420b07823ff83d7209c23660194201c6bb247a5c5f95bfb6abb7c50f82",
+    "reason": "Removed retired posterior publication requirements, added the active Figure 1b and Figure 2 publication stems, unified the generic and manuscript publication inventories, and excluded the non-generating validator from numerical fingerprints/prerequisites."
+  },
   "stem": "joint_psa_rank_acceptability",
   "strategies": [
     "current",
@@ -142,6 +262,6 @@
     "next_generation_vaccine",
     "combined_strategy"
   ],
-  "uncertainty_config_hash": "335ce4e2c3abf688d9af8e6d639567e9ca1648149e93ba3fac993225416dedd3",
+  "uncertainty_config_hash": "4b13108660877447640ca892f48b9b0a5ec95adaa2ac46e29fb9c8ad70b798af",
   "uncertainty_schema_version": 1
 }

@@ -16,6 +16,10 @@ plot_extended_data_figure_7_panel_b <- function(data) {
   ggplot(data$intervention_outcomes, aes(scenario_short, country_label, fill = value)) +
     geom_tile(colour = "white", linewidth = lancet_heatmap_tile_linewidth) +
     facet_wrap(~metric, nrow = 2) +
+    scale_y_discrete(
+      limits = rev(main_figure_country_order(as.character(data$intervention_outcomes$country_label))),
+      drop = FALSE
+    ) +
     scale_fill_reduction(
       midpoint = 0,
       limits = c(-0.25, 0.90),

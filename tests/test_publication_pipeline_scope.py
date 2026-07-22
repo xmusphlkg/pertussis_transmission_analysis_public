@@ -97,5 +97,19 @@ def test_stem_cleanup_rejects_path_components(tmp_path: Path) -> None:
 
 
 def test_retired_full_joint_output_stem_is_rejected_before_a_run() -> None:
-    with pytest.raises(ValueError, match="mislabeled conditional uncertainty"):
+    with pytest.raises(ValueError, match="mislabeled a legacy research route"):
         uncertainty.main(output_stem="bayesian_uncertainty_full_joint")
+
+
+@pytest.mark.parametrize(
+    "retired_stem",
+    [
+        "bayesian_uncertainty_figure2c_conditional",
+        "bayesian_uncertainty_figure2c_joint",
+    ],
+)
+def test_retired_figure2c_bayesian_stems_are_rejected_before_a_run(
+    retired_stem: str,
+) -> None:
+    with pytest.raises(ValueError, match="mislabeled a legacy research route"):
+        uncertainty.main(output_stem=retired_stem)
