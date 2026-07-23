@@ -172,8 +172,8 @@ plot_figure_1_panel_b <- function(data) {
       limits = baseline_endpoint_order,
       breaks = baseline_endpoint_order,
       labels = c(
-        "Reports" = "Reports",
-        "Symptomatic" = "Symptomatic",
+        "Reports" = "Reported cases",
+        "Symptomatic" = "Symptomatic cases",
         "Infections" = "Infections"
       ),
       name = "Outcome",
@@ -194,7 +194,7 @@ plot_figure_1_panel_b <- function(data) {
     ) +
     coord_cartesian(xlim = p1d_x_limits, clip = "off") +
     labs(
-      x = "Annual <18 index per 100 000",
+      x = "Annualised index per 100 000\npeople aged <18 years",
       y = NULL,
       tag = "b"
     ) +
@@ -221,14 +221,16 @@ plot_figure_1_panel_c <- function(data) {
   decision_map <- data$decision_map %>%
     left_join(figure_1_decision_map_label_offsets(), by = "country_label_text") %>%
     arrange(primary_cases_per_100k, infant_hospitalizations_per_100k)
-  panel_upper <- ceiling(
-    max(
-      c(decision_map$primary_cases_per_100k, decision_map$infant_hospitalizations_per_100k),
-      na.rm = TRUE
-    ) / 200
+  panel_x_upper <- ceiling(
+    max(decision_map$primary_cases_per_100k, na.rm = TRUE) / 200
   ) * 200
-  panel_limits <- c(0, panel_upper)
-  panel_breaks <- seq(0, panel_upper, by = 200)
+  panel_y_upper <- ceiling(
+    max(decision_map$infant_hospitalizations_per_100k, na.rm = TRUE) / 200
+  ) * 200
+  panel_x_limits <- c(0, panel_x_upper)
+  panel_y_limits <- c(0, panel_y_upper)
+  panel_x_breaks <- seq(0, panel_x_upper, by = 200)
+  panel_y_breaks <- seq(0, panel_y_upper, by = 200)
 
   ggplot(decision_map, aes(primary_cases_per_100k, infant_hospitalizations_per_100k)) +
     geom_point(aes(fill = who_region), shape = 21, size = 2.35, colour = manuscript_colour("black"), stroke = 0.25, alpha = 0.9) +
@@ -254,21 +256,25 @@ plot_figure_1_panel_c <- function(data) {
     ) +
     scale_fill_manual(values = c(region_colours, "Other" = manuscript_colour("mid_grey")), guide = "none") +
     scale_x_continuous(
-      limits = panel_limits,
-      breaks = panel_breaks,
+      limits = panel_x_limits,
+      breaks = panel_x_breaks,
       labels = label_lancet_comma(accuracy = 1),
       expand = expansion(mult = c(0, 0))
     ) +
     scale_y_continuous(
-      limits = panel_limits,
-      breaks = panel_breaks,
+      limits = panel_y_limits,
+      breaks = panel_y_breaks,
       labels = label_lancet_comma(accuracy = 1),
       expand = expansion(mult = c(0, 0))
     ) +
-    coord_equal(xlim = panel_limits, ylim = panel_limits, clip = "off") +
+    coord_cartesian(
+      xlim = panel_x_limits,
+      ylim = panel_y_limits,
+      clip = "off"
+    ) +
     labs(
-      x = "<18 cases per 100 000",
-      y = "Infant hospitalisations per 100 000",
+      x = "Annualised symptomatic-case index\nper 100 000 people aged <18 years",
+      y = "Annualised infant-hospitalisation index\nper 100 000 infants",
       tag = "c"
     ) +
     theme_lancet_panel(
@@ -317,7 +323,7 @@ plot_figure_1_panel_d <- function(data) {
       )
     ) +
     labs(
-      x = "<18 symptomatic cases per 100 000",
+      x = "Annualised symptomatic-case index\nper 100 000 people aged <18 years",
       y = NULL,
       fill = "Age group",
       tag = "d"

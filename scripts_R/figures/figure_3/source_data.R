@@ -3,6 +3,11 @@
 figure_3_source_filenames <- c(
   endpoint_effect_matrix = "figure3a_endpoint_effect_matrix.csv",
   infant_gap = "figure3b_infant_to_child_adolescent_gap.csv",
+  adolescent_booster = "figure3c_adolescent_booster_profile_effects.csv",
+  age_contribution = "figure3_unplotted_age_contribution_averted_cases.csv"
+)
+
+figure_3_legacy_source_filenames <- c(
   age_contribution = "figure3c_age_contribution_averted_cases.csv",
   adolescent_booster = "figure3d_adolescent_booster_profile_effects.csv"
 )
@@ -96,4 +101,8 @@ make_figure_3_source_data <- function(data) {
 
 write_figure_3_source_data <- function(source_data) {
   write_source_data_list(source_data, figure_3_source_filenames)
+  write_source_data_list(
+    source_data[names(figure_3_legacy_source_filenames)],
+    figure_3_legacy_source_filenames
+  )
 }

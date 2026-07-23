@@ -71,7 +71,10 @@ plot_figure_4_panel_a <- function(data) {
     scale_colour_manual(values = outcome_colours, name = "Outcome") +
     scale_shape_manual(values = outcome_shapes, name = "Outcome") +
     labs(
-      x = "Guided / timeliness ratio",
+      x = paste0(
+        "Burden under resistance-guided management\n",
+        "relative to routine schedule timeliness (%)"
+      ),
       y = NULL,
       tag = "a"
     ) +
@@ -157,7 +160,10 @@ plot_figure_4_panel_b <- function(data) {
     scale_linetype_iqr() +
     coord_cartesian(xlim = c(0.35, 1.40), clip = "off") +
     labs(
-      x = "Guided / timeliness ratio",
+      x = paste0(
+        "Burden under resistance-guided management\n",
+        "relative to routine schedule timeliness (%)"
+      ),
       y = NULL,
       tag = "b"
     ) +
@@ -255,7 +261,7 @@ plot_figure_4_panel_c <- function(data) {
       breaks = panel_c_colourbar_breaks,
       labels = panel_c_colourbar_labels,
       oob = scales::squish,
-      name = "Burden relative to current aP-like: median [IQR]",
+      name = "Median burden relative to current aP-like (%)",
       guide = guide_lancet_colourbar(
         barwidth = unit(0.30, "cm"),
         barheight = unit(5.2, "cm"),

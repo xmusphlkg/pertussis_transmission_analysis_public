@@ -70,8 +70,11 @@ estimates sensitive-strain transmission, a reporting multiplier, and dated
 latent log-transmission deviations using a regularised negative-binomial
 target. Acceptance requires numerical convergence, absolute-fit tolerance,
 temporal-shape checks, and full-rank, adequately conditioned Gauss–Newton
-geometry. The reconstructed state is a deterministic scenario starting point,
-not a posterior distribution.
+geometry for the regularised objective; this geometry does not establish data
+identifiability. For scenario years after the final fitted year, the final
+transmission deviation is propagated through 2050 by the fixed-parameter AR(1)
+conditional mean, without future process innovations. The reconstructed state
+is a deterministic scenario starting point, not a posterior distribution.
 
 ## Scenario groups and endpoints
 

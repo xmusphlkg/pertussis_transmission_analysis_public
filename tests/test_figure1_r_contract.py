@@ -158,7 +158,10 @@ def test_r_figure1b_requires_audited_intervals_for_all_endpoints_and_draws_them(
     stopifnot(all(built$data[[2]]$xend == c(30, 160, 600, 60, 320, 900)))
     shape_scale <- built$plot$scales$get_scales('shape')
     stopifnot(identical(as.character(shape_scale$get_breaks()), outcome_levels))
-    stopifnot(identical(as.character(shape_scale$get_labels()), outcome_levels))
+    stopifnot(identical(
+      as.character(shape_scale$get_labels()),
+      c('Reported cases', 'Symptomatic cases', 'Infections')
+    ))
     legend_guide <- built$plot$guides$guides[[1]]
     expected_legend_colours <- unname(
       figure_1_endpoint_colours()[outcome_levels]

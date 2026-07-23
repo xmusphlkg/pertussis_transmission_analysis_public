@@ -2,6 +2,10 @@
 
 figure_4_source_filenames <- c(
   management_pairwise = "figure4a_resistance_guided_vs_timeliness.csv",
+  vaccine_residual = "figure4c_vaccine_setting_residual_index.csv"
+)
+
+figure_4_legacy_source_filenames <- c(
   vaccine_residual = "figure4b_vaccine_setting_residual_index.csv"
 )
 
@@ -74,4 +78,8 @@ make_figure_4_source_data <- function(data) {
 
 write_figure_4_source_data <- function(source_data) {
   write_source_data_list(source_data, figure_4_source_filenames)
+  write_source_data_list(
+    source_data[names(figure_4_legacy_source_filenames)],
+    figure_4_legacy_source_filenames
+  )
 }

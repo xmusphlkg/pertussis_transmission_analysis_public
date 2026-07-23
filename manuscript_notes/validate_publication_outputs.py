@@ -245,7 +245,7 @@ def _figure2b_headline_tokens(
     retained_max = int(retention_order["reference_choice_retained_count"].max())
 
     retention_token = (
-        "Retention was lowest in "
+        "with the lowest retention in "
         + str(lowest_two.iloc[0]["country"])
         + " ("
         + str(int(lowest_two.iloc[0]["reference_choice_retained_count"]))
@@ -257,44 +257,55 @@ def _figure2b_headline_tokens(
         + str(int(lowest_two.iloc[1]["reference_choice_retained_count"]))
         + "/"
         + str(setting_count)
-        + ")"
+        + "; figure 2B)"
     )
 
-    def regret_token(*, figure_reference: bool) -> str:
-        ending = "; figure 2B)" if figure_reference else ")"
-        return (
-            "The 95th percentile of excess burden from retaining the reference "
-            "strategy was largest in "
+    largest_q95 = _lancet_decimal(
+        largest_three.iloc[0]["regret_percentage_points_q95"], 1
+    )
+    second_q95 = _lancet_decimal(
+        largest_three.iloc[1]["regret_percentage_points_q95"], 1
+    )
+    if largest_q95 == second_q95:
+        leading_regret_clause = (
+            largest_q95
+            + " percentage points of current-practice burden in both "
             + str(largest_three.iloc[0]["country"])
-            + " ("
-            + _lancet_decimal(
-                largest_three.iloc[0]["regret_percentage_points_q95"], 1
-            )
-            + " percentage points of current-practice burden), "
+            + " and "
             + str(largest_three.iloc[1]["country"])
-            + " ("
-            + _lancet_decimal(
-                largest_three.iloc[1]["regret_percentage_points_q95"], 1
-            )
-            + "), and "
-            + str(largest_three.iloc[2]["country"])
-            + " ("
-            + _lancet_decimal(
-                largest_three.iloc[2]["regret_percentage_points_q95"], 1
-            )
-            + ending
         )
+    else:
+        leading_regret_clause = (
+            largest_q95
+            + " percentage points of current-practice burden in "
+            + str(largest_three.iloc[0]["country"])
+            + " and "
+            + second_q95
+            + " in "
+            + str(largest_three.iloc[1]["country"])
+        )
+    regret_token = (
+        "The 95th percentile of excess burden from retaining the reference "
+        "strategy was "
+        + leading_regret_clause
+        + ", compared with "
+        + _lancet_decimal(largest_three.iloc[2]["regret_percentage_points_q95"], 1)
+        + " in "
+        + str(largest_three.iloc[2]["country"])
+        + " and "
+        + _lancet_decimal(lowest_retention["regret_percentage_points_q95"], 1)
+        + " in "
+        + str(lowest_retention["country"])
+    )
 
     contrast_token = (
         str(second_largest_regret["country"])
-        + " retained its reference strategy in "
+        + " retained the reference strategy in "
         + str(int(second_largest_regret["reference_choice_retained_count"]))
         + "/"
         + str(setting_count)
-        + " settings but had the second-largest 95th-percentile excess burden. "
-        + str(lowest_retention["country"])
-        + " had the lowest retention but a lower 95th-percentile excess burden of "
-        + _lancet_decimal(lowest_retention["regret_percentage_points_q95"], 1)
+        + " settings despite having one of the two largest 95th-percentile "
+        "excess-burden values"
     )
 
     return {
@@ -302,19 +313,20 @@ def _figure2b_headline_tokens(
         "retained_min": retained_min,
         "retained_max": retained_max,
         "results_tokens": [
-            "Across "
+            "The primary ranking also varied across the "
             + str(setting_count)
-            + " configured sensitivity-analysis settings, the reference strategy "
+            + " configured selected-input settings",
+            "The reference-analysis strategy "
             "remained lowest-burden in "
             + str(retained_min)
             + "–"
             + str(retained_max)
             + " settings per profile",
             retention_token,
-            regret_token(figure_reference=True),
+            regret_token,
             contrast_token,
-            "These are deterministic summaries of the configured settings, not "
-            "selection probabilities, CIs, or expected losses",
+            "These were deterministic selected-input summaries rather than "
+            "probabilities or CIs",
         ],
         "summary_tokens": [],
     }
@@ -553,6 +565,13 @@ def validate_main_manuscript_key_numbers() -> None:
     table_text = _markdown_section(main_text, "Tables", "Figure legends")
     figure_legend_text = _markdown_section(main_text, "Figure legends", "References")
 
+    observed_results_headings = re.findall(r"^### (.+)$", results_text, flags=re.M)
+    if observed_results_headings:
+        raise AssertionError(
+            "Main-manuscript Results should use paragraph-led transitions without "
+            f"nested section headings: {observed_results_headings}"
+        )
+
     regional_incidence = read_table(
         project_path("data", "processed", "who_pertussis_region_incidence.csv")
     )
@@ -597,12 +616,11 @@ def validate_main_manuscript_key_numbers() -> None:
     _require_text_tokens(
         results_text,
         [
-            "Reported pertussis incidence rebounded after the low-circulation pandemic "
-            "years, rising globally from "
+            "Global reported pertussis incidence increased from "
             + _lancet_decimal(global_incidence_per_100k.loc[2021], 2)
             + " per 100 000 population in 2021 to "
             + _lancet_decimal(global_incidence_per_100k.loc[2024], 1)
-            + " per 100 000 in 2024"
+            + " per 100 000 in 2024 after the low-circulation pandemic years"
         ],
         label="Main-manuscript Figure 1a results",
     )
@@ -613,77 +631,60 @@ def validate_main_manuscript_key_numbers() -> None:
     prediction_folds = read_table(
         project_path("outputs", "tables", "panel_pomp_rolling_hindcast_folds.csv")
     )
-    prediction_summary = read_table(
-        project_path("outputs", "tables", "panel_pomp_rolling_hindcast_summary.csv")
-    )
     prediction_gate = read_table(
         project_path("outputs", "tables", "panel_pomp_rolling_hindcast_gate.csv")
     ).iloc[0]
+    prediction_summary = read_table(
+        project_path("outputs", "tables", "panel_pomp_rolling_hindcast_summary.csv")
+    )
     overall_prediction = prediction_summary.loc[
         prediction_summary["scope"].astype(str).eq("overall")
     ].iloc[0]
-    block_folds = read_table(
-        project_path("outputs", "tables", "panel_pomp_block_stress_folds.csv")
-    )
     block_gate = read_table(
         project_path("outputs", "tables", "panel_pomp_block_stress_gate.csv")
     ).iloc[0]
+    block_folds = read_table(
+        project_path("outputs", "tables", "panel_pomp_block_stress_folds.csv")
+    )
     block_year_coverage = block_folds.groupby("test_year")[
         "model_annual_95_covered"
     ].mean()
-    if not np.isclose(
-        float(block_year_coverage.loc[2024]),
-        float(block_year_coverage.loc[2025]),
-        rtol=0.0,
-        atol=5e-4,
-    ):
-        raise AssertionError(
-            "The manuscript's shared 2024/2025 annual-block coverage is no longer valid."
-        )
 
     prediction_tokens = [
-        f"{len(prediction_folds)} country-year folds and {len(prediction_intervals)} held-out reporting intervals",
-        "Country-balanced empirical coverage of nominal 95% predictive intervals was "
+        f"{len(prediction_folds)} country-year folds and {len(prediction_intervals)} held-out intervals",
+        "country-balanced coverage of nominal 95% predictive intervals was "
         + _lancet_decimal(prediction_gate["primary_predictive_95_coverage"], 3),
-        "unweighted interval-level diagnostic coverage of "
-        + _lancet_decimal(
-            prediction_gate["model_interval_95_coverage_diagnostic"], 3
-        ),
-        "mean log1p interval width of "
-        + _lancet_decimal(prediction_gate["primary_predictive_mean_log1p_width"], 3),
-        "mean log score of "
-        + _lancet_decimal(overall_prediction["model_mean_log_score_per_interval"], 3),
-        "mean absolute log1p error of "
-        + _lancet_decimal(overall_prediction["model_mean_absolute_log1p_error"], 3),
-        _lancet_decimal(
-            overall_prediction["seasonal_naive_mean_log_score_per_interval"], 3
-        ),
-        _lancet_decimal(
-            overall_prediction["ew_recent_rate_mean_log_score_per_interval"], 3
-        ),
-        _lancet_decimal(
-            overall_prediction["damped_log_trend_mean_log_score_per_interval"], 3
-        ),
-        _lancet_decimal(
-            overall_prediction["seasonal_naive_mean_absolute_log1p_error"], 3
-        ),
-        _lancet_decimal(
-            overall_prediction["ew_recent_rate_mean_absolute_log1p_error"], 3
-        ),
-        _lancet_decimal(
-            overall_prediction["damped_log_trend_mean_absolute_log1p_error"], 3
-        ),
-        "lowest country-specific interval coverage ("
-        + _lancet_decimal(prediction_gate["minimum_country_interval_95_coverage"], 3)
-        + ")",
-        "joint annual coverage of "
+        "annual-block coverage was "
         + _lancet_decimal(block_gate["model_annual_95_coverage_diagnostic"], 3)
-        + " overall and "
-        + _lancet_decimal(block_year_coverage.loc[2024], 3)
-        + " in both 2024 and 2025",
+        + " and failed the prespecified criterion",
+        "appendix table S7, pp 42–43",
     ]
     _require_text_tokens(
         results_text, prediction_tokens, label="Main-manuscript predictive results"
+    )
+    appendix_prediction_tokens = [
+        "Country-balanced 95% predictive-interval coverage "
+        + _lancet_decimal(prediction_gate["primary_predictive_95_coverage"], 3),
+        "Ensemble mean log score "
+        + _lancet_decimal(overall_prediction["model_mean_log_score_per_interval"], 3)
+        + " versus "
+        + _lancet_decimal(
+            overall_prediction["damped_log_trend_mean_log_score_per_interval"], 3
+        )
+        + " for the damped log-trend comparator",
+        "Lowest country-specific interval coverage "
+        + _lancet_decimal(prediction_gate["minimum_country_interval_95_coverage"], 3)
+        + " in China",
+        "Annual joint coverage "
+        + _lancet_decimal(block_gate["model_annual_95_coverage_diagnostic"], 3)
+        + " overall and "
+        + _lancet_decimal(block_year_coverage.loc[2024], 3)
+        + " in both 2024 and 2025; failed prespecified gate",
+    ]
+    _require_text_tokens(
+        supplement_text,
+        appendix_prediction_tokens,
+        label="Supplementary Table S7 predictive results",
     )
 
     priorities = read_table(
@@ -724,15 +725,43 @@ def validate_main_manuscript_key_numbers() -> None:
             raise AssertionError(f"{label} contains values other than true or false.")
         return parsed.astype(bool)
 
+    require_columns(
+        priorities,
+        {
+            "programme_profile",
+            "current_practice_cases_per_100k_under18",
+            "lowest_burden_programme_only_strategy",
+            "cases_averted_per_100k_under18",
+        },
+        "Table 1 profile programme priorities",
+    )
+    leader_absolute_reductions = pd.to_numeric(
+        priorities["cases_averted_per_100k_under18"], errors="raise"
+    )
+    if (
+        not np.isfinite(leader_absolute_reductions).all()
+        or leader_absolute_reductions.le(0.0).any()
+    ):
+        raise AssertionError(
+            "Table 1 profile-specific leaders contain invalid absolute reductions."
+        )
+
     priorities_with_country = priorities.assign(
         _country=priorities["programme_profile"]
         .astype(str)
         .str.replace(" ", "_", regex=False)
     )
+
+    def publication_strategy_label(value: object) -> str:
+        label = str(value)
+        if label == "Routine timeliness":
+            return "Routine schedule timeliness"
+        return label
+
     expected_countries = set(priorities_with_country["_country"].astype(str))
     priority_leaders = priorities_with_country.set_index("_country")[
         "lowest_burden_programme_only_strategy"
-    ]
+    ].map(publication_strategy_label)
     priority_current = pd.to_numeric(
         priorities_with_country.set_index("_country")[
             "current_practice_cases_per_100k_under18"
@@ -973,64 +1002,187 @@ def validate_main_manuscript_key_numbers() -> None:
     _require_text_tokens(
         results_text,
         [
-            "cross-profile median annualised indices among people younger than 18 "
-            "years were "
-            + _lancet_decimal(reported_rates.median(), 1)
-            + " reported cases, "
+            "median annualised symptomatic-case index among people "
+            "younger than 18 years was "
             + _lancet_decimal(symptomatic_rates.median(), 1)
-            + " symptomatic cases, and "
-            + _lancet_decimal(infection_rates.median(), 1)
-            + " infections per 100 000",
-            "Across all three layers, "
-            + lowest_profile
-            + " had the lowest and "
-            + highest_profile
-            + " the highest point estimates",
-            "Reported-case indices were "
-            + _lancet_decimal(reported_low["rate_per_100k"], 1)
-            + " (profile-specific conditional parametric-bootstrap 95% estimation CI "
-            + _lancet_decimal(reported_low["interval_lower_per_100k"], 1)
+            + " per 100 000 across profiles (IQR "
+            + _lancet_decimal(symptomatic_rates.quantile(0.25), 1)
             + "–"
-            + _lancet_decimal(reported_low["interval_upper_per_100k"], 1)
-            + ") and "
-            + _lancet_decimal(reported_high["rate_per_100k"], 1)
-            + " ("
-            + _lancet_decimal(reported_high["interval_lower_per_100k"], 1)
-            + "–"
-            + _lancet_decimal(reported_high["interval_upper_per_100k"], 1)
-            + "), respectively",
-            "Corresponding symptomatic-case indices were "
+            + _lancet_decimal(symptomatic_rates.quantile(0.75), 1)
+            + ")",
+            "It ranged from "
             + _lancet_decimal(symptomatic_low["rate_per_100k"], 1)
-            + " ("
+            + " (95% estimation CI "
             + _lancet_decimal(symptomatic_low["interval_lower_per_100k"], 1)
             + "–"
             + _lancet_decimal(symptomatic_low["interval_upper_per_100k"], 1)
-            + ") and "
+            + ") in "
+            + lowest_profile
+            + " to "
             + _lancet_decimal(symptomatic_high["rate_per_100k"], 1)
             + " ("
             + _lancet_decimal(symptomatic_high["interval_lower_per_100k"], 1)
             + "–"
             + _lancet_decimal(symptomatic_high["interval_upper_per_100k"], 1)
-            + "), and infection indices were "
-            + _lancet_decimal(infection_low["rate_per_100k"], 1)
-            + " ("
-            + _lancet_decimal(infection_low["interval_lower_per_100k"], 1)
-            + "–"
-            + _lancet_decimal(infection_low["interval_upper_per_100k"], 1)
-            + ") and "
-            + _lancet_decimal(infection_high["rate_per_100k"], 1)
-            + " ("
-            + _lancet_decimal(infection_high["interval_lower_per_100k"], 1)
-            + "–"
-            + _lancet_decimal(infection_high["interval_upper_per_100k"], 1)
-            + ") per 100 000",
-            "The symptomatic-case IQR was "
-            + _lancet_decimal(symptomatic_rates.quantile(0.25), 1)
-            + "–"
-            + _lancet_decimal(symptomatic_rates.quantile(0.75), 1)
-            + " per 100 000 across the nine profiles (figure 1B; table 1)",
+            + ") in "
+            + highest_profile,
+            "corresponding median reported-case and infection indices were "
+            + _lancet_decimal(reported_rates.median(), 1)
+            + " and "
+            + _lancet_decimal(infection_rates.median(), 1)
+            + " per 100 000",
         ],
         label="Main-manuscript Figure 1b results",
+    )
+
+    # Figure 1c-d: current-practice clinical severity and paediatric age composition.
+    current_practice_decision_map = read_table(
+        project_path(
+            "outputs", "tables", "figure1c_current_practice_decision_map.csv"
+        )
+    )
+    require_columns(
+        current_practice_decision_map,
+        {"country", "primary_cases_per_100k", "infant_hospitalizations_per_100k"},
+        "Figure 1c current-practice decision map",
+    )
+    if (
+        len(current_practice_decision_map) != len(expected_countries)
+        or set(current_practice_decision_map["country"].astype(str))
+        != expected_countries
+        or current_practice_decision_map["country"].duplicated().any()
+    ):
+        raise AssertionError("Figure 1c is not one row per publication profile.")
+    for column in ("primary_cases_per_100k", "infant_hospitalizations_per_100k"):
+        current_practice_decision_map[column] = pd.to_numeric(
+            current_practice_decision_map[column], errors="raise"
+        )
+        if (
+            not np.isfinite(current_practice_decision_map[column]).all()
+            or current_practice_decision_map[column].le(0.0).any()
+        ):
+            raise AssertionError(f"Figure 1c contains invalid values in {column}.")
+    figure1c_primary = current_practice_decision_map.set_index("country")[
+        "primary_cases_per_100k"
+    ].sort_index()
+    if not np.allclose(
+        figure1c_primary,
+        priority_current.sort_index(),
+        rtol=0.0,
+        atol=1e-9,
+    ):
+        raise AssertionError(
+            "Figure 1c primary-case indices disagree with the Table 1 comparator."
+        )
+    infant_hospitalisation_rows = current_practice_decision_map.sort_values(
+        "infant_hospitalizations_per_100k"
+    )
+    infant_hospitalisation_low = infant_hospitalisation_rows.iloc[0]
+    infant_hospitalisation_high = infant_hospitalisation_rows.iloc[-1]
+
+    baseline_age_composition = read_table(
+        project_path("outputs", "tables", "figure1d_baseline_age_composition.csv")
+    )
+    require_columns(
+        baseline_age_composition,
+        {"country", "age_group", "burden_share"},
+        "Figure 1d baseline age composition",
+    )
+    expected_age_groups = {"Infant", "Children", "Adolescent"}
+    if (
+        len(baseline_age_composition)
+        != len(expected_countries) * len(expected_age_groups)
+        or set(baseline_age_composition["country"].astype(str))
+        != expected_countries
+        or set(baseline_age_composition["age_group"].astype(str))
+        != expected_age_groups
+        or baseline_age_composition.duplicated(["country", "age_group"]).any()
+    ):
+        raise AssertionError("Figure 1d is not a complete 9 x 3 age-composition matrix.")
+    baseline_age_composition["burden_share"] = pd.to_numeric(
+        baseline_age_composition["burden_share"], errors="raise"
+    )
+    if (
+        not np.isfinite(baseline_age_composition["burden_share"]).all()
+        or baseline_age_composition["burden_share"].lt(0.0).any()
+        or baseline_age_composition["burden_share"].gt(1.0).any()
+        or not np.allclose(
+            baseline_age_composition.groupby("country")["burden_share"].sum(),
+            1.0,
+            rtol=0.0,
+            atol=1e-9,
+        )
+    ):
+        raise AssertionError("Figure 1d contains invalid or non-unit age shares.")
+    age_share_by_group = {
+        age_group: baseline_age_composition.loc[
+            baseline_age_composition["age_group"].astype(str).eq(age_group),
+            "burden_share",
+        ]
+        * 100.0
+        for age_group in expected_age_groups
+    }
+    largest_age_group = (
+        baseline_age_composition.sort_values("burden_share")
+        .groupby("country", sort=False)
+        .tail(1)
+    )
+    children_largest = largest_age_group.loc[
+        largest_age_group["age_group"].astype(str).eq("Children"), "country"
+    ].astype(str)
+    adolescent_largest = largest_age_group.loc[
+        largest_age_group["age_group"].astype(str).eq("Adolescent"), "country"
+    ].astype(str)
+    if (
+        len(children_largest) != 7
+        or set(adolescent_largest) != {"Brazil", "Thailand"}
+    ):
+        raise AssertionError("Figure 1d dominant age groups changed unexpectedly.")
+
+    infant_shares = age_share_by_group["Infant"]
+    children_shares = age_share_by_group["Children"]
+    adolescent_shares = age_share_by_group["Adolescent"]
+    _require_text_tokens(
+        results_text,
+        [
+            "infant-hospitalisation indices ranged from "
+            + _lancet_decimal(
+                infant_hospitalisation_low["infant_hospitalizations_per_100k"], 1
+            )
+            + " per 100 000 infants in "
+            + str(infant_hospitalisation_low["country"]).replace("_", " ")
+            + " to "
+            + _lancet_decimal(
+                infant_hospitalisation_high["infant_hospitalizations_per_100k"], 1
+            )
+            + " in "
+            + str(infant_hospitalisation_high["country"]).replace("_", " "),
+            "Infants accounted for a median "
+            + _lancet_decimal(infant_shares.median(), 1)
+            + "% (IQR "
+            + _lancet_decimal(infant_shares.quantile(0.25), 1)
+            + "–"
+            + _lancet_decimal(infant_shares.quantile(0.75), 1)
+            + ") of symptomatic cases among people younger than 18 years, children "
+            "aged 1–9 years for "
+            + _lancet_decimal(children_shares.median(), 1)
+            + "% ("
+            + _lancet_decimal(children_shares.quantile(0.25), 1)
+            + "–"
+            + _lancet_decimal(children_shares.quantile(0.75), 1)
+            + "), and adolescents aged 10–17 years for "
+            + _lancet_decimal(adolescent_shares.median(), 1)
+            + "% ("
+            + _lancet_decimal(adolescent_shares.quantile(0.25), 1)
+            + "–"
+            + _lancet_decimal(adolescent_shares.quantile(0.75), 1)
+            + ")",
+            "Children aged 1–9 years contributed the largest share in "
+            + _small_number_word(len(children_largest))
+            + " profiles, whereas adolescents contributed the largest share in Brazil "
+            "and Thailand (figure 1D)",
+        ],
+        label="Main-manuscript Figure 1c-d results",
     )
 
     # Figure 2a: two production-runtime levers against one current comparator.
@@ -1277,7 +1429,7 @@ def validate_main_manuscript_key_numbers() -> None:
         ].astype(str)
     )
     if (
-        int(leader_counts.get("Routine timeliness", 0)) != 8
+        int(leader_counts.get("Routine schedule timeliness", 0)) != 8
         or int(leader_counts.get("Infant-exposure package", 0)) != 1
         or infant_leader_profiles != {"China"}
     ):
@@ -1577,10 +1729,32 @@ def validate_main_manuscript_key_numbers() -> None:
             )
 
     figure2b_headline = _figure2b_headline_tokens(decision_fragility)
+    full_retention_profiles = sorted(
+        decision_fragility.loc[
+            decision_fragility["reference_choice_retained_count"].eq(
+                decision_fragility["prespecified_setting_count"]
+            ),
+            "country",
+        ]
+        .astype(str)
+        .str.replace("_", " ", regex=False)
+    )
+    if len(full_retention_profiles) != 2:
+        raise AssertionError(
+            "The Results sentence identifying two full-retention profiles is no "
+            "longer supported."
+        )
+    full_retention_token = (
+        "it was retained in all settings in "
+        + full_retention_profiles[0]
+        + " and "
+        + full_retention_profiles[1]
+    )
 
     matrix_point_percent = 100.0 * programme_effects[
         "deterministic_relative_reduction"
     ]
+    coverage_unfavourable_count = int(coverage_effects.lt(0.0).sum())
     if (
         round(float(matrix_point_percent.min()), 1) != -6.3
         or round(float(matrix_point_percent.max()), 1) != 27.0
@@ -1590,34 +1764,41 @@ def validate_main_manuscript_key_numbers() -> None:
         raise AssertionError("Figure 2a/c headline effect values changed unexpectedly.")
 
     programme_tokens = [
-        "In the complete strategy–profile matrix, routine timeliness produced the "
-        "lowest primary-outcome burden in eight profiles. The infant-exposure package "
-        "produced the lowest burden in China",
-        "Reference-analysis reductions ranged from "
-        + _lancet_decimal(matrix_point_percent.min(), 1)
-        + "% to "
+        "Routine schedule timeliness produced the lowest primary-outcome burden in "
+        "eight of nine profiles; the infant-exposure package produced the lowest "
+        "burden in China",
+        "Across all 54 strategy–profile cells, relative changes ranged from a "
+        + _lancet_decimal(abs(matrix_point_percent.min()), 1)
+        + "% increase to a "
         + _lancet_decimal(matrix_point_percent.max(), 1)
-        + "% across the 54 cells, and "
+        + "% reduction, and "
         + str(int(intervals_include_zero.sum()))
-        + " full-refit 95% estimation CIs included zero. In every profile, the CI for "
-        "the leading strategy's reduction versus current practice excluded zero",
-        "paired separation between the leading and second-ranked strategies was above zero in "
+        + " cellwise full-refit 95% estimation CIs included zero",
+        "For the nine profile-specific leaders, absolute reductions ranged from "
+        + _lancet_decimal(leader_absolute_reductions.min(), 1)
+        + " to "
+        + _lancet_decimal(leader_absolute_reductions.max(), 1)
+        + " symptomatic cases per 100 000 people younger than 18 years",
+        "every leader's cellwise CI versus current practice excluded zero",
+        "Paired leader–runner-up separation was above zero in "
         + _small_number_word(above_zero_count)
-        + " profiles and included zero in Thailand and the UK",
-        "routine timeliness reduced the symptomatic-case index among people "
-        "younger than 18 years by a median "
+        + " profiles but included zero in Thailand and the UK",
+        "Routine schedule timeliness reduced the primary index by a median "
         + _lancet_decimal(timeliness.median(), 1)
         + "% (IQR "
         + _lancet_decimal(timeliness.quantile(0.25), 1)
         + "–"
         + _lancet_decimal(timeliness.quantile(0.75), 1)
-        + "). The nominal coverage-floor-only contrast changed the index by "
+        + ") versus current practice. By comparison, the coverage-floor-only "
+        "contrast produced a median change of "
         + _lancet_decimal(coverage_effects.median(), 1)
-        + "% ("
+        + "% (IQR "
         + _lancet_decimal(coverage_effects.quantile(0.25), 1)
         + " to "
         + _lancet_decimal(coverage_effects.quantile(0.75), 1)
-        + ")",
+        + "), with unfavourable point estimates in "
+        + _small_number_word(coverage_unfavourable_count)
+        + " profiles",
         "Timeliness produced the larger reduction in all nine profiles, with a median "
         "within-profile advantage of "
         + _lancet_decimal(timeliness_advantage.median(), 1)
@@ -1627,6 +1808,7 @@ def validate_main_manuscript_key_numbers() -> None:
         + _lancet_decimal(timeliness_advantage.quantile(0.75), 1)
         + "; figure 2A)",
         *figure2b_headline["results_tokens"],
+        full_retention_token,
     ]
     _require_text_tokens(
         results_text, programme_tokens, label="Main-manuscript programme results"
@@ -1678,6 +1860,24 @@ def validate_main_manuscript_key_numbers() -> None:
             )
         return 100.0 * float(rows.median())
 
+    def endpoint_percent_summary(
+        strategy: str, outcome: str
+    ) -> tuple[float, float, float]:
+        rows = 100.0 * endpoint_effects.loc[
+            endpoint_effects["strategy"].astype(str).eq(strategy)
+            & endpoint_effects["outcome"].astype(str).eq(outcome),
+            "relative_case_reduction",
+        ]
+        if len(rows) != len(expected_countries):
+            raise AssertionError(
+                f"Incomplete Figure 3a summary for {strategy}, {outcome}."
+            )
+        return (
+            float(rows.median()),
+            float(rows.quantile(0.25)),
+            float(rows.quantile(0.75)),
+        )
+
     timeliness_endpoint_medians = {
         outcome: endpoint_median_percent("timeliness_only", outcome)
         for outcome in endpoint_outcomes
@@ -1690,51 +1890,110 @@ def validate_main_manuscript_key_numbers() -> None:
         outcome: endpoint_median_percent("maternal_immunization", outcome)
         for outcome in endpoint_outcomes
     }
+    adolescent_booster_endpoint_medians = {
+        outcome: endpoint_median_percent("adolescent_booster", outcome)
+        for outcome in endpoint_outcomes
+    }
+    close_contact_all_under18 = endpoint_percent_summary(
+        "cocooning_adjunct", "All <18 cases"
+    )
+    close_contact_infant_hospitalisations = endpoint_percent_summary(
+        "cocooning_adjunct", "Infant hospitalisations"
+    )
+    targeted_pep_all_under18 = endpoint_percent_summary(
+        "targeted_pep_high_risk", "All <18 cases"
+    )
+    targeted_pep_infant_hospitalisations = endpoint_percent_summary(
+        "targeted_pep_high_risk", "Infant hospitalisations"
+    )
     if abs(pregnancy_endpoint_medians["Adolescent cases"]) >= 0.05:
         raise AssertionError(
             "Pregnancy Tdap adolescent-case median is no longer approximately zero."
         )
-    figure3a_tokens = [
-        "Routine timeliness reduced infant cases, infant hospitalisations, infant "
-        "deaths, child cases, adolescent cases, and all-<18 cases by cross-profile "
-        "medians of "
-        + ", ".join(
-            _lancet_decimal(timeliness_endpoint_medians[outcome], 1) + "%"
-            for outcome in endpoint_outcomes[:-1]
+    if any(
+        abs(adolescent_booster_endpoint_medians[outcome]) >= 0.05
+        for outcome in ("All <18 cases", "Infant hospitalisations")
+    ):
+        raise AssertionError(
+            "Adolescent-booster primary or infant-hospitalisation median is no "
+            "longer approximately zero."
         )
-        + ", and "
-        + _lancet_decimal(timeliness_endpoint_medians[endpoint_outcomes[-1]], 1)
-        + "%",
-        "Pregnancy Tdap scale-up had modest median effects on child, adolescent, "
-        "and all-<18 cases ("
-        + _lancet_decimal(pregnancy_endpoint_medians["Children cases"], 1)
-        + "%, approximately 0%, and "
+    primary_leaders = (
+        endpoint_effects.loc[
+            endpoint_effects["outcome"].astype(str).eq("All <18 cases")
+        ]
+        .sort_values("relative_case_reduction")
+        .groupby("country", sort=False)
+        .tail(1)
+        .set_index("country")["strategy"]
+        .astype(str)
+    )
+    infant_hospitalisation_leaders = (
+        endpoint_effects.loc[
+            endpoint_effects["outcome"].astype(str).eq("Infant hospitalisations")
+        ]
+        .sort_values("relative_case_reduction")
+        .groupby("country", sort=False)
+        .tail(1)
+        .set_index("country")["strategy"]
+        .astype(str)
+    )
+    changed_endpoint_leaders = int(
+        infant_hospitalisation_leaders.ne(primary_leaders).sum()
+    )
+    infant_exposure_leaders = int(
+        infant_hospitalisation_leaders.eq("maternal_immunization").sum()
+    )
+    timeliness_leaders = int(
+        infant_hospitalisation_leaders.eq("timeliness_only").sum()
+    )
+    if infant_exposure_leaders + timeliness_leaders != len(expected_countries):
+        raise AssertionError(
+            "Infant-hospitalisation point leaders are no longer limited to the two "
+            "strategies named in Results."
+        )
+    figure3a_tokens = [
+        "The point-estimate programme leader changed in "
+        + _small_number_word(changed_endpoint_leaders)
+        + " of nine profiles when "
+        "infant hospitalisations replaced the primary outcome: the infant-exposure "
+        "package led in "
+        + _small_number_word(infant_exposure_leaders)
+        + " profiles and routine schedule timeliness in "
+        + _small_number_word(timeliness_leaders)
+        + " "
+        "(figure 3A)",
+        "Median reductions in all-<18 cases and infant "
+        "hospitalisations were "
+        + _lancet_decimal(timeliness_endpoint_medians["All <18 cases"], 1)
+        + "% and "
+        + _lancet_decimal(
+            timeliness_endpoint_medians["Infant hospitalisations"], 1
+        )
+        + "% with routine schedule timeliness, "
         + _lancet_decimal(pregnancy_endpoint_medians["All <18 cases"], 1)
-        + "%) but larger effects on infant cases, hospitalisations, and deaths ("
-        + _lancet_decimal(pregnancy_endpoint_medians["Infant cases"], 1)
-        + "%, "
+        + "% and "
         + _lancet_decimal(
             pregnancy_endpoint_medians["Infant hospitalisations"], 1
         )
-        + "%, and "
-        + _lancet_decimal(pregnancy_endpoint_medians["Infant deaths"], 1)
-        + "%)",
-        "The infant-exposure package showed the same endpoint asymmetry, with median "
-        "reductions of "
-        + _lancet_decimal(infant_exposure_endpoint_medians["Infant cases"], 1)
-        + "%, "
+        + "% with pregnancy Tdap scale-up, and "
+        + _lancet_decimal(infant_exposure_endpoint_medians["All <18 cases"], 1)
+        + "% and "
         + _lancet_decimal(
             infant_exposure_endpoint_medians["Infant hospitalisations"], 1
         )
-        + "%, and "
-        + _lancet_decimal(infant_exposure_endpoint_medians["Infant deaths"], 1)
-        + "% for the three infant outcomes but "
-        + _lancet_decimal(infant_exposure_endpoint_medians["Children cases"], 1)
-        + "%, "
-        + _lancet_decimal(infant_exposure_endpoint_medians["Adolescent cases"], 1)
-        + "%, and "
-        + _lancet_decimal(infant_exposure_endpoint_medians["All <18 cases"], 1)
-        + "% for child, adolescent, and all-<18 cases",
+        + "% with the infant-exposure package, respectively",
+        "The corresponding reductions were "
+        + _lancet_decimal(close_contact_all_under18[0], 1)
+        + "% and "
+        + _lancet_decimal(close_contact_infant_hospitalisations[0], 1)
+        + "% with the close-contact adult adjunct and "
+        + _lancet_decimal(targeted_pep_all_under18[0], 1)
+        + "% and "
+        + _lancet_decimal(targeted_pep_infant_hospitalisations[0], 1)
+        + "% with targeted high-risk PEP",
+        "adolescent booster scale-up had approximately zero median effects on both "
+        "outcomes",
     ]
     _require_text_tokens(
         results_text, figure3a_tokens, label="Main-manuscript Figure 3a results"
@@ -1774,20 +2033,49 @@ def validate_main_manuscript_key_numbers() -> None:
             raise AssertionError(f"Incomplete Figure 3b results for {strategy}.")
         return float(rows.median())
 
+    def endpoint_gap_positive_count(strategy: str) -> int:
+        rows = endpoint_gaps.loc[
+            endpoint_gaps["strategy"].astype(str).eq(strategy),
+            "infant_minus_overall_gap_pp",
+        ]
+        if len(rows) != len(expected_countries):
+            raise AssertionError(f"Incomplete Figure 3b results for {strategy}.")
+        return int(rows.gt(0.0).sum())
+
+    infant_exposure_positive_gaps = endpoint_gap_positive_count(
+        "maternal_immunization"
+    )
+    pregnancy_positive_gaps = endpoint_gap_positive_count(
+        "pregnancy_tdap_scaleup"
+    )
+    timeliness_positive_gaps = endpoint_gap_positive_count("timeliness_only")
+    if infant_exposure_positive_gaps != pregnancy_positive_gaps:
+        raise AssertionError(
+            "The shared all-profile infant-advantage statement is no longer "
+            "supported for both infant-directed strategies."
+        )
+
     gap_tokens = [
-        "The median profile-specific advantage for infant-case reduction over "
-        "all-<18-case reduction was "
+        "Infant-directed effects were most pronounced for the infant-exposure "
+        "package, routine schedule timeliness, and pregnancy Tdap scale-up. For "
+        "these strategies, the median reduction in infant cases exceeded the "
+        "reduction in all-<18 cases by "
         + _lancet_decimal(endpoint_gap_median("maternal_immunization"), 1)
-        + " percentage points for the infant-exposure package, "
+        + ", "
         + _lancet_decimal(endpoint_gap_median("timeliness_only"), 1)
-        + " for routine timeliness, and "
+        + ", and "
         + _lancet_decimal(endpoint_gap_median("pregnancy_tdap_scaleup"), 1)
-        + " for pregnancy Tdap scale-up",
+        + " percentage points, respectively; the difference was positive in all "
+        + _small_number_word(infant_exposure_positive_gaps)
+        + " profiles for the infant-exposure package and pregnancy Tdap scale-up, "
+        "and in "
+        + _small_number_word(timeliness_positive_gaps)
+        + " for routine schedule timeliness (figure 3B)",
     ]
 
     adolescent_effects = read_table(
         project_path(
-            "outputs", "tables", "figure3d_adolescent_booster_profile_effects.csv"
+            "outputs", "tables", "figure3c_adolescent_booster_profile_effects.csv"
         )
     )
     require_columns(
@@ -1839,7 +2127,6 @@ def validate_main_manuscript_key_numbers() -> None:
             "Figure 3c no longer supports approximately zero medians with several "
             "slightly unfavourable profile contrasts."
         )
-
     def adolescent_profile(country: str) -> pd.Series:
         rows = adolescent_effects.loc[
             adolescent_effects["country"].astype(str).eq(country)
@@ -1856,29 +2143,27 @@ def validate_main_manuscript_key_numbers() -> None:
     ):
         raise AssertionError("Figure 3c Thailand/Brazil adolescent ranks changed.")
     adolescent_tokens = [
-        "Median reductions were approximately zero across all nine profiles",
-        "The Thailand and Brazil profiles had all-<18/adolescent-case reductions of "
+        "Adolescent booster scale-up had approximately zero median effects on both "
+        "all-<18 and adolescent cases, but reduced these outcomes by "
         + _lancet_decimal(
             100.0
             * thailand_adolescent["all_under18_symptomatic_case_reduction"],
             1,
         )
-        + "%/"
+        + "% and "
         + _lancet_decimal(
             100.0 * thailand_adolescent["adolescent_case_reduction"], 1
         )
-        + "% and "
+        + "% in Thailand and by "
         + _lancet_decimal(
             100.0 * brazil_adolescent["all_under18_symptomatic_case_reduction"],
             1,
         )
-        + "%/"
+        + "% and "
         + _lancet_decimal(
             100.0 * brazil_adolescent["adolescent_case_reduction"], 1
         )
-        + "%, respectively",
-        "whereas several profiles had negligible or slightly unfavourable "
-        "finite-horizon contrasts",
+        + "% in Brazil",
     ]
     _require_text_tokens(
         results_text,
@@ -1893,7 +2178,7 @@ def validate_main_manuscript_key_numbers() -> None:
     )
     vaccine_targets = read_table(
         project_path(
-            "outputs", "tables", "figure4b_vaccine_setting_residual_index.csv"
+            "outputs", "tables", "figure4c_vaccine_setting_residual_index.csv"
         )
     )
 
@@ -1958,6 +2243,7 @@ def validate_main_manuscript_key_numbers() -> None:
         "All <18 cases",
         "Infant hospitalisations",
         "Adolescent cases",
+        "Resistant infections",
     )
 
     no_vaccine_medians = {
@@ -1989,7 +2275,8 @@ def validate_main_manuscript_key_numbers() -> None:
         )
 
     mechanism_tokens = [
-        "lower all-<18, child, and adolescent case indices in "
+        "lower all-<18, child, and adolescent case indices than routine schedule "
+        "timeliness in "
         + _small_number_word(int(all_under18_guided))
         + ", "
         + _small_number_word(int(child_guided))
@@ -2000,8 +2287,10 @@ def validate_main_manuscript_key_numbers() -> None:
         + _small_number_word(int(infant_guided)),
         "Infant-death and all-age resistant-infection indices were lower in "
         + _small_number_word(int(infant_death_guided))
-        + " and all nine profiles, respectively",
-        "Cross-profile median guided burdens were "
+        + " and "
+        + _small_number_word(int(resistant_guided))
+        + " profiles, respectively",
+        "Median burdens under resistance-guided management were "
         + _lancet_decimal(
             100.0 * management_stat("All <18 cases", "median_residual_index"), 1
         )
@@ -2011,7 +2300,7 @@ def validate_main_manuscript_key_numbers() -> None:
             * management_stat("Resistant infections", "median_residual_index"),
             1,
         )
-        + "% for resistant infections, compared with "
+        + "% for resistant infections, but "
         + _lancet_decimal(
             100.0 * management_stat("Infant cases", "median_residual_index"), 1
         )
@@ -2024,29 +2313,28 @@ def validate_main_manuscript_key_numbers() -> None:
             1,
         )
         + "% for infant hospitalisations",
-        "Under the immediate no-vaccine counterfactual, median residual burdens were "
+        "Under the immediate no-vaccine counterfactual, median burdens relative to "
+        "current aP-like protection were "
         + _lancet_decimal(no_vaccine_medians["All <18 cases"], 1)
         + "% for all-<18 cases, "
         + _lancet_decimal(no_vaccine_medians["Infant hospitalisations"], 1)
-        + "% for infant hospitalisations, "
-        + _lancet_decimal(no_vaccine_medians["Adolescent cases"], 1)
-        + "% for adolescent cases, and "
+        + "% for infant hospitalisations, and "
         + _lancet_decimal(no_vaccine_medians["Resistant infections"], 1)
         + "% for all-age resistant infections",
-        "median residual all-<18 burdens were "
+        "Under infection blocking, transmission blocking, and the high-blocking "
+        "target, corresponding burdens were "
         + _lancet_decimal(
             target_medians[("infection_blocking", "All <18 cases")], 1
         )
-        + "% under infection blocking, "
+        + "%, "
         + _lancet_decimal(
             target_medians[("transmission_blocking", "All <18 cases")], 1
         )
-        + "% under transmission blocking, and "
+        + "%, and "
         + _lancet_decimal(
             target_medians[("next_generation", "All <18 cases")], 1
         )
-        + "% under the high-blocking target",
-        "corresponding infant-hospitalisation residuals were "
+        + "% for all-<18 cases; "
         + _lancet_decimal(
             target_medians[
                 ("infection_blocking", "Infant hospitalisations")
@@ -2064,28 +2352,27 @@ def validate_main_manuscript_key_numbers() -> None:
         + _lancet_decimal(
             target_medians[("next_generation", "Infant hospitalisations")], 1
         )
-        + "%",
-        "Median adolescent-case residuals were "
+        + "% for infant hospitalisations; and "
         + _lancet_decimal(
-            target_medians[("infection_blocking", "Adolescent cases")], 1
+            target_medians[("infection_blocking", "Resistant infections")], 1
         )
         + "%, "
         + _lancet_decimal(
-            target_medians[("transmission_blocking", "Adolescent cases")], 1
+            target_medians[("transmission_blocking", "Resistant infections")], 1
         )
         + "%, and "
         + _lancet_decimal(
-            target_medians[("next_generation", "Adolescent cases")], 1
+            target_medians[("next_generation", "Resistant infections")], 1
         )
-        + "%",
-        "adolescent burden nevertheless exceeded current practice in "
+        + "% for resistant infections",
+        "All three blocking targets reduced all-<18 burden in every profile, although adolescent "
+        "burden exceeded the current aP-like setting in "
         + _small_number_word(adolescent_above["infection_blocking"])
         + ", "
         + _small_number_word(adolescent_above["transmission_blocking"])
         + ", and "
         + _small_number_word(adolescent_above["next_generation"])
-        + " of nine profiles",
-        "whereas all-<18 burden was below current practice in every profile under all three targets",
+        + " profiles, respectively",
     ]
     if not (
         int(all_under18_guided) == 5
@@ -2129,13 +2416,13 @@ def validate_main_manuscript_key_numbers() -> None:
             + " | "
             + _lancet_decimal(row.current_practice_cases_per_100k_under18, 1)
             + " | "
-            + str(row.lowest_burden_programme_only_strategy)
+            + publication_strategy_label(row.lowest_burden_programme_only_strategy)
             + " | "
             + effect_interval
             + " | "
             + _lancet_decimal(row.reduction_percent, 1)
             + " | "
-            + str(row.second_ranked_programme_only_strategy)
+            + publication_strategy_label(row.second_ranked_programme_only_strategy)
             + " | "
             + margin_interval
             + " |"
@@ -2148,14 +2435,13 @@ def validate_main_manuscript_key_numbers() -> None:
     )
 
     summary_tokens = [
-        "In the reference analysis, routine schedule timeliness produced the lowest "
+        "Routine schedule timeliness produced the lowest "
         "primary-outcome index in eight profiles, and the infant-exposure package did "
         "so in China",
-        "For each profile, the cellwise 95% CI for the leading strategy's reduction "
-        "versus current practice excluded zero, without adjustment for point-estimate "
-        "selection; however, the paired separation between the "
-        "leading and second-ranked strategies included zero in Thailand and the UK",
-        "Routine timeliness reduced the primary index by a median "
+        "Each leader's cellwise 95% CI versus current practice excluded zero, without "
+        "adjustment for point-estimate selection; however, paired separation from the "
+        "second-ranked strategy included zero in Thailand and the UK",
+        "Routine schedule timeliness reduced the primary index by a median "
         + _lancet_decimal(timeliness.median(), 1)
         + "% (IQR "
         + _lancet_decimal(timeliness.quantile(0.25), 1)
@@ -2167,13 +2453,12 @@ def validate_main_manuscript_key_numbers() -> None:
         + _lancet_decimal(coverage_effects.quantile(0.25), 1)
         + " to "
         + _lancet_decimal(coverage_effects.quantile(0.75), 1)
-        + ") for a separate coverage-floor-only contrast, and produced the larger reduction "
-        "in all nine profiles",
+        + ") for a coverage-floor-only contrast, and was larger in all nine profiles",
         "Median infant-hospitalisation reductions were "
         + _lancet_decimal(
             timeliness_endpoint_medians["Infant hospitalisations"], 1
         )
-        + "% for routine timeliness, "
+        + "% for routine schedule timeliness, "
         + _lancet_decimal(
             pregnancy_endpoint_medians["Infant hospitalisations"], 1
         )
@@ -2181,16 +2466,16 @@ def validate_main_manuscript_key_numbers() -> None:
         + _lancet_decimal(
             infant_exposure_endpoint_medians["Infant hospitalisations"], 1
         )
-        + "% for the infant-exposure package; corresponding reductions in the primary "
-        "outcome were "
+        + "% for the infant-exposure package; corresponding primary-outcome reductions "
+        "were "
         + _lancet_decimal(timeliness_endpoint_medians["All <18 cases"], 1)
         + "%, "
         + _lancet_decimal(pregnancy_endpoint_medians["All <18 cases"], 1)
         + "%, and "
         + _lancet_decimal(infant_exposure_endpoint_medians["All <18 cases"], 1)
         + "%",
-        "Adolescent booster scale-up had an approximately zero median effect on "
-        "adolescent cases, although reductions were 21·1% in Thailand and 10·0% in Brazil",
+        "The median adolescent-booster effect on adolescent cases was approximately zero, "
+        "but reductions were 21·1% in Thailand and 10·0% in Brazil",
     ]
     _require_text_tokens(summary_text, summary_tokens, label="Main-manuscript Summary")
     conference_abstract_tokens = [
@@ -2236,8 +2521,9 @@ def validate_main_manuscript_key_numbers() -> None:
     _require_text_tokens(
         figure_legend_text,
         [
-            "Bars show profile-specific full-refit parametric-bootstrap 95% estimation CIs",
-            "Panels b–d show conditional indices annualised over 2027–50, not absolute "
+            "horizontal intervals are profile-specific full-refit parametric-bootstrap "
+            "95% estimation CIs",
+            "Panels b–d show conditional model indices over 2027–50, not absolute "
             "national burden or future-observation prediction intervals",
         ],
         label="Main-manuscript Figure 1b legend",
@@ -2245,17 +2531,17 @@ def validate_main_manuscript_key_numbers() -> None:
     _require_text_tokens(
         figure_legend_text,
         [
-            "Relative reductions in the primary endpoint under the coverage-floor-only "
-            "contrast and routine timeliness",
-            "Sensitivity of the reference strategy across 128 configured settings",
-            "The vertical axis shows the 95th percentile of excess burden from retaining "
-            "that strategy",
-            "These are design summaries, not probabilities or CIs",
-            "Relative reductions for all profile–strategy combinations",
-            "Brackets show cellwise paired full-refit parametric-bootstrap 95% "
-            "estimation CIs without adjustment for multiple comparisons or "
-            "point-estimate leader selection; black outlines identify "
-            "reference-analysis leaders",
+            "Relative reduction in the annualised symptomatic-case index among people "
+            "aged younger than 18 years under the coverage-floor-only contrast and "
+            "routine schedule timeliness",
+            "Robustness of the reference strategy across 128 configured selected-input settings",
+            "the vertical axis gives the 95th percentile of excess burden from retaining "
+            "it rather than selecting the setting-specific lowest-burden programme",
+            "These are deterministic design summaries, not probabilities, CIs, or expected losses",
+            "Relative reductions for all 54 profile–strategy combinations over 2027–50",
+            "Cell text gives the point estimate [cellwise paired full-refit "
+            "parametric-bootstrap 95% estimation CI], and fill colour represents the "
+            "point estimate. Black outlines identify reference-analysis leaders",
         ],
         label="Main-manuscript Figure 2 legend",
     )

@@ -99,7 +99,7 @@ plot_figure_2_panel_a <- function(data) {
       .groups = "drop"
     )
   scenario_labels <- stats::setNames(
-    c("Coverage floor only", "Timeliness only"),
+    c("Coverage-floor only", "Routine schedule timeliness"),
     scenario_order
   )
   scenario_colours <- c(
@@ -156,7 +156,7 @@ plot_figure_2_panel_a <- function(data) {
       expand = expansion(add = 0.55)
     ) +
     labs(
-      x = "Reduction in <18 symptomatic-case index",
+      x = "Relative reduction in symptomatic-case index\namong people aged <18 years (%)",
       y = NULL,
       tag = "a"
     ) +
@@ -260,7 +260,10 @@ plot_figure_2_panel_b <- function(data) {
     scale_fill_manual(
       values = strategy_palette,
       breaks = observed_strategies,
-      labels = unname(strategy_labels[observed_strategies]),
+      labels = stringr::str_wrap(
+        unname(strategy_labels[observed_strategies]),
+        width = 18
+      ),
       name = "Reference choice",
       drop = FALSE
     ) +
@@ -369,6 +372,14 @@ plot_figure_2_panel_c <- function(data) {
       colour = "white",
       linewidth = lancet_heatmap_tile_linewidth
     ) +
+    geom_tile(
+      data = dplyr::filter(panel_c, preferred_in_program_only),
+      width = 0.96,
+      height = 0.92,
+      fill = NA,
+      colour = lancet_text_colour,
+      linewidth = 0.45
+    ) +
     geom_text(
       aes(label = effect_label, colour = effect_text_colour),
       size = journal_heatmap_cell_text_size,
@@ -382,7 +393,7 @@ plot_figure_2_panel_c <- function(data) {
       breaks = panel_c_colourbar_breaks,
       labels = label_lancet_percent(accuracy = 1),
       oob = scales::squish,
-      name = "Reduction in <18 symptomatic cases: estimate [95% CI]",
+      name = "Relative reduction vs current practice (%)",
       guide = guide_lancet_colourbar(
         barwidth = unit(0.30, "cm"),
         barheight = unit(6.0, "cm"),

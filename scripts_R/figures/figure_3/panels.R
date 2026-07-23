@@ -19,7 +19,7 @@ plot_figure_3_panel_a <- function(data) {
       breaks = panel_a_colourbar_breaks,
       labels = label_lancet_percent(accuracy = 1),
       oob = scales::squish,
-      name = "Median reduction",
+      name = "Median relative reduction vs current practice",
       guide = guide_lancet_colourbar(
         barwidth = unit(0.30, "cm"),
         barheight = unit(5.5, "cm"),
@@ -94,7 +94,10 @@ plot_figure_3_panel_b <- function(data) {
     scale_linetype_iqr() +
     coord_cartesian(xlim = c(-12, 30), clip = "off") +
     labs(
-      x = "Infant minus all <18 benefit (pp)",
+      x = paste0(
+        "Infant-case reduction minus all-<18-case reduction\n",
+        "(percentage points)"
+      ),
       y = NULL,
       tag = "b"
     ) +
@@ -234,7 +237,7 @@ plot_figure_3_panel_c <- function(data) {
     ) +
     coord_cartesian(xlim = data$booster_x_limits, clip = "off") +
     labs(
-      x = "Reduction (%)",
+      x = "Relative reduction vs current practice (%)",
       y = NULL,
       tag = "c"
     ) +

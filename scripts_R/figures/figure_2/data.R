@@ -13,7 +13,7 @@ figure_2_strategy_order <- function() {
 
 figure_2_strategy_labels <- function() {
   c(
-    timeliness_only = "Routine timeliness",
+    timeliness_only = "Routine schedule timeliness",
     maternal_immunization = "Infant-exposure package",
     pregnancy_tdap_scaleup = "Pregnancy Tdap scale-up",
     adolescent_booster = "Adolescent booster",
@@ -24,12 +24,12 @@ figure_2_strategy_labels <- function() {
 
 figure_2_strategy_short_labels <- function() {
   c(
-    timeliness_only = "Routine timeliness",
-    maternal_immunization = "Infant exposure",
-    pregnancy_tdap_scaleup = "Pregnancy Tdap",
-    adolescent_booster = "Adolescent booster",
-    cocooning_adjunct = "Close-contact adjunct",
-    targeted_pep_high_risk = "Targeted PEP"
+    timeliness_only = "Routine schedule timeliness",
+    maternal_immunization = "Infant-exposure package",
+    pregnancy_tdap_scaleup = "Pregnancy Tdap scale-up",
+    adolescent_booster = "Adolescent booster scale-up",
+    cocooning_adjunct = "Close-contact adult adjunct",
+    targeted_pep_high_risk = "Targeted high-risk PEP"
   )
 }
 
