@@ -1,19 +1,19 @@
 ordering_basis,ordering_basis_label,strategy,strategy_label,country_count,effective_country_weight_sum,weighted_median_primary_case_reduction,weighted_iqr_low_primary_case_reduction,weighted_iqr_high_primary_case_reduction,weighted_iqr_primary_case_reduction,weighted_median_primary_cases_per_100k,strategy_rank_within_basis
 age_data_profiles_unweighted,Profiles with age data,timeliness_only,Routine schedule timeliness,4,4,0.14663998333584904,0.1459,0.1539,0.1459 to 0.1539,609.3439658269568,4
 age_data_profiles_unweighted,Profiles with age data,maternal_immunization,Infant-exposure composite,4,4,0.04426937073392878,0.02313,0.103,0.02313 to 0.103,682.4419711809376,6
-age_data_profiles_unweighted,Profiles with age data,cocooning_adjunct,Close-contact adult adjuncts,4,4,0.032691760717525,0.003974,0.09344,0.003974 to 0.09344,690.7089940838513,7
+age_data_profiles_unweighted,Profiles with age data,cocooning_adjunct,Close-contact adult adjunct,4,4,0.032691760717525,0.003974,0.09344,0.003974 to 0.09344,690.7089940838513,7
 age_data_profiles_unweighted,Profiles with age data,targeted_pep_high_risk,Targeted high-risk PEP,4,4,0.02120102636172849,0.009624,0.04444,0.009624 to 0.04444,698.9139831926634,8
 age_data_profiles_unweighted,Profiles with age data,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,4,4,0.01586726805682581,0.01297,0.01972,0.01297 to 0.01972,704.7882680925351,9
 age_data_profiles_unweighted,Profiles with age data,adolescent_booster,Adolescent booster scale-up,4,4,-2.1292579027121e-4,-0.005098,-8.083e-6,-0.005098 to -8.083e-06,714.2046720854189,11
 age_pattern_weighted,Age-pattern weighted,timeliness_only,Routine schedule timeliness,4,1.30107787630431,0.14635876411483345,0.146,0.1487,0.146 to 0.1487,425.33771926461327,4
 age_pattern_weighted,Age-pattern weighted,maternal_immunization,Infant-exposure composite,4,1.30107787630431,0.03587596897746725,0.02479,0.06097,0.02479 to 0.06097,472.8289218433253,6
-age_pattern_weighted,Age-pattern weighted,cocooning_adjunct,Close-contact adult adjuncts,4,1.30107787630431,0.02129134970352718,0.006236,0.04997,0.006236 to 0.04997,478.4640485710821,7
+age_pattern_weighted,Age-pattern weighted,cocooning_adjunct,Close-contact adult adjunct,4,1.30107787630431,0.02129134970352718,0.006236,0.04997,0.006236 to 0.04997,478.4640485710821,7
 age_pattern_weighted,Age-pattern weighted,targeted_pep_high_risk,Targeted high-risk PEP,4,1.30107787630431,0.01660500271750832,0.01054,0.02781,0.01054 to 0.02781,486.8191695473455,8
 age_pattern_weighted,Age-pattern weighted,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,4,1.30107787630431,0.0132879982972148,0.01297,0.01695,0.01297 to 0.01695,492.3465170222868,9
 age_pattern_weighted,Age-pattern weighted,adolescent_booster,Adolescent booster scale-up,4,1.30107787630431,-9.7248717184896e-4,-0.003533,-4.337e-5,-0.003533 to -4.337e-05,498.8719861985192,11
 all_profiles_unweighted,All profiles,timeliness_only,Routine schedule timeliness,9,9,0.1502798582155685,0.08977,0.2198,0.08977 to 0.2198,488.6299286343363,5
 all_profiles_unweighted,All profiles,maternal_immunization,Infant-exposure composite,9,9,0.05041469547777949,0.02304,0.1173,0.02304 to 0.1173,546.8083270405592,6
-all_profiles_unweighted,All profiles,cocooning_adjunct,Close-contact adult adjuncts,9,9,0.03547406300150996,0.003539,0.1063,0.003539 to 0.1063,553.7702081200296,7
+all_profiles_unweighted,All profiles,cocooning_adjunct,Close-contact adult adjunct,9,9,0.03547406300150996,0.003539,0.1063,0.003539 to 0.1063,553.7702081200296,7
 all_profiles_unweighted,All profiles,pregnancy_tdap_scaleup,Pregnancy Tdap scale-up,9,9,0.01775853851069486,0.01175,0.01993,0.01175 to 0.01993,599.7939870826223,8
 all_profiles_unweighted,All profiles,targeted_pep_high_risk,Targeted high-risk PEP,9,9,0.01723455782658167,0.006579,0.02332,0.006579 to 0.02332,596.3741000598432,9
 all_profiles_unweighted,All profiles,adolescent_booster,Adolescent booster scale-up,9,9,-1.2667525268639e-4,-0.001699,0.002601,-0.001699 to 0.002601,575.228045781274,11

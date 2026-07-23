@@ -1,8 +1,10 @@
-# Central model settings.
+# Standalone exploratory settings for the independent R Shiny implementation.
 #
-# This file is the single source of truth for all scientific assumptions,
-# scenario definitions, and data source paths used at runtime.
-# All runtime configuration is under the `runtime:` block below.
+# Core baseline biological values are aligned with the submitted analysis where
+# the R implementation consumes the same parameter meaning. This file is not
+# the source of truth for the submitted analyses; that role belongs to
+# `config/model_settings.yaml` in the repository root. Shiny calibration
+# overlays and fast runtime controls are simplified exploratory defaults.
 
 source_registry:
   cdc_clinical:
@@ -87,6 +89,14 @@ source_registry:
     note: Reported pertussis surveillance time series copied into data/raw/external and harmonized by reporting interval for this project.
 
 runtime:
+  app_scope:
+    analysis_role: independent_exploratory_interface
+    reproduces_submitted_analyses: false
+    authoritative_submission_config: ../../config/model_settings.yaml
+    note: >
+      This standalone R application is intended for rapid scenario exploration.
+      It does not implement the submitted state-space MAP calibration,
+      parametric-bootstrap uncertainty workflow, or publication quality gates.
   data_sources:
     wpp_population_csv: data/raw/external/wpp2024_population_by_age_sex_1990_2050.csv
     wpp_births_csv: data/raw/external/WPP data.csv
@@ -354,20 +364,22 @@ runtime:
         middle_adult_40_64y: 0.16
         elderly_65plus: 0.09
     natural_history:
-      latent_duration: 8.0
-      infectious_duration_symptomatic: 21.0
-      infectious_duration_asymptomatic: 14.0
+      # Aligned with the authoritative submitted-analysis baseline. Values are
+      # population-level mean durations rather than individual residence times.
+      latent_duration: 9.0
+      infectious_duration_symptomatic: 24.0
+      infectious_duration_asymptomatic: 17.3
       maternal_protection_duration: 90.0
-      recovered_immunity_duration: 3285.0
-      vaccine_protection_duration: 1825.0
-      # SIRWS boosting model parameters (Lavine et al. 2011 PNAS)
+      recovered_immunity_duration: 12227.5
+      vaccine_protection_duration: 798.0
+      # Equal SIRWS stages give a two-stage no-boosting mean of 12,227.5 days.
       # R_to_W_duration: time for fully immune (R) to transition to waned-but-boostable (W)
       # W_to_S_duration: time for waned (W) to lose all immunity and become susceptible (S)
       # If boosting is active, the effective immunity duration depends on pathogen circulation:
       #   - High circulation: W is continuously boosted back to R → long effective immunity
       #   - Zero circulation (e.g., COVID NPIs): W → S at rate 1/W_to_S_duration → immunity debt
-      R_to_W_duration: 1825.0  # 5 years: R → W (initial waning of sterilizing immunity)
-      W_to_S_duration: 3650.0  # 10 years: W → S (complete loss if not boosted)
+      R_to_W_duration: 6113.75
+      W_to_S_duration: 6113.75
     immunity_model:
       mode: maternal_dose_history
       # SIRWS boosting control
@@ -387,7 +399,8 @@ runtime:
       maternal_relative_effect: 0.75
       dose1_relative_effect: 0.45
       dose2_relative_effect: 0.75
-      waned_vaccine_duration: 3650.0
+      # Equal recent and waned stages give 1,596 days of total mean protection.
+      waned_vaccine_duration: 798.0
       initial_recent_fraction: 0.35
       initial_recent_fraction_by_age:
         infant_0_2m: 1.00
@@ -456,15 +469,25 @@ runtime:
         naturally slows selection in finite populations.
     calibration:
       enabled: false
-      allow_stale_parameter_overlay: false
       default_country_profile: Australia
       method: staged_fast
       objective: negative_binomial_reporting_interval_cases
+      analysis_role: legacy_exploratory_overlay_only
+      reproduces_submitted_calibration: false
+      note: >
+        The standalone R app does not implement the submitted state-space MAP
+        calibration with an annual latent AR(1) transmission path. Its bundled
+        overlays were produced with an earlier staged fit and are retained only
+        as approximate country-specific starting values. The optional in-app
+        quick calibration varies beta on a fixed one-dimensional grid. Neither
+        route reproduces the submitted calibration or its acceptance gates.
       dispersion: 50.0
       maxiter: 12
       n_starts: 1
       recent_years: 6
       mean_fit_penalty_weight: 50000.0
+      # Historical staged-overlay diagnostics only. The R app does not apply
+      # these as publication acceptance gates.
       acceptance:
         min_overlap_intervals: 5
         max_interval_smape: 1.30
@@ -478,6 +501,7 @@ runtime:
         rtol: 1.0e-4
         atol: 1.0e-6
       relative_incidence_tolerance: 0.25
+      # Historical staged-overlay parameter list, not the submitted MAP fit.
       fit_parameters:
         - transmission.beta_S
         - reporting_multiplier
@@ -543,7 +567,7 @@ runtime:
         infectiousness_reduction: 0.05
     PEP:
       coverage_household_contacts: 0.30
-      effectiveness_sensitive: 0.70
+      effectiveness_sensitive: 0.823
       effectiveness_resistant: 0.10
       activation_prevalence: 0.00002
     reporting_rate_sensitivity:
@@ -1133,9 +1157,8 @@ runtime:
       infectious_duration_symptomatic:
         log_sd: 0.15
         note: >
-          Clinical natural-history nuisance parameter centered on the
-          CDC-aligned 21-day symptomatic infectious window; uncertainty range
-          captures plausible variation around the clinical anchor.
+          Compatibility-only uncertainty setting centred on the aligned
+          24-day population-level mean symptomatic infectious duration.
       infectious_duration_asymptomatic:
         log_sd: 0.20
         note: >
@@ -1223,19 +1246,19 @@ parameter_sources:
     note: "Initialization choice used to reduce dependence on arbitrary starting infections and immunity; not a directly cited biological parameter."
   natural_history.latent_duration:
     source: CDC clinical guidance
-    note: "Uses 8 days within CDC's common 7-10 day incubation range."
+    note: "Uses 9 days within CDC's common 7-10 day incubation range."
   natural_history.infectious_duration_symptomatic:
     source: CDC clinical guidance
-    note: "Uses 21 days, aligned with infectiousness through roughly the third week after paroxysm onset."
+    note: "Uses a 24-day population-level mean symptomatic infectious duration; the uncertainty distribution spans the clinically plausible infectious window."
   natural_history.infectious_duration_asymptomatic:
     source: Literature-informed assumption
-    note: "Shorter duration for mild/asymptomatic infections is a modeling assumption anchored to the symptomatic infectious window; sensitivity range retained."
+    note: "Uses a 17.3-day population-level mean; the shorter duration for mild/asymptomatic infections is a modelling assumption anchored to the symptomatic infectious window."
   natural_history.recovered_immunity_duration:
     source: CDC clinical guidance and cycle-model evidence
-    note: "Uses 9 years within CDC's 4-20 year observational range; longer natural-immunity values remain sensitivity cases within the current SIRWS waning-and-boosting structure."
+    note: "The aligned SIRWS structure uses consecutive recovered-to-waned and waned-to-susceptible stages of 6113.75 days each (12227.5 days total without boosting); effective duration also depends on exposure-driven immune boosting."
   natural_history.vaccine_protection_duration:
     source: aP waning literature
-    note: "Uses 5 years to approximate rapid aP waning; meta-analysis shows marked decline by 3-7 years."
+    note: "The aligned dose-history structure uses 798 days for the recent-to-waned stage and a further 798 days for loss of residual waned vaccine-origin protection."
   transmission.seasonal_amplitude:
     source: Calibrated/processed pertussis incidence
     note: "Country profiles override this from circular seasonal concentration of reported cases."

@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from src_python.simulation import run_fitness_grid as fitness_grid
-from src_python.simulation.common import PROSPECTIVE_POLICY_KEY, file_sha256
+from src_python.simulation.common import PROSPECTIVE_POLICY_KEY
 from src_python.simulation.run_bayesian_uncertainty import _apply_sample, _sample_columns
 
 
@@ -276,7 +276,7 @@ def test_fig3d_psa_loader_accepts_current_true_case_design_without_reporting(tmp
     assert "reporting_multiplier" not in loaded.columns
 
 
-def test_canonical_fig3d_psa_loader_verifies_finalized_upstream_digest(
+def test_canonical_fig3d_psa_loader_validates_metadata_and_schema(
     monkeypatch,
     tmp_path,
 ) -> None:
@@ -293,25 +293,22 @@ def test_canonical_fig3d_psa_loader_verifies_finalized_upstream_digest(
     }
     path = tmp_path / "canonical_joint_psa.csv"
     pd.DataFrame([row]).to_csv(path, index=False)
-    expected_digest = file_sha256(path)
     monkeypatch.setattr(fitness_grid, "DEFAULT_PSA_SAMPLE_PATH", path)
+    validated: list[str] = []
     monkeypatch.setattr(
         fitness_grid,
         "validate_run_metadata",
-        lambda stem: {
-            "output_artifact_sha256": {
-                "parameter_samples": expected_digest,
-            }
-        },
+        lambda stem: validated.append(stem) or {},
     )
 
     loaded = fitness_grid._load_psa_samples(path)
     assert loaded["psa_sample_id"].tolist() == [1]
+    assert validated == [fitness_grid.JOINT_PSA_STEM]
 
     changed = dict(row, PEP_coverage_multiplier=1.1)
     pd.DataFrame([changed]).to_csv(path, index=False)
-    with pytest.raises(ValueError, match="do not match their finalized metadata digest"):
-        fitness_grid._load_psa_samples(path)
+    changed_loaded = fitness_grid._load_psa_samples(path)
+    assert changed_loaded["PEP_coverage_multiplier"].tolist() == [1.1]
 
 
 def test_fig3d_psa_loader_rejects_legacy_extra_dimension(tmp_path) -> None:

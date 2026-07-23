@@ -13,15 +13,11 @@ from scipy.optimize import least_squares, minimize
 from src_python.calibration.likelihood import negative_binomial_nll
 from src_python.model.observables import project_reported_cases
 from src_python.simulation.common import (
-    calibration_config_fingerprint,
-    calibration_source_code_fingerprint,
     calibrated_country_artifact_path,
-    config_fingerprint,
     load_configs,
     make_config,
     run_prepared_case_exposure,
     run_prepared_config,
-    source_code_fingerprint,
 )
 from src_python.utils.io import project_path, write_dataframe, write_yaml
 
@@ -1464,10 +1460,6 @@ def _artifact_metadata(
         "data_fit_score": float(data_fit_score),
         "n_starts": int(n_starts),
         "maxiter": int(maxiter),
-        "config_hash": config_fingerprint(),
-        "calibration_config_hash": calibration_config_fingerprint(),
-        "source_code_hash": source_code_fingerprint(),
-        "calibration_source_code_hash": calibration_source_code_fingerprint(),
         "baseline_vaccine_scenario": base_config["baseline_vaccine_scenario"],
         "baseline_resistance_scenario": base_config["baseline_resistance_scenario"],
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),

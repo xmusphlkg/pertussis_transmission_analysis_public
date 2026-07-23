@@ -56,7 +56,7 @@ extended_data_figure_9_programme_strategy_labels <- function() {
   c(
     timeliness_only = "Routine schedule\ntimeliness",
     maternal_immunization = "Infant-exposure\ncomposite",
-    cocooning_adjunct = "Close-contact\nadult adjuncts",
+    cocooning_adjunct = "Close-contact\nadult adjunct",
     targeted_pep_high_risk = "Targeted high-risk\nPEP",
     pregnancy_tdap_scaleup = "Pregnancy Tdap\nscale-up",
     adolescent_booster = "Adolescent booster\nscale-up"

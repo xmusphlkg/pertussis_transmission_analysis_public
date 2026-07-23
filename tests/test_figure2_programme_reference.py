@@ -68,14 +68,17 @@ def _nine_country_reference_rows(countries: tuple[str, ...]) -> pd.DataFrame:
 def _patch_reference_generation(
     monkeypatch: pytest.MonkeyPatch,
     *,
-    calibration_results: list[dict[str, str]],
+    calibration_error: RuntimeError | None = None,
 ) -> tuple[list[object], list[tuple[str, dict]]]:
     countries = tuple(f"Profile_{index}" for index in range(9))
     summary = _nine_country_reference_rows(countries)
     timeseries = pd.DataFrame({"row": [1, 2, 3]})
     writes: list[object] = []
     metadata_writes: list[tuple[str, dict]] = []
-    calibration_calls = iter(calibration_results)
+
+    def validate_calibrations(*_args, **_kwargs) -> None:
+        if calibration_error is not None:
+            raise calibration_error
 
     monkeypatch.setattr(reference_generator, "load_configs", lambda: {})
     monkeypatch.setattr(
@@ -101,8 +104,8 @@ def _patch_reference_generation(
     )
     monkeypatch.setattr(
         reference_generator,
-        "validated_calibration_artifact_path_hashes",
-        lambda *_args, **_kwargs: next(calibration_calls),
+        "validate_calibration_artifacts",
+        validate_calibrations,
     )
     monkeypatch.setattr(
         reference_generator,
@@ -116,28 +119,16 @@ def _patch_reference_generation(
     )
     monkeypatch.setattr(
         reference_generator,
-        "file_sha256",
-        lambda path: f"sha256:{path.name}",
-    )
-    monkeypatch.setattr(
-        reference_generator,
         "write_run_metadata",
         lambda stem, metadata: metadata_writes.append((stem, metadata)),
     )
     return writes, metadata_writes
 
 
-def test_reference_generate_records_exact_nine_calibration_hashes(
+def test_reference_generate_records_design_metadata(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    calibration_hashes = {
-        f"outputs/calibrations/Profile_{index}_calibrated_config.yaml": f"hash-{index}"
-        for index in range(9)
-    }
-    writes, metadata_writes = _patch_reference_generation(
-        monkeypatch,
-        calibration_results=[calibration_hashes, calibration_hashes.copy()],
-    )
+    writes, metadata_writes = _patch_reference_generation(monkeypatch)
 
     result = reference_generator.generate(n_jobs=3)
 
@@ -146,32 +137,23 @@ def test_reference_generate_records_exact_nine_calibration_hashes(
     assert len(metadata_writes) == 1
     stem, metadata = metadata_writes[0]
     assert stem == reference_generator.STEM
-    assert metadata["input_artifact_path_sha256"] == calibration_hashes
-    assert len(metadata["input_artifact_path_sha256"]) == 9
+    assert metadata["countries"] == [f"Profile_{index}" for index in range(9)]
+    assert metadata["strategies"] == list(STRATEGIES)
     assert metadata["row_counts"] == {
         "timeseries": 3,
         "summary": 9 * len(STRATEGIES),
     }
-    assert metadata["output_artifact_sha256"] == {
-        "timeseries": f"sha256:{reference_generator.TIMESERIES_PATH.name}",
-        "summary": f"sha256:{reference_generator.OUTPUT_PATH.name}",
-    }
 
 
-def test_reference_generate_rejects_calibration_change_before_writing(
+def test_reference_generate_rejects_unavailable_calibration_before_writing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    before = {
-        f"outputs/calibrations/Profile_{index}_calibrated_config.yaml": f"hash-{index}"
-        for index in range(9)
-    }
-    after = {**before, next(iter(before)): "changed"}
     writes, metadata_writes = _patch_reference_generation(
         monkeypatch,
-        calibration_results=[before, after],
+        calibration_error=RuntimeError("missing accepted calibration"),
     )
 
-    with pytest.raises(RuntimeError, match="changed while"):
+    with pytest.raises(RuntimeError, match="missing accepted calibration"):
         reference_generator.generate(n_jobs=2)
 
     assert writes == []

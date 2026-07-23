@@ -12,8 +12,7 @@ from src_python.simulation.common import (
     execute_scenario_list,
     load_configs,
     make_config,
-    uncertainty_config_fingerprint,
-    validated_calibration_artifact_path_hashes,
+    validate_calibration_artifacts,
     write_outputs,
 )
 from src_python.simulation.parameter_distributions import (
@@ -342,7 +341,7 @@ def main() -> tuple[pd.DataFrame, pd.DataFrame]:
     baseline_country = str(
         configs["baseline"].get("baseline_country_profile", "China")
     )
-    calibration_input_hashes = validated_calibration_artifact_path_hashes(
+    validate_calibration_artifacts(
         (baseline_country,),
         context="Global sensitivity analysis",
     )
@@ -392,8 +391,6 @@ def main() -> tuple[pd.DataFrame, pd.DataFrame]:
             "sample_size": int(len(samples)),
             "parameter_names": names,
             "parameter_time_scopes": parameter_time_scopes,
-            "uncertainty_config_hash": uncertainty_config_fingerprint(configs),
-            "input_artifact_path_sha256": calibration_input_hashes,
             "parameter_distributions": {
                 name: validate_distribution_spec(spec, context=f"sensitivity parameter {name!r}")
                 for name, spec in specs.items()

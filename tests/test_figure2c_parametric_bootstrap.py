@@ -12,7 +12,6 @@ import pytest
 
 import src_python.simulation.audit_figure2c_bootstrap_ci as audit
 import src_python.simulation.run_figure2c_parametric_bootstrap as bootstrap
-from src_python.simulation import common as simulation_common
 
 
 def _formal_programme_configs() -> dict:
@@ -308,7 +307,9 @@ def test_incompatible_checkpoint_bundle_is_archived_without_data_loss(
     monkeypatch,
 ) -> None:
     paths = _use_temporary_checkpoint_bundle(tmp_path, monkeypatch)
-    old_metadata = json.dumps({"fingerprint": "old-fingerprint"}).encode()
+    old_metadata = json.dumps(
+        {"countries": ["B"], "replicates": 100, "seed": 7, "maxiter": 30}
+    ).encode()
     old_draws = b"old checkpoint draws"
     old_fits = b"old checkpoint fits"
     paths["metadata"].write_bytes(old_metadata)
@@ -316,7 +317,6 @@ def test_incompatible_checkpoint_bundle_is_archived_without_data_loss(
     paths["fits"].write_bytes(old_fits)
 
     archive_dir = bootstrap._validate_or_create_checkpoint_metadata(
-        fingerprint="new-fingerprint",
         countries=["A"],
         replicates=100,
         seed=7,
@@ -325,15 +325,19 @@ def test_incompatible_checkpoint_bundle_is_archived_without_data_loss(
 
     assert archive_dir is not None
     assert paths["metadata"].exists()
-    assert json.loads(paths["metadata"].read_text())["fingerprint"] == "new-fingerprint"
+    assert json.loads(paths["metadata"].read_text()) == {
+        "countries": ["A"],
+        "replicates": 100,
+        "seed": 7,
+        "maxiter": 30,
+    }
     assert not paths["draws"].exists()
     assert not paths["fits"].exists()
     assert (archive_dir / paths["metadata"].name).read_bytes() == old_metadata
     assert (archive_dir / paths["draws"].name).read_bytes() == old_draws
     assert (archive_dir / paths["fits"].name).read_bytes() == old_fits
     manifest = json.loads((archive_dir / "manifest.json").read_text())
-    assert manifest["old_fingerprint"] == "old-fingerprint"
-    assert manifest["new_fingerprint"] == "new-fingerprint"
+    assert "design fields do not match" in manifest["reason"]
     assert len(manifest["files"]) == 3
     draws, fits = bootstrap._load_checkpoint()
     assert draws.empty and fits.empty
@@ -342,7 +346,6 @@ def test_incompatible_checkpoint_bundle_is_archived_without_data_loss(
 def test_matching_checkpoint_is_reused_without_archive(tmp_path, monkeypatch) -> None:
     paths = _use_temporary_checkpoint_bundle(tmp_path, monkeypatch)
     kwargs = {
-        "fingerprint": "current-fingerprint",
         "countries": ["A"],
         "replicates": 100,
         "seed": 7,
@@ -370,13 +373,15 @@ def test_incomplete_checkpoint_states_are_archived(
         paths["fits"].write_bytes(b"orphan fits")
     else:
         paths["metadata"].write_text(
-            json.dumps({"fingerprint": "current"}), encoding="utf-8"
+            json.dumps(
+                {"countries": ["A"], "replicates": 100, "seed": 7, "maxiter": 30}
+            ),
+            encoding="utf-8",
         )
         temporary = paths["draws"].with_name(paths["draws"].name + ".tmp.parquet")
         temporary.write_bytes(b"interrupted temporary")
 
     archive_dir = bootstrap._validate_or_create_checkpoint_metadata(
-        fingerprint="current",
         countries=["A"],
         replicates=100,
         seed=7,
@@ -385,7 +390,12 @@ def test_incomplete_checkpoint_states_are_archived(
 
     assert archive_dir is not None
     assert (archive_dir / "manifest.json").exists()
-    assert json.loads(paths["metadata"].read_text())["fingerprint"] == "current"
+    assert json.loads(paths["metadata"].read_text()) == {
+        "countries": ["A"],
+        "replicates": 100,
+        "seed": 7,
+        "maxiter": 30,
+    }
 
 
 def test_checkpoint_archive_move_failure_rolls_back_original_bundle(
@@ -394,7 +404,9 @@ def test_checkpoint_archive_move_failure_rolls_back_original_bundle(
 ) -> None:
     paths = _use_temporary_checkpoint_bundle(tmp_path, monkeypatch)
     originals = {
-        paths["metadata"]: json.dumps({"fingerprint": "old"}).encode(),
+        paths["metadata"]: json.dumps(
+            {"countries": ["A"], "replicates": 100, "seed": 6, "maxiter": 30}
+        ).encode(),
         paths["draws"]: b"draws",
         paths["fits"]: b"fits",
     }
@@ -416,7 +428,6 @@ def test_checkpoint_archive_move_failure_rolls_back_original_bundle(
     monkeypatch.setattr(Path, "replace", fail_on_second_source_move)
     with pytest.raises(RuntimeError, match="Could not archive"):
         bootstrap._validate_or_create_checkpoint_metadata(
-            fingerprint="new",
             countries=["A"],
             replicates=100,
             seed=7,
@@ -426,131 +437,26 @@ def test_checkpoint_archive_move_failure_rolls_back_original_bundle(
     assert all(path.read_bytes() == content for path, content in originals.items())
 
 
-def test_checkpoint_fingerprint_is_sensitive_to_every_run_dimension(monkeypatch) -> None:
-    monkeypatch.setattr(bootstrap, "config_fingerprint", lambda: "config-a")
-    monkeypatch.setattr(bootstrap, "source_code_fingerprint", lambda: "source-a")
-    monkeypatch.setattr(
-        bootstrap,
-        "file_sha256",
-        lambda path: f"calibration-{Path(path).stem}",
-    )
-    base = bootstrap._checkpoint_fingerprint(
-        countries=["A"], replicates=100, seed=7, maxiter=30
-    )
-    variants = {
-        bootstrap._checkpoint_fingerprint(
-            countries=["B"], replicates=100, seed=7, maxiter=30
-        ),
-        bootstrap._checkpoint_fingerprint(
-            countries=["A"], replicates=101, seed=7, maxiter=30
-        ),
-        bootstrap._checkpoint_fingerprint(
-            countries=["A"], replicates=100, seed=8, maxiter=30
-        ),
-        bootstrap._checkpoint_fingerprint(
-            countries=["A"], replicates=100, seed=7, maxiter=31
-        ),
-    }
-    monkeypatch.setattr(bootstrap, "config_fingerprint", lambda: "config-b")
-    variants.add(
-        bootstrap._checkpoint_fingerprint(
-            countries=["A"], replicates=100, seed=7, maxiter=30
-        )
-    )
-    monkeypatch.setattr(bootstrap, "config_fingerprint", lambda: "config-a")
-    monkeypatch.setattr(bootstrap, "source_code_fingerprint", lambda: "source-b")
-    variants.add(
-        bootstrap._checkpoint_fingerprint(
-            countries=["A"], replicates=100, seed=7, maxiter=30
-        )
-    )
-    monkeypatch.setattr(bootstrap, "source_code_fingerprint", lambda: "source-a")
-    monkeypatch.setattr(bootstrap, "file_sha256", lambda _path: "calibration-changed")
-    variants.add(
-        bootstrap._checkpoint_fingerprint(
-            countries=["A"], replicates=100, seed=7, maxiter=30
-        )
-    )
-
-    assert len(variants) == 7
-    assert base not in variants
-
-
-def test_figure2c_input_artifacts_include_path_and_legacy_digests(
+def test_figure2c_input_validation_requires_calibrations_and_frontier(
     tmp_path,
     monkeypatch,
 ) -> None:
     frontier = tmp_path / "decision_frontier.csv"
-    calibration = tmp_path / "A_calibrated_config.yaml"
     frontier.write_text("country,strategy\nA,timeliness_only\n", encoding="utf-8")
-    calibration.write_text("metadata:\n  accepted: true\n", encoding="utf-8")
-    calibration_key = str(calibration.resolve())
-    calibration_digest = bootstrap.file_sha256(calibration)
+    validation_calls: list[tuple[str, ...]] = []
     monkeypatch.setattr(bootstrap, "FRONTIER_PATH", frontier)
     monkeypatch.setattr(
         bootstrap,
-        "validated_calibration_artifact_path_hashes",
-        lambda countries, context: {calibration_key: calibration_digest},
-    )
-    monkeypatch.setattr(
-        bootstrap,
-        "calibrated_country_artifact_path",
-        lambda country: calibration,
+        "validate_calibration_artifacts",
+        lambda countries, **_kwargs: validation_calls.append(tuple(countries)),
     )
 
-    path_hashes, legacy_hashes = bootstrap._figure2c_input_artifact_hashes(["A"])
+    bootstrap._validate_figure2c_inputs(["A"])
+    assert validation_calls == [("A",)]
 
-    assert path_hashes == {
-        str(frontier.resolve()): bootstrap.file_sha256(frontier),
-        calibration_key: calibration_digest,
-    }
-    assert legacy_hashes == {
-        "decision_frontier": bootstrap.file_sha256(frontier),
-        "calibration_A": calibration_digest,
-    }
-
-
-def test_figure2c_metadata_requires_and_revalidates_path_digests(
-    tmp_path,
-    monkeypatch,
-) -> None:
-    upstream = tmp_path / "calibration.yaml"
-    upstream.write_text("version: 1\n", encoding="utf-8")
-    metadata = {
-        "schema_version": simulation_common.METADATA_SCHEMA_VERSION,
-        "stem": bootstrap.STEM,
-        "config_hash": "current-config",
-        "source_code_hash": "current-source",
-        "dependency_versions": {
-            "python": "test",
-            **{
-                package: "test"
-                for package in simulation_common.DEPENDENCY_VERSION_PACKAGES
-            },
-        },
-        "input_artifact_path_sha256": {
-            str(upstream): simulation_common.file_sha256(upstream)
-        },
-    }
-    monkeypatch.setattr(
-        simulation_common, "read_run_metadata", lambda stem: metadata
-    )
-    monkeypatch.setattr(
-        simulation_common, "config_fingerprint", lambda: "current-config"
-    )
-    monkeypatch.setattr(
-        simulation_common, "source_code_fingerprint", lambda: "current-source"
-    )
-
-    assert simulation_common.validate_run_metadata(bootstrap.STEM) is metadata
-
-    upstream.write_text("version: 2\n", encoding="utf-8")
-    with pytest.raises(ValueError, match="stale upstream input artifact"):
-        simulation_common.validate_run_metadata(bootstrap.STEM)
-
-    metadata.pop("input_artifact_path_sha256")
-    with pytest.raises(ValueError, match="predates required upstream"):
-        simulation_common.validate_run_metadata(bootstrap.STEM)
+    frontier.unlink()
+    with pytest.raises(FileNotFoundError):
+        bootstrap._validate_figure2c_inputs(["A"])
 
 
 def test_bounded_ar1_path_is_reproducible_and_respects_support() -> None:
@@ -751,19 +657,9 @@ def test_bootstrap_audit_accepts_only_complete_ci_route(tmp_path, monkeypatch) -
             "tail_probability_mcse": 0.004,
         }
     )
-    paths = {}
-    output_digests = {}
-    source_names = {
-        "paired_bootstrap_draws_sha256": "paired_bootstrap_draws",
-        "confidence_intervals_sha256": "confidence_intervals",
-        "fit_diagnostics_sha256": "fit_diagnostics",
-        "interval_stability_sha256": "interval_stability",
-    }
-    for audit_name, source_name in source_names.items():
-        path = tmp_path / f"{audit_name}.csv"
-        path.write_text(audit_name, encoding="utf-8")
-        paths[audit_name] = path
-        output_digests[source_name] = audit.file_sha256(path)
+    paths = tuple(tmp_path / name for name in ("draws.csv", "intervals.csv", "fits.csv", "stability.csv"))
+    for path in paths:
+        path.write_text(path.stem, encoding="utf-8")
     monkeypatch.setattr(audit, "AUDITED_ARTIFACT_PATHS", paths)
     metadata = {
         "analysis_role": "publication_estimation_confidence_interval",
@@ -778,11 +674,6 @@ def test_bootstrap_audit_accepts_only_complete_ci_route(tmp_path, monkeypatch) -
         "paired_scenario_contrast": True,
         "posterior_credible_interval": False,
         "future_observation_prediction_interval": False,
-        "input_artifact_path_sha256": {
-            path: "test-digest"
-            for path in audit._expected_input_artifact_paths(["A"])
-        },
-        "output_artifact_sha256": output_digests,
     }
 
     rows = audit._audit_frames(
@@ -886,19 +777,9 @@ def _complete_audit_design_inputs(
             for strategy in strategies
         ]
     )
-    paths: dict[str, Path] = {}
-    output_digests: dict[str, str] = {}
-    source_names = {
-        "paired_bootstrap_draws_sha256": "paired_bootstrap_draws",
-        "confidence_intervals_sha256": "confidence_intervals",
-        "fit_diagnostics_sha256": "fit_diagnostics",
-        "interval_stability_sha256": "interval_stability",
-    }
-    for audit_name, source_name in source_names.items():
-        path = tmp_path / f"{audit_name}.csv"
-        path.write_text(audit_name, encoding="utf-8")
-        paths[audit_name] = path
-        output_digests[source_name] = audit.file_sha256(path)
+    paths = tuple(tmp_path / name for name in ("draws.csv", "intervals.csv", "fits.csv", "stability.csv"))
+    for path in paths:
+        path.write_text(path.stem, encoding="utf-8")
     monkeypatch.setattr(audit, "AUDITED_ARTIFACT_PATHS", paths)
     metadata = {
         "analysis_role": "publication_estimation_confidence_interval",
@@ -915,11 +796,6 @@ def _complete_audit_design_inputs(
         "paired_scenario_contrast": True,
         "posterior_credible_interval": False,
         "future_observation_prediction_interval": False,
-        "input_artifact_path_sha256": {
-            path: "test-digest"
-            for path in audit._expected_input_artifact_paths(list(countries))
-        },
-        "output_artifact_sha256": output_digests,
     }
     return {
         "source_metadata": metadata,
@@ -985,20 +861,3 @@ def test_bootstrap_audit_rejects_incomplete_six_strategy_block(
     statuses = {row["check"]: row["status"] for row in rows}
 
     assert statuses["successful_replicate_strategy_grid_exact"] == "fail"
-
-
-def test_bootstrap_audit_rejects_missing_upstream_path_digest(
-    tmp_path,
-    monkeypatch,
-) -> None:
-    inputs = _complete_audit_design_inputs(tmp_path, monkeypatch)
-    metadata = inputs["source_metadata"].copy()
-    input_hashes = metadata["input_artifact_path_sha256"].copy()
-    input_hashes.pop(next(iter(input_hashes)))
-    metadata["input_artifact_path_sha256"] = input_hashes
-    inputs["source_metadata"] = metadata
-
-    rows = audit._audit_frames(**inputs)
-    statuses = {row["check"]: row["status"] for row in rows}
-
-    assert statuses["upstream_input_path_digest_contract_exact"] == "fail"

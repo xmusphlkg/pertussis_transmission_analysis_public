@@ -17,23 +17,6 @@ def test_r_figure1b_requires_audited_intervals_for_all_endpoints_and_draws_them(
     source('scripts_R/figures/figure_1/data.R')
     source('scripts_R/figures/figure_1/panels.R')
 
-    matched_metadata <- validate_figure_1b_parent_metadata(
-      list(config_hash = 'config-a', source_code_hash = 'source-a'),
-      list(config_hash = 'config-a', source_code_hash = 'source-a')
-    )
-    stopifnot(
-      identical(matched_metadata$config_hash, 'config-a'),
-      identical(matched_metadata$source_code_hash, 'source-a')
-    )
-    failed <- tryCatch({
-      validate_figure_1b_parent_metadata(
-        list(config_hash = 'config-a', source_code_hash = 'source-a'),
-        list(config_hash = 'config-b', source_code_hash = 'source-a')
-      )
-      FALSE
-    }, error = function(e) TRUE)
-    stopifnot(failed)
-
     conditional_metadata <- list(
       bootstrap_data_generation = 'conditional_fitted_AR1_path_plus_NB2_measurement',
       conditional_on_fitted_latent_process_path = TRUE,

@@ -118,7 +118,7 @@ plot_extended_data_figure_2_panel_d <- function(data) {
       expand = expansion(mult = c(0.05, 0.07))
     ) +
     coord_cartesian(xlim = c(0, x_upper)) +
-    labs(x = "Interval\nsMAPE", y = NULL, tag = "D") +
+    labs(x = "Annual likelihood-group\nsMAPE", y = NULL, tag = "D") +
     theme_calibration_fingerprint +
     theme(axis.text.y = element_blank())
 }

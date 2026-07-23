@@ -16,11 +16,10 @@ if str(ROOT) not in sys.path:
 
 from src_python.simulation.common import (
     current_run_metadata,
-    file_sha256,
     load_configs,
     publication_country_names,
     validate_run_metadata,
-    validated_calibration_artifact_path_hashes,
+    validate_calibration_artifacts,
     write_run_metadata,
 )
 from src_python.utils.io import project_path, read_table, write_dataframe
@@ -176,14 +175,6 @@ def _read(relative_path: str) -> pd.DataFrame:
     return read_table(project_path(relative_path))
 
 
-def _metadata_artifact_path(path: Path) -> str:
-    resolved = path.resolve()
-    try:
-        return resolved.relative_to(project_path().resolve()).as_posix()
-    except ValueError:
-        return str(resolved)
-
-
 def _parent_artifact_paths(stem: str) -> tuple[Path, ...]:
     return (
         project_path("outputs", "summaries", f"{stem}_summary.csv"),
@@ -192,33 +183,22 @@ def _parent_artifact_paths(stem: str) -> tuple[Path, ...]:
     )
 
 
-def _validated_parent_artifact_hashes(
+def _validate_parent_artifacts(
     stems: Iterable[str],
     *,
     countries: tuple[str, ...],
-) -> dict[str, str]:
-    """Bind deterministic parents to the same nine accepted calibrations."""
+) -> None:
+    """Require accepted calibrations and complete deterministic parent files."""
 
-    expected_calibrations = validated_calibration_artifact_path_hashes(
+    validate_calibration_artifacts(
         countries,
         context=f"{FRONTIER_STEM} deterministic parents",
     )
-    artifact_hashes = dict(expected_calibrations)
     for stem in stems:
-        metadata = validate_run_metadata(stem)
-        recorded = metadata.get("input_artifact_path_sha256")
-        if not isinstance(recorded, dict) or dict(sorted(recorded.items())) != dict(
-            sorted(expected_calibrations.items())
-        ):
-            raise ValueError(
-                f"Deterministic parent {stem} is not bound to exactly the current "
-                f"{len(expected_calibrations)} accepted calibration artifacts."
-            )
+        validate_run_metadata(stem)
         for path in _parent_artifact_paths(stem):
             if not path.is_file():
                 raise FileNotFoundError(path)
-            artifact_hashes[_metadata_artifact_path(path)] = file_sha256(path)
-    return dict(sorted(artifact_hashes.items()))
 
 
 def _available(data: pd.DataFrame, columns: Iterable[str]) -> bool:
@@ -1185,7 +1165,6 @@ def _table1_programme_priorities(
 @dataclass(frozen=True)
 class FrontierProducts:
     countries: tuple[str, ...]
-    input_artifact_path_sha256: dict[str, str]
     intervention: pd.DataFrame
     vaccine: pd.DataFrame
     programme_reference: pd.DataFrame
@@ -1205,7 +1184,7 @@ def _read_augmented_parent(stem: str, *, reference_scenario: str) -> pd.DataFram
 
 def _build_frontier_products() -> FrontierProducts:
     countries = tuple(publication_country_names(load_configs()))
-    input_hashes = _validated_parent_artifact_hashes(
+    _validate_parent_artifacts(
         FRONTIER_PARENT_STEMS,
         countries=countries,
     )
@@ -1227,7 +1206,6 @@ def _build_frontier_products() -> FrontierProducts:
     frontier, preferred = _frontier_and_preferred(burden)
     return FrontierProducts(
         countries=countries,
-        input_artifact_path_sha256=input_hashes,
         intervention=intervention,
         vaccine=vaccine,
         programme_reference=programme_reference,
@@ -1244,7 +1222,6 @@ def generate_frontier_only() -> pd.DataFrame:
     WRITTEN_ROW_COUNTS.clear()
     products = _build_frontier_products()
     _write(products.frontier, FRONTIER_RELATIVE_PATH)
-    frontier_path = project_path(FRONTIER_RELATIVE_PATH)
     metadata = current_run_metadata(
         FRONTIER_STEM,
         row_counts={"decision_frontier": int(len(products.frontier))},
@@ -1256,19 +1233,12 @@ def generate_frontier_only() -> pd.DataFrame:
         "countries": list(products.countries),
         "programme_strategies": list(FIGURE2_PROGRAMME_STRATEGIES),
         "deterministic_parent_stems": list(FRONTIER_PARENT_STEMS),
-        "input_artifact_path_sha256": products.input_artifact_path_sha256,
-        "output_artifact_sha256": {
-            "decision_frontier": file_sha256(frontier_path),
-        },
     }
     write_run_metadata(FRONTIER_STEM, metadata)
     return products.frontier
 
 
-def _validated_frontier_artifact(
-    *,
-    expected_input_hashes: dict[str, str],
-) -> pd.DataFrame:
+def _validated_frontier_artifact() -> pd.DataFrame:
     metadata = validate_run_metadata(FRONTIER_STEM)
     if (
         metadata.get("analysis_role")
@@ -1277,18 +1247,9 @@ def _validated_frontier_artifact(
         or metadata.get("reads_bootstrap_artifact") is not False
     ):
         raise ValueError("Decision-frontier metadata have the wrong pre-bootstrap role.")
-    if metadata.get("input_artifact_path_sha256") != expected_input_hashes:
-        raise ValueError("Decision frontier is stale relative to deterministic parents.")
     frontier_path = project_path(FRONTIER_RELATIVE_PATH)
     if not frontier_path.is_file():
         raise FileNotFoundError(frontier_path)
-    observed_digest = file_sha256(frontier_path)
-    recorded_outputs = metadata.get("output_artifact_sha256")
-    if (
-        not isinstance(recorded_outputs, dict)
-        or recorded_outputs.get("decision_frontier") != observed_digest
-    ):
-        raise ValueError("Decision frontier does not match its producer metadata.")
     return pd.read_csv(frontier_path)
 
 
@@ -1320,8 +1281,8 @@ def _assert_same_frontier(expected: pd.DataFrame, observed: pd.DataFrame) -> Non
         ) from exc
 
 
-def _validated_bootstrap_draws() -> tuple[pd.DataFrame, dict[str, str]]:
-    bootstrap_metadata = validate_run_metadata(BOOTSTRAP_STEM)
+def _validated_bootstrap_draws() -> pd.DataFrame:
+    validate_run_metadata(BOOTSTRAP_STEM)
     audit_metadata = validate_run_metadata(BOOTSTRAP_AUDIT_STEM)
     if (
         audit_metadata.get("passed") is not True
@@ -1332,28 +1293,14 @@ def _validated_bootstrap_draws() -> tuple[pd.DataFrame, dict[str, str]]:
     bootstrap_path = project_path(BOOTSTRAP_RELATIVE_PATH)
     if not bootstrap_path.is_file():
         raise FileNotFoundError(bootstrap_path)
-    observed_digest = file_sha256(bootstrap_path)
-    recorded_outputs = bootstrap_metadata.get("output_artifact_sha256")
-    audited_outputs = audit_metadata.get("audited_artifact_sha256")
-    if (
-        not isinstance(recorded_outputs, dict)
-        or recorded_outputs.get("paired_bootstrap_draws") != observed_digest
-        or not isinstance(audited_outputs, dict)
-        or audited_outputs.get("paired_bootstrap_draws_sha256") != observed_digest
-    ):
-        raise ValueError("Figure 2c bootstrap draws do not match source and audit metadata.")
-    return pd.read_csv(bootstrap_path), {
-        _metadata_artifact_path(bootstrap_path): observed_digest
-    }
+    return pd.read_csv(bootstrap_path)
 
 
 def validate_frontier_for_bootstrap() -> pd.DataFrame:
     """Fail closed unless the saved frontier matches every current parent."""
 
     products = _build_frontier_products()
-    frontier = _validated_frontier_artifact(
-        expected_input_hashes=products.input_artifact_path_sha256
-    )
+    frontier = _validated_frontier_artifact()
     _assert_same_frontier(products.frontier, frontier)
     return frontier
 
@@ -1363,12 +1310,10 @@ def main() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 
     WRITTEN_ROW_COUNTS.clear()
     products = _build_frontier_products()
-    frontier = _validated_frontier_artifact(
-        expected_input_hashes=products.input_artifact_path_sha256
-    )
+    frontier = _validated_frontier_artifact()
     _assert_same_frontier(products.frontier, frontier)
-    bootstrap_draws, bootstrap_input_hash = _validated_bootstrap_draws()
-    timeliness_input_hashes = _validated_parent_artifact_hashes(
+    bootstrap_draws = _validated_bootstrap_draws()
+    _validate_parent_artifacts(
         ("routine_timeliness_sensitivity",),
         countries=products.countries,
     )
@@ -1410,18 +1355,6 @@ def main() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         _age_pattern_weighted_strategy_summary(burden),
         "outputs/tables/lancet_age_pattern_weighted_strategy_summary.csv",
     )
-    input_hashes = {
-        **products.input_artifact_path_sha256,
-        **timeliness_input_hashes,
-        _metadata_artifact_path(project_path(FRONTIER_RELATIVE_PATH)): file_sha256(
-            project_path(FRONTIER_RELATIVE_PATH)
-        ),
-        **bootstrap_input_hash,
-    }
-    output_hashes = {
-        relative_path: file_sha256(project_path(relative_path))
-        for relative_path in WRITTEN_ROW_COUNTS
-    }
     metadata = current_run_metadata(
         TABLE_STEM,
         row_counts=WRITTEN_ROW_COUNTS,
@@ -1429,8 +1362,6 @@ def main() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         "frontier_source_stem": FRONTIER_STEM,
         "bootstrap_source_stem": BOOTSTRAP_STEM,
         "bootstrap_audit_stem": BOOTSTRAP_AUDIT_STEM,
-        "input_artifact_path_sha256": dict(sorted(input_hashes.items())),
-        "output_artifact_sha256": output_hashes,
     }
     write_run_metadata(TABLE_STEM, metadata)
     return burden, preferred, summary

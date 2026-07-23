@@ -37,7 +37,7 @@ help:
 	@echo "  fitness-grid-psa         Project PSA samples onto the fitness grid"
 	@echo "  publication-tables      Rebuild retained source tables"
 	@echo "  figures                  Render main and extended figures"
-	@echo "  validate-public          Validate retained output windows, hashes, and metadata"
+	@echo "  validate-public          Validate retained output windows, tables, and metadata"
 	@echo "  test                     Run the complete public pytest suite"
 	@echo "  N_JOBS=64                Bounded process workers; use up to 100 if available"
 

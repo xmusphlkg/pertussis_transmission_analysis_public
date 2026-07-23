@@ -545,7 +545,7 @@ def test_full_cri_audit_records_missing_required_outputs(tmp_path, monkeypatch) 
     assert "draw_file_exists" in missing_checks
 
 
-def test_full_cri_audit_rejects_stale_figure2c_source_metadata() -> None:
+def test_full_cri_audit_rejects_wrong_figure2c_source_metadata() -> None:
     rows: list[dict[str, object]] = []
     _figure_metadata_checks(
         rows,
@@ -571,9 +571,7 @@ def test_full_cri_audit_rejects_stale_figure2c_source_metadata() -> None:
     assert "uncertainty_draws_per_country_matches_expected" in failures
 
 
-def test_full_cri_audit_checks_posterior_runtime_settings(monkeypatch) -> None:
-    monkeypatch.setattr(audit_module, "config_fingerprint", lambda: "current-hash")
-    monkeypatch.setattr(audit_module, "source_code_fingerprint", lambda: "current-source")
+def test_full_cri_audit_checks_posterior_runtime_settings() -> None:
     rows: list[dict[str, object]] = []
     _posterior_runtime_checks(
         rows,
@@ -584,8 +582,6 @@ def test_full_cri_audit_checks_posterior_runtime_settings(monkeypatch) -> None:
             "draws_per_chain": 1000,
             "warmup": 2000,
             "thin": 2,
-            "config_hash": "current-hash",
-            "source_code_hash": "current-source",
         },
         expected_chains=10,
     )
@@ -603,7 +599,6 @@ def test_full_cri_audit_checks_posterior_runtime_settings(monkeypatch) -> None:
             "draws_per_chain": 1000,
             "warmup": 2000,
             "thin": 2,
-            "config_hash": "posterior-hash",
         },
         expected_chains=10,
     )

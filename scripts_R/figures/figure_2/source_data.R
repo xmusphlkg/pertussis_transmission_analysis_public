@@ -9,32 +9,6 @@ figure_2_source_filenames <- c(
   provenance = "figure2_parent_provenance.csv"
 )
 
-figure_2_parent_bundle_sha256 <- function(provenance) {
-  required_parents <- c(
-    "reference",
-    "bootstrap",
-    "selected_input_rank",
-    "production_intervention"
-  )
-  if (!requireNamespace("digest", quietly = TRUE)) {
-    stop("Figure 2 bundle provenance requires the R package 'digest'.", call. = FALSE)
-  }
-  if (nrow(provenance) != length(required_parents) ||
-      anyDuplicated(as.character(provenance$parent)) ||
-      !setequal(as.character(provenance$parent), required_parents)) {
-    stop("Figure 2 bundle provenance requires exactly four named parents.", call. = FALSE)
-  }
-  ordered <- provenance[match(required_parents, provenance$parent), , drop = FALSE]
-  artifact_sha256 <- as.character(ordered$artifact_sha256)
-  valid_sha256 <- !is.na(artifact_sha256) &
-    grepl("^[[:xdigit:]]{64}$", artifact_sha256)
-  if (!all(valid_sha256)) {
-    stop("Figure 2 bundle provenance contains an invalid parent SHA-256.", call. = FALSE)
-  }
-  payload <- paste0(required_parents, "=", tolower(artifact_sha256), collapse = "\n")
-  digest::digest(payload, algo = "sha256", serialize = FALSE)
-}
-
 make_figure_2_source_data <- function(data) {
   provenance <- tibble::tibble(
     parent = c(
@@ -43,14 +17,9 @@ make_figure_2_source_data <- function(data) {
       "selected_input_rank",
       "production_intervention"
     ),
-    config_hash = data$provenance$config_hash,
-    source_code_hash = data$provenance$source_code_hash,
-    git_commit = data$provenance$git_commit,
-    artifact_sha256 = unname(
-      data$provenance$artifact_sha256[
-        c("reference", "bootstrap", "rank", "intervention")
-      ]
-    ),
+    git_commit = unname(data$provenance$git_commit[
+      c("reference", "bootstrap", "rank", "intervention")
+    ]),
     generated_at_utc = c(
       data$provenance$reference_generated_at_utc,
       data$provenance$bootstrap_generated_at_utc,
@@ -68,7 +37,7 @@ make_figure_2_source_data <- function(data) {
       ),
       paste0(
         "Selected-input deterministic design-frequency summary of reference-choice ",
-        "retention and fixed-reference regret across 128 prespecified settings"
+        "retention and excess burden from retaining the reference choice across 128 configured settings"
       ),
       paste0(
         "Production-runtime current comparator and nominal coverage-floor-only ",
@@ -76,8 +45,6 @@ make_figure_2_source_data <- function(data) {
       )
     )
   )
-  parent_bundle_sha256 <- figure_2_parent_bundle_sha256(provenance)
-
   effect_matrix <- data$programme_effects %>%
     left_join(
       data$panel_c %>%
@@ -145,8 +112,8 @@ make_figure_2_source_data <- function(data) {
         regret_cases_per_100k_q95,
         interpretation = paste0(
           "Selected-input deterministic design-frequency summaries of ",
-          "reference-choice retention and fixed-reference regret across ",
-          "prespecified settings; non-inferential design quantities"
+          "reference-choice retention and excess burden from retaining the reference choice across ",
+          "configured settings; non-inferential design quantities"
         )
       ),
     regret_draws = data$regret_draws %>%
@@ -175,18 +142,12 @@ make_figure_2_source_data <- function(data) {
         rank1_fraction_for_arithmetic_check = count / data$rank_setting_count,
         interpretation = paste0(
           "Selected-input deterministic design-frequency count retained as an ",
-          "audit extract across prespecified settings"
+          "audit extract across configured settings"
         )
       ),
     provenance = provenance
   )
-  purrr::map(
-    source_data,
-    ~ dplyr::mutate(
-      .x,
-      figure2_parent_bundle_sha256 = .env$parent_bundle_sha256
-    )
-  )
+  source_data
 }
 
 write_figure_2_source_data <- function(

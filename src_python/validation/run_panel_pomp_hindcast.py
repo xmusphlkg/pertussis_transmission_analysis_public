@@ -47,7 +47,6 @@ from src_python.calibration.panel_pomp import (
 )
 from src_python.simulation.common import (
     current_run_metadata,
-    file_sha256,
     make_config,
     publication_country_names,
     write_run_metadata,
@@ -1614,15 +1613,6 @@ def main() -> None:
         ),
         "full_compartment_pomp_claimed": False,
         "posterior_parameter_uncertainty_claimed": False,
-        "input_artifact_sha256": {
-            "pertussis_incidence_timeseries": file_sha256(
-                project_path("data/processed/pertussis_incidence_timeseries.csv")
-            ),
-        },
-        "output_artifact_sha256": {
-            stem: file_sha256(project_path(f"outputs/tables/{stem}.csv"))
-            for stem in outputs
-        },
         "scope": "semi_mechanistic_discrepancy_pomp_not_full_compartment_pomp",
     }
     write_run_metadata(run_stem, metadata)

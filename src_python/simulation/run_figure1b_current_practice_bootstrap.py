@@ -13,7 +13,6 @@ credible or future-observation intervals.
 import argparse
 from contextlib import redirect_stderr, redirect_stdout
 from copy import deepcopy
-import hashlib
 import io
 import json
 from pathlib import Path
@@ -31,16 +30,13 @@ from src_python.calibration.calibrate_baseline import (
     state_space_map_calibration,
 )
 from src_python.simulation.common import (
-    config_fingerprint,
     current_run_metadata,
     execute_scenario_summary_list,
-    file_sha256,
     load_calibrated_country_artifact,
     load_configs,
     make_config,
     publication_country_names,
-    source_code_fingerprint,
-    validated_calibration_artifact_path_hashes,
+    validate_calibration_artifacts,
     write_run_metadata,
 )
 from src_python.simulation.programme_uncertainty_helpers import (
@@ -290,41 +286,22 @@ def _load_checkpoint() -> tuple[pd.DataFrame, pd.DataFrame]:
     return draws, fits
 
 
-def _checkpoint_fingerprint(
-    *, countries: list[str], replicates: int, seed: int, maxiter: int
-) -> str:
-    payload = {
-        "schema": 1,
-        "config_hash": config_fingerprint(),
-        "source_code_hash": source_code_fingerprint(),
-        "countries": countries,
-        "replicates": int(replicates),
-        "seed": int(seed),
-        "maxiter": int(maxiter),
-        "calibration_artifact_hashes": {
-            country: file_sha256(
-                project_path(
-                    "outputs",
-                    "calibrations",
-                    f"{country.replace(' ', '_')}_calibrated_config.yaml",
-                )
-            )
-            for country in countries
-        },
-    }
-    return hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
-    ).hexdigest()
-
-
 def _validate_or_create_checkpoint_metadata(
-    *, fingerprint: str, countries: list[str], replicates: int, seed: int, maxiter: int
+    *, countries: list[str], replicates: int, seed: int, maxiter: int
 ) -> None:
     if CHECKPOINT_METADATA_PATH.exists():
         metadata = json.loads(CHECKPOINT_METADATA_PATH.read_text())
-        if metadata.get("fingerprint") != fingerprint:
+        expected = {
+            "countries": countries,
+            "replicates": int(replicates),
+            "seed": int(seed),
+            "maxiter": int(maxiter),
+        }
+        mismatches = [key for key, value in expected.items() if metadata.get(key) != value]
+        if mismatches:
             raise RuntimeError(
-                "Figure 1b checkpoint fingerprint does not match the current run"
+                "Figure 1b checkpoint design does not match the requested run: "
+                + ", ".join(mismatches)
             )
         return
     CHECKPOINT_METADATA_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -332,7 +309,6 @@ def _validate_or_create_checkpoint_metadata(
     temporary.write_text(
         json.dumps(
             {
-                "fingerprint": fingerprint,
                 "countries": countries,
                 "replicates": int(replicates),
                 "seed": int(seed),
@@ -519,7 +495,7 @@ def run_current_practice_bootstrap(
         raise ValueError("Minimum successful replicates cannot exceed requested")
     if not 0.0 < minimum_success_fraction <= 1.0:
         raise ValueError("Minimum success fraction must be in (0, 1]")
-    calibration_input_hashes = validated_calibration_artifact_path_hashes(
+    validate_calibration_artifacts(
         resolved,
         context="Figure 1b parametric bootstrap",
     )
@@ -537,14 +513,7 @@ def run_current_practice_bootstrap(
         raise ValueError("Figure 1b retry schedule must exceed first-pass maxiter")
     workers = min(max(1, n_jobs), available_cpus())
     chunk_size = max(workers, chunk_size)
-    fingerprint = _checkpoint_fingerprint(
-        countries=resolved,
-        replicates=replicates,
-        seed=seed,
-        maxiter=resolved_maxiter,
-    )
     _validate_or_create_checkpoint_metadata(
-        fingerprint=fingerprint,
         countries=resolved,
         replicates=replicates,
         seed=seed,
@@ -717,13 +686,6 @@ def run_current_practice_bootstrap(
         "n_jobs": workers,
         "maxiter": resolved_maxiter,
         "retry_maxiter_schedule": retry_maxiters,
-        "input_artifact_path_sha256": calibration_input_hashes,
-        "output_artifact_sha256": {
-            "current_practice_bootstrap_draws": file_sha256(DRAW_PATH),
-            "confidence_intervals": file_sha256(INTERVAL_PATH),
-            "fit_diagnostics": file_sha256(FIT_DIAGNOSTIC_PATH),
-            "interval_stability": file_sha256(STABILITY_PATH),
-        },
     }
     write_run_metadata(STEM, metadata)
     return draws, intervals, fits

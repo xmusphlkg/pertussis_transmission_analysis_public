@@ -24,8 +24,7 @@ from src_python.simulation.common import (
     make_intervention_config,
     publication_country_names,
     set_analysis_horizon_years,
-    uncertainty_config_fingerprint,
-    validated_calibration_artifact_path_hashes,
+    validate_calibration_artifacts,
     write_run_metadata,
 )
 from src_python.simulation.parameter_distributions import (
@@ -610,7 +609,7 @@ def run_resistance_management_psa(
             "Resistance-management PSA excludes countries outside the publication set: "
             + ", ".join(unknown)
         )
-    calibration_input_hashes = validated_calibration_artifact_path_hashes(
+    validate_calibration_artifacts(
         resolved_countries,
         context="Resistance-management PSA",
     )
@@ -684,7 +683,6 @@ def run_resistance_management_psa(
             "sample_seed": resolved_seed,
             "sample_design": SAMPLE_DESIGN,
             "uncertainty_schema_version": schema_version,
-            "uncertainty_config_hash": uncertainty_config_fingerprint(configs),
             "countries": resolved_countries,
             "analysis_horizon_years": horizon_years,
             "comparator": "routine_timeliness",
@@ -708,7 +706,6 @@ def run_resistance_management_psa(
             "structural_strata": settings.get("structural_strata", {}),
             "activity_audit": activity.to_dict(orient="records"),
             "figure2b_excluded": True,
-            "input_artifact_path_sha256": calibration_input_hashes,
             "interpretation": (
                 "Independent resistance-management implementation PSA; design summaries "
                 "are not posterior probabilities."

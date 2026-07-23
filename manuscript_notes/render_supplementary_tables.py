@@ -1880,7 +1880,7 @@ def study_parameter_design_rows() -> list[dict[str, str]]:
             "analysis_component": "Semi-mechanistic discrepancy POMP validation",
             "design_level": "One-reporting-interval-ahead prequential prediction plus one-year block stress test",
             "parameter_settings": "Deterministic mechanistic offsets; irregular-time persistent, robust, and compound-Poisson-jump discrepancy candidates; exposure-scaled NB2 observations; 512 particles, 4096 predictive draws, and three Monte Carlo replicates for the formal 2023-26 folds.",
-            "source_provenance": "Processed integer surveillance intervals, mechanistic scenario code, and prespecified baseline forecasts; input and output SHA-256 digests are retained in run metadata.",
+            "source_provenance": "Processed integer surveillance intervals, mechanistic scenario code, and prespecified baseline forecasts; run metadata retain dependency versions, row counts, and Git state.",
             "fixed_or_conditioned": "Candidates are selected inside each outer fold from three preceding validation years, with country scores shrunk towards the panel score; no future evidence is used.",
             "primary_role": "Tests panel-level notification-index prediction and defines the boundary between validated short-horizon prediction and conditional long-horizon scenario projection.",
             "detail_location": "predictive POMP specification table and outputs/tables/panel_pomp_* artifacts.",

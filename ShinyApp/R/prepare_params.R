@@ -126,9 +126,12 @@ make_config_r <- function(country_profile = NULL,
     out <- apply_country_profile_r(out, country, configs$countries[[country]])
   }
   if (isTRUE(load_calibration)) {
-    out <- deep_update_r(out, load_calibration_overlay_r(country))
+    calibration_overlay <- load_calibration_overlay_r(country)
+    out <- deep_update_r(out, calibration_overlay)
     out$metadata <- out$metadata %||% list()
-    out$metadata$calibration_loaded <- length(load_calibration_overlay_r(country)) > 0
+    out$metadata$calibration_loaded <- length(calibration_overlay) > 0
+    out$metadata$calibration_scope <- "legacy_exploratory_starting_overlay"
+    out$metadata$reproduces_submitted_calibration <- FALSE
   }
 
   vaccine_name <- vaccine_scenario %||% base$baseline_vaccine_scenario %||% "symptom_protective"

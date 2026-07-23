@@ -24,7 +24,6 @@ from __future__ import annotations
 import argparse
 from copy import deepcopy
 from dataclasses import dataclass
-import hashlib
 import os
 from pathlib import Path
 from typing import Any, Iterable
@@ -52,14 +51,11 @@ from src_python.simulation.bayesian_priors import (
 )
 from src_python.simulation.common import (
     PROSPECTIVE_POLICY_KEY,
-    config_fingerprint,
     current_run_metadata,
-    file_sha256,
     load_calibrated_country_artifact,
     load_configs,
     make_config,
     publication_country_names,
-    source_code_fingerprint,
     write_run_metadata,
 )
 from src_python.simulation.run_bayesian_uncertainty import (
@@ -91,7 +87,6 @@ FIGURE2C_INTERVAL_SOURCE = False
 SAMPLING_METHOD = "multi_country_joint_state_importance"
 INFERENCE_STRUCTURE = "cross_country_joint_state_space_exact_importance"
 UNCERTAINTY_SCOPE = "multi_country_full_feedback_joint_state_space_posterior"
-CHECKPOINT_SCHEMA_VERSION = "joint_state_exact_importance_v2"
 
 SHARED_PARAMETER_NAMES = tuple(
     PARAMETER_SAMPLE_COLUMNS[index] for index in IMPORTANCE_NUISANCE_INDICES
@@ -1312,16 +1307,19 @@ def _evaluate_country_structural_chunk(
     seed: int,
     retain_state_candidates: bool,
     checkpoint_path: Path | None = None,
-    checkpoint_fingerprint: str | None = None,
 ) -> dict[str, Any]:
     configure_worker_thread_limits()
     if checkpoint_path is not None and checkpoint_path.exists():
         cached = joblib_load(checkpoint_path)
-        if (
-            isinstance(cached, dict)
-            and cached.get("checkpoint_fingerprint") == checkpoint_fingerprint
-        ):
-            return cached["result"]
+        if isinstance(cached, dict) and isinstance(cached.get("result"), dict):
+            cached_result = cached["result"]
+            cached_indices = np.asarray(cached_result.get("indices", []), dtype=int)
+            requested_indices = np.asarray(structural_indices, dtype=int)
+            if (
+                str(cached_result.get("country", "")) == context.country
+                and np.array_equal(cached_indices, requested_indices)
+            ):
+                return cached_result
     indices = np.asarray(structural_indices, dtype=int)
     state_count = int(state_candidates)
     log_weight_matrix = np.full((len(indices), state_count), -np.inf, dtype=float)
@@ -1387,10 +1385,7 @@ def _evaluate_country_structural_chunk(
             checkpoint_path.suffix + f".{os.getpid()}.tmp"
         )
         joblib_dump(
-            {
-                "checkpoint_fingerprint": checkpoint_fingerprint,
-                "result": result,
-            },
+            {"result": result},
             temporary,
             compress=1,
         )
@@ -1417,73 +1412,19 @@ def _evaluate_stage(
 ) -> StageEvaluation:
     structural_count = len(structural_vectors)
     workers = min(max(1, int(n_jobs)), available_cpus())
-    run_fingerprint = hashlib.sha256()
-    run_fingerprint.update(CHECKPOINT_SCHEMA_VERSION.encode("utf-8"))
-    run_fingerprint.update(config_fingerprint().encode("utf-8"))
-    run_fingerprint.update(source_code_fingerprint().encode("utf-8"))
     # A single structural draw is already a long-running unit.  One-draw
     # chunks provide useful load balancing and make checkpoints granular enough
     # that a late failure never discards hours of completed inner integrations.
     chunks = [np.asarray([index], dtype=int) for index in range(structural_count)]
-    tasks: list[tuple[CountryStateContext, np.ndarray, Path | None, str]] = []
+    tasks: list[tuple[CountryStateContext, np.ndarray, Path | None]] = []
     for context in contexts:
-        context_fingerprint = run_fingerprint.copy()
-        context_fingerprint.update(context.country.encode("utf-8"))
-        context_fingerprint.update(repr(context.coordinate_names).encode("utf-8"))
-        for array in (
-            context.state_mean,
-            context.state_covariance,
-            context.lower,
-            context.upper,
-        ):
-            context_fingerprint.update(np.asarray(array, dtype=np.float64).tobytes())
-        context_fingerprint.update(
-            pd.util.hash_pandas_object(
-                context.observed, index=True
-            ).to_numpy(dtype=np.uint64).tobytes()
-        )
-        context_fingerprint.update(repr(context.prior_base).encode("utf-8"))
-        context_fingerprint.update(repr(context.runtime_reference).encode("utf-8"))
-        context_fingerprint.update(
-            repr(
-                (
-                    context.process_rho,
-                    context.process_innovation_sd,
-                    context.beta_prior_sd,
-                    context.reporting_prior_sd,
-                    context.dispersion,
-                    context.historical_end_year,
-                    context.forecast_end_year,
-                )
-            ).encode("utf-8")
-        )
         for chunk in chunks:
-            digest = context_fingerprint.copy()
-            digest.update(np.asarray(chunk, dtype=np.int64).tobytes())
-            digest.update(
-                np.asarray(structural_vectors[chunk], dtype=np.float64).tobytes()
-            )
-            digest.update(
-                repr(
-                    (
-                        state_adaptation_candidates,
-                        state_candidates,
-                        state_covariance_scales,
-                        optimizer_maxiter,
-                        adaptive_rounds,
-                        localized_rounds,
-                        seed,
-                        retain_state_candidates,
-                    )
-                ).encode("utf-8")
-            )
-            fingerprint = digest.hexdigest()
             checkpoint_path = None
             if checkpoint_dir is not None:
                 checkpoint_path = checkpoint_dir / (
                     f"{context.country}_{int(chunk[0]):06d}_{int(chunk[-1]):06d}.joblib"
                 )
-            tasks.append((context, chunk, checkpoint_path, fingerprint))
+            tasks.append((context, chunk, checkpoint_path))
     worker_count = min(workers, len(tasks))
     if worker_count == 1:
         parts = [
@@ -1500,9 +1441,8 @@ def _evaluate_stage(
                 seed=seed,
                 retain_state_candidates=retain_state_candidates,
                 checkpoint_path=checkpoint_path,
-                checkpoint_fingerprint=fingerprint,
             )
-            for context, chunk, checkpoint_path, fingerprint in tasks
+            for context, chunk, checkpoint_path in tasks
         ]
     else:
         parts = Parallel(n_jobs=worker_count, backend="loky", inner_max_num_threads=1)(
@@ -1519,9 +1459,8 @@ def _evaluate_stage(
                 seed=seed,
                 retain_state_candidates=retain_state_candidates,
                 checkpoint_path=checkpoint_path,
-                checkpoint_fingerprint=fingerprint,
             )
-            for context, chunk, checkpoint_path, fingerprint in tasks
+            for context, chunk, checkpoint_path in tasks
         )
 
     log_marginal_by_country: dict[str, np.ndarray] = {}
@@ -2145,9 +2084,6 @@ def run_hierarchical_joint_posterior(
         "seed": int(seed),
         "n_jobs": int(n_jobs),
         "checkpoint_root": str(checkpoint_root),
-        "posterior_samples_sha256": file_sha256(posterior_path),
-        "structural_importance_audit_sha256": file_sha256(structural_path),
-        "local_state_importance_audit_sha256": file_sha256(local_path),
         "adaptation_raw_ess": float(adaptation_raw_ess),
         "adaptation_tempering_exponent": float(adaptation_tempering_exponent),
         "quality": quality,

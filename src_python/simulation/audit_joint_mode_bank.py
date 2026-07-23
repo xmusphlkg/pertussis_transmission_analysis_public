@@ -12,7 +12,6 @@ import pandas as pd
 from src_python.calibration.mcmc_diagnostics import summarize_convergence
 from src_python.simulation.common import (
     current_run_metadata,
-    file_sha256,
     load_configs,
     publication_country_names,
     write_run_metadata,
@@ -77,7 +76,6 @@ def _single_component_bank(mode_bank: ModeBank, index: int) -> ModeBank:
         cholesky_factors=(mode_bank.cholesky_factors[index],),
         degrees_of_freedom=mode_bank.degrees_of_freedom,
         source_stems=(mode_bank.source_stems[index],),
-        source_hashes=(mode_bank.source_hashes[index],),
         dimension=mode_bank.dimension,
     )
 
@@ -273,7 +271,6 @@ def audit_joint_mode_bank(
     ) | {
         "audit": "exact_complete_state_mode_bank_independence_mh",
         "mode_bank_source_stems": mode_bank_stems,
-        "mode_bank_source_hashes": list(mode_bank.source_hashes),
         "origin_stems": origin_stems,
         "mode_bank_dimension": mode_bank.dimension,
         "covariance_inflation": float(covariance_inflation),
@@ -289,17 +286,6 @@ def audit_joint_mode_bank(
         "mean_mh_acceptance": float(audit["mh_acceptance"].mean()),
         "total_accepted_cross_mode_count": int(
             audit["accepted_cross_mode_count"].sum()
-        ),
-        "output_sha256": file_sha256(output_path),
-        "final_posterior_sha256": (
-            file_sha256(final_posterior_path)
-            if final_posterior_path is not None
-            else None
-        ),
-        "convergence_diagnostics_sha256": (
-            file_sha256(diagnostics_path)
-            if diagnostics_path is not None
-            else None
         ),
         "convergence_summary": convergence,
     }

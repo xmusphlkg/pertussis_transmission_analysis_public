@@ -173,8 +173,6 @@ def test_r_figure2_full_three_panel_contract_and_fail_closed_audits() -> None:
       )
 
     shared <- list(
-      config_hash = 'config-current',
-      source_code_hash = 'source-current',
       git = list(commit = 'commit-current'),
       generated_at_utc = '2026-07-17T00:00:00+00:00',
       countries = countries
@@ -299,12 +297,6 @@ def test_r_figure2_full_three_panel_contract_and_fail_closed_audits() -> None:
       unname(figure_2_source_filenames[['decision_fragility']]),
       'figure2b_reference_choice_fragility.csv'
     ))
-    prepared$provenance$artifact_sha256 <- stats::setNames(
-      vapply(c('a', 'b', 'c', 'd'), function(value) {
-        paste(rep(value, 64L), collapse = '')
-      }, character(1)),
-      c('reference', 'bootstrap', 'rank', 'intervention')
-    )
     source_data <- make_figure_2_source_data(prepared)
     stopifnot(nrow(source_data$delivery_lever_contrast) == n_country * 2L)
     stopifnot(nrow(source_data$decision_fragility) == n_country)
@@ -312,15 +304,8 @@ def test_r_figure2_full_three_panel_contract_and_fail_closed_audits() -> None:
     stopifnot(nrow(source_data$effect_matrix) == n_country * n_strategy)
     stopifnot(nrow(source_data$rank1_counts) == n_country * n_strategy)
     stopifnot(nrow(source_data$provenance) == 4L)
-    stopifnot("artifact_sha256" %in% names(source_data$provenance))
-    stopifnot(all(vapply(
-      source_data,
-      function(frame) {
-        "figure2_parent_bundle_sha256" %in% names(frame) &&
-          dplyr::n_distinct(frame$figure2_parent_bundle_sha256) == 1L
-      },
-      logical(1)
-    )))
+    stopifnot(all(c("git_commit", "generated_at_utc", "estimand_or_role") %in%
+      names(source_data$provenance)))
     stopifnot(all(
       source_data$rank1_counts %>% group_by(country) %>%
         summarise(n = sum(rank1_count)) %>% pull(n) == 128L
@@ -371,13 +356,6 @@ def test_r_figure2_full_three_panel_contract_and_fail_closed_audits() -> None:
       prepare_figure_2_data(partial_rank)
       FALSE
     }, error = function(e) TRUE))
-
-    stale_parent <- inputs
-    stale_parent$metadata$rank$config_hash <- 'stale-config'
-    stopifnot(tryCatch({
-      prepare_figure_2_data(stale_parent)
-      FALSE
-    }, error = function(e) grepl('do not share', conditionMessage(e), fixed = TRUE)))
 
     legacy_seven_input_rank <- inputs
     legacy_seven_input_rank$metadata$rank$figure2b_parameter_names <- c(

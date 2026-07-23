@@ -364,13 +364,13 @@ def test_vaccine_mechanism_grid_branches_from_current_ap_history() -> None:
             item for item in scenarios if item["metadata"]["country"] == country
         ]
         assert tuple(item["scenario"] for item in country_items) == expected_settings
-        history_fingerprints = {
-            simulation_common._history_config_fingerprint(
+        history_keys = {
+            simulation_common._history_config_key(
                 simulation_common.prospective_policy_history(item["config"])
             )
             for item in country_items
         }
-        assert len(history_fingerprints) == 1
+        assert len(history_keys) == 1
         for item in country_items:
             spec = item["config"][simulation_common.PROSPECTIVE_POLICY_KEY]
             assert spec["history_vaccine_scenario"] == baseline_vaccine

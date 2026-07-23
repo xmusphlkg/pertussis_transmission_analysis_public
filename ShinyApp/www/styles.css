@@ -52,6 +52,13 @@ body {
   line-height: 1.2;
 }
 
+.app-title-scope {
+  color: var(--app-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
 .control-section {
   margin-bottom: 13px;
   padding: 14px;

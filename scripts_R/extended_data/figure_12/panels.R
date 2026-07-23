@@ -122,7 +122,7 @@ plot_extended_data_figure_12_panel_d <- function(data) {
       breaks = c(0, 0.25, 0.50, 0.75, 1.00),
       labels = label_lancet_percent(accuracy = 1),
       oob = scales::squish,
-      guide = guide_lancet_colourbar(barwidth = unit(4.8, "cm"), barheight = unit(0.24, "cm"), title.position = "left")
+      guide = guide_lancet_colourbar(barwidth = unit(3.6, "cm"), barheight = unit(0.24, "cm"), title.position = "left")
     ) +
     labs(
       x = expression(italic(f)[R]),
@@ -194,7 +194,7 @@ plot_extended_data_figure_12_panel_f <- function(data) {
       labels = label_lancet_comma(accuracy = 1),
       trans = "log10",
       oob = scales::squish,
-      guide = guide_lancet_colourbar(barwidth = unit(5.0, "cm"), barheight = unit(0.24, "cm"), title.position = "left")
+      guide = guide_lancet_colourbar(barwidth = unit(3.8, "cm"), barheight = unit(0.24, "cm"), title.position = "left")
     ) +
     labs(x = expression(italic(f)[R]), y = expression(VE[inf]), fill = "All infections\nper 100 000/year") +
     theme_lancet_heatmap(base_size = journal_compact_text_size)

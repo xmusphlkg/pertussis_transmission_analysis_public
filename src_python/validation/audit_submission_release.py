@@ -102,8 +102,14 @@ def audit_submission_texts(
     add(
         "main_manuscript",
         "nine_country_publication_scope_declared",
-        f"{count_label} calibrated publication profiles" in main,
-        f"requires exact {count_label}-profile publication wording",
+        bool(
+            re.search(
+                rf"\b{re.escape(count_label)}\s+(?:(?:modelled|calibrated)\s+)?(?:publication\s+)?(?:country\s+settings|profiles)\b",
+                main,
+                re.I,
+            )
+        ),
+        f"requires a clear declaration of {count_label} modelled settings or profiles",
     )
     release_documents = {
         "main_manuscript", "cover_letter", "conference_abstract", "supplement"

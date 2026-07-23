@@ -280,7 +280,7 @@ plot_figure_2_panel_b <- function(data) {
     labs(
       x = "Settings retaining the reference choice (out of 128)",
       y = paste0(
-        "95th-percentile regret\n",
+        "95th percentile of excess burden\n",
         "(percentage points of current-practice burden)"
       ),
       tag = "b"
@@ -382,7 +382,7 @@ plot_figure_2_panel_c <- function(data) {
       breaks = panel_c_colourbar_breaks,
       labels = label_lancet_percent(accuracy = 1),
       oob = scales::squish,
-      name = "Under-18 case reduction: estimate [95% CI]",
+      name = "Reduction in <18 symptomatic cases: estimate [95% CI]",
       guide = guide_lancet_colourbar(
         barwidth = unit(0.30, "cm"),
         barheight = unit(6.0, "cm"),

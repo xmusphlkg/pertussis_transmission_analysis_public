@@ -83,7 +83,7 @@ def check_bayesian_quality(
     expected_chains: int | None = None,
     require_recommended: bool = False,
 ) -> dict[str, Any]:
-    """Validate freshness and quality, raising on any blocking failure."""
+    """Validate metadata structure and quality, raising on any blocking failure."""
 
     metadata = validate_run_metadata(stem)
     failures = posterior_quality_failures(

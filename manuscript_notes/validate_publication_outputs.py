@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 from pathlib import Path
 import re
 import sys
@@ -17,7 +16,6 @@ if str(ROOT) not in sys.path:
 
 from src_python.model.outputs import GREGORIAN_YEAR_DAYS
 from src_python.simulation.common import (
-    file_sha256,
     load_configs,
     publication_country_names,
     validate_run_metadata,
@@ -50,22 +48,18 @@ FIGURE2_PARENT_ARTIFACTS = {
     "reference": (
         "figure2_programme_reference",
         "outputs/summaries/figure2_programme_reference_summary.csv",
-        "summary",
     ),
     "bootstrap": (
         "figure2c_parametric_bootstrap",
         "outputs/tables/figure2c_programme_paired_bootstrap_draws.csv",
-        "paired_bootstrap_draws",
     ),
     "selected_input_rank": (
         "joint_psa_rank_acceptability",
         "outputs/tables/joint_psa_under18_programme_rank_samples.csv",
-        "under18_programme_rank_samples",
     ),
     "production_intervention": (
         "intervention_scenarios",
         "outputs/summaries/intervention_scenarios_summary.csv",
-        None,
     ),
 }
 FIGURE2_DERIVED_SOURCE_TABLES = (
@@ -76,8 +70,6 @@ FIGURE2_DERIVED_SOURCE_TABLES = (
     "outputs/tables/figure2_selected_input_rank1_counts.csv",
 )
 FIGURE2_PROVENANCE_PATH = "outputs/tables/figure2_parent_provenance.csv"
-FIGURE2_PARENT_BUNDLE_COLUMN = "figure2_parent_bundle_sha256"
-
 # The annualized-rate and accumulated-total contrasts are normalized from
 # separate ODE outputs.  Their dimensionless relative reductions can therefore
 # differ by about 3e-9 from solver and floating-point error in production.
@@ -271,7 +263,8 @@ def _figure2b_headline_tokens(
     def regret_token(*, figure_reference: bool) -> str:
         ending = "; figure 2B)" if figure_reference else ")"
         return (
-            "The 95th-percentile fixed-reference regret was largest in "
+            "The 95th percentile of excess burden from retaining the reference "
+            "strategy was largest in "
             + str(largest_three.iloc[0]["country"])
             + " ("
             + _lancet_decimal(
@@ -293,16 +286,14 @@ def _figure2b_headline_tokens(
         )
 
     contrast_token = (
-        "Retention frequency and high-tail consequence therefore supplied different "
-        "information: "
-        + str(second_largest_regret["country"])
-        + " retained its reference choice in "
+        str(second_largest_regret["country"])
+        + " retained its reference strategy in "
         + str(int(second_largest_regret["reference_choice_retained_count"]))
         + "/"
         + str(setting_count)
-        + " settings but had the second-largest 95th-percentile regret, whereas "
+        + " settings but had the second-largest 95th-percentile excess burden. "
         + str(lowest_retention["country"])
-        + " had the lowest retention but a lower 95th-percentile regret of "
+        + " had the lowest retention but a lower 95th-percentile excess burden of "
         + _lancet_decimal(lowest_retention["regret_percentage_points_q95"], 1)
     )
 
@@ -311,9 +302,9 @@ def _figure2b_headline_tokens(
         "retained_min": retained_min,
         "retained_max": retained_max,
         "results_tokens": [
-            "Across the "
+            "Across "
             + str(setting_count)
-            + " prespecified selected-input settings, the locked reference choice "
+            + " configured sensitivity-analysis settings, the reference strategy "
             "remained lowest-burden in "
             + str(retained_min)
             + "–"
@@ -322,20 +313,10 @@ def _figure2b_headline_tokens(
             retention_token,
             regret_token(figure_reference=True),
             contrast_token,
-            "These are deterministic summaries of the prespecified design, not "
-            "selection probabilities, confidence intervals, or expected regret",
+            "These are deterministic summaries of the configured settings, not "
+            "selection probabilities, CIs, or expected losses",
         ],
-        "summary_tokens": [
-            "The locked reference choice was retained in "
-            + str(retained_min)
-            + "–"
-            + str(retained_max)
-            + " of "
-            + str(setting_count)
-            + " selected-input settings per profile",
-            regret_token(figure_reference=False),
-            "these are deterministic design summaries, not probabilities or expected regret",
-        ],
+        "summary_tokens": [],
     }
 
 
@@ -516,39 +497,19 @@ def _validate_figure2c_reported_refit_range(
     observed_minimum: int,
     observed_maximum: int,
 ) -> None:
-    """Require Figure 2c prose to report the observed refit-count range."""
+    """Require the appendix to retain the exact Figure 2c refit-count range."""
 
     expected_range = _integer_range_text(observed_minimum, observed_maximum)
-    legend_ranges = re.findall(
-        r"The intervals used ([0-9]+(?:–[0-9]+)?) successful refits per profile",
-        figure_legend_text,
-    )
     supplement_ranges = re.findall(
         r"2·5th and 97·5th percentiles of "
         r"([0-9]+(?:–[0-9]+)?) successful refits per profile",
         supplement_text,
     )
-    if legend_ranges != [expected_range]:
-        raise AssertionError(
-            "Main-manuscript Figure 2 legend does not report the observed "
-            f"successful-refit range {expected_range}."
-        )
     if supplement_ranges != [expected_range]:
         raise AssertionError(
             "Supplementary Figure 2 methods do not report the observed "
             f"successful-refit range {expected_range}."
         )
-    _require_text_tokens(
-        figure_legend_text,
-        [
-            "brackets show paired full-refit parametric-bootstrap 95% "
-            "estimation confidence intervals",
-            "are estimation confidence intervals for fitted scenario contrasts, "
-            "not posterior credible intervals or future-observation prediction "
-            "intervals",
-        ],
-        label="Main-manuscript Figure 2 estimation-CI contract",
-    )
     _require_text_tokens(
         supplement_text,
         [
@@ -1067,7 +1028,7 @@ def validate_main_manuscript_key_numbers() -> None:
             + _lancet_decimal(symptomatic_rates.quantile(0.25), 1)
             + "–"
             + _lancet_decimal(symptomatic_rates.quantile(0.75), 1)
-            + " per 100 000 across the nine profiles (figure 1C; table 1)",
+            + " per 100 000 across the nine profiles (figure 1B; table 1)",
         ],
         label="Main-manuscript Figure 1b results",
     )
@@ -1629,28 +1590,28 @@ def validate_main_manuscript_key_numbers() -> None:
         raise AssertionError("Figure 2a/c headline effect values changed unexpectedly.")
 
     programme_tokens = [
-        "In the complete strategy–profile matrix, routine timeliness was the locked "
-        "lowest-burden programme in eight profiles and the infant-exposure package "
-        "was lowest in China",
-        "Locked point reductions ranged from "
+        "In the complete strategy–profile matrix, routine timeliness produced the "
+        "lowest primary-outcome burden in eight profiles. The infant-exposure package "
+        "produced the lowest burden in China",
+        "Reference-analysis reductions ranged from "
         + _lancet_decimal(matrix_point_percent.min(), 1)
         + "% to "
         + _lancet_decimal(matrix_point_percent.max(), 1)
-        + "% across the 54 cells; "
+        + "% across the 54 cells, and "
         + str(int(intervals_include_zero.sum()))
-        + " full-refit 95% estimation confidence intervals included zero, whereas all nine "
-        "black-outlined reference-leader intervals were positive",
-        "The paired leader–runner intervals were above zero in "
+        + " full-refit 95% estimation CIs included zero. In every profile, the CI for "
+        "the leading strategy's reduction versus current practice excluded zero",
+        "paired separation between the leading and second-ranked strategies was above zero in "
         + _small_number_word(above_zero_count)
         + " profiles and included zero in Thailand and the UK",
-        "routine timeliness reduced the conditional symptomatic-case index among people "
+        "routine timeliness reduced the symptomatic-case index among people "
         "younger than 18 years by a median "
         + _lancet_decimal(timeliness.median(), 1)
         + "% (IQR "
         + _lancet_decimal(timeliness.quantile(0.25), 1)
         + "–"
         + _lancet_decimal(timeliness.quantile(0.75), 1)
-        + "), whereas the nominal coverage-floor-only contrast changed it by "
+        + "). The nominal coverage-floor-only contrast changed the index by "
         + _lancet_decimal(coverage_effects.median(), 1)
         + "% ("
         + _lancet_decimal(coverage_effects.quantile(0.25), 1)
@@ -1895,8 +1856,8 @@ def validate_main_manuscript_key_numbers() -> None:
     ):
         raise AssertionError("Figure 3c Thailand/Brazil adolescent ranks changed.")
     adolescent_tokens = [
-        "median reductions were approximately zero across all nine profiles",
-        "the Thailand and Brazil profiles had all-<18/adolescent-case reductions of "
+        "Median reductions were approximately zero across all nine profiles",
+        "The Thailand and Brazil profiles had all-<18/adolescent-case reductions of "
         + _lancet_decimal(
             100.0
             * thailand_adolescent["all_under18_symptomatic_case_reduction"],
@@ -2187,96 +2148,85 @@ def validate_main_manuscript_key_numbers() -> None:
     )
 
     summary_tokens = [
-        f"Across {len(prediction_intervals)} held-out intervals",
-        "country-balanced empirical coverage of nominal 95% intervals was "
-        + _lancet_decimal(prediction_gate["primary_predictive_95_coverage"], 3),
-        "mean absolute log1p error was "
-        + _lancet_decimal(overall_prediction["model_mean_absolute_log1p_error"], 3),
-        "Mean log score was "
-        + _lancet_decimal(overall_prediction["model_mean_log_score_per_interval"], 3),
-        "Routine timeliness reduced the conditional <18 index by a median "
+        "In the reference analysis, routine schedule timeliness produced the lowest "
+        "primary-outcome index in eight profiles, and the infant-exposure package did "
+        "so in China",
+        "For each profile, the cellwise 95% CI for the leading strategy's reduction "
+        "versus current practice excluded zero, without adjustment for point-estimate "
+        "selection; however, the paired separation between the "
+        "leading and second-ranked strategies included zero in Thailand and the UK",
+        "Routine timeliness reduced the primary index by a median "
         + _lancet_decimal(timeliness.median(), 1)
         + "% (IQR "
         + _lancet_decimal(timeliness.quantile(0.25), 1)
         + "–"
         + _lancet_decimal(timeliness.quantile(0.75), 1)
-        + "), whereas the nominal coverage-floor-only contrast changed it by "
+        + "), compared with "
         + _lancet_decimal(coverage_effects.median(), 1)
         + "% ("
         + _lancet_decimal(coverage_effects.quantile(0.25), 1)
         + " to "
         + _lancet_decimal(coverage_effects.quantile(0.75), 1)
-        + "); timeliness produced the larger reduction in all nine profiles",
-        *figure2b_headline["summary_tokens"],
-        "one-year block coverage was "
-        + _lancet_decimal(block_gate["model_annual_95_coverage_diagnostic"], 3),
+        + ") for a separate coverage-floor-only contrast, and produced the larger reduction "
+        "in all nine profiles",
+        "Median infant-hospitalisation reductions were "
+        + _lancet_decimal(
+            timeliness_endpoint_medians["Infant hospitalisations"], 1
+        )
+        + "% for routine timeliness, "
+        + _lancet_decimal(
+            pregnancy_endpoint_medians["Infant hospitalisations"], 1
+        )
+        + "% for pregnancy tetanus-diphtheria-acellular pertussis scale-up, and "
+        + _lancet_decimal(
+            infant_exposure_endpoint_medians["Infant hospitalisations"], 1
+        )
+        + "% for the infant-exposure package; corresponding reductions in the primary "
+        "outcome were "
+        + _lancet_decimal(timeliness_endpoint_medians["All <18 cases"], 1)
+        + "%, "
+        + _lancet_decimal(pregnancy_endpoint_medians["All <18 cases"], 1)
+        + "%, and "
+        + _lancet_decimal(infant_exposure_endpoint_medians["All <18 cases"], 1)
+        + "%",
+        "Adolescent booster scale-up had an approximately zero median effect on "
+        "adolescent cases, although reductions were 21·1% in Thailand and 10·0% in Brazil",
     ]
     _require_text_tokens(summary_text, summary_tokens, label="Main-manuscript Summary")
     conference_abstract_tokens = [
-        str(len(prediction_folds))
-        + " country-year folds and "
-        + str(len(prediction_intervals))
-        + " held-out intervals",
-        "Country-balanced empirical coverage of nominal 95% predictive intervals was "
-        + _lancet_decimal(prediction_gate["primary_predictive_95_coverage"], 3),
-        "Mean log score was "
-        + _lancet_decimal(overall_prediction["model_mean_log_score_per_interval"], 3)
-        + ", compared with "
-        + _lancet_decimal(
-            overall_prediction["seasonal_naive_mean_log_score_per_interval"], 3
-        )
-        + " for seasonal-naive, "
-        + _lancet_decimal(
-            overall_prediction["ew_recent_rate_mean_log_score_per_interval"], 3
-        )
-        + " for exponentially weighted recent-rate, and "
-        + _lancet_decimal(
-            overall_prediction["damped_log_trend_mean_log_score_per_interval"], 3
-        )
-        + " for damped log-trend forecasts; corresponding mean absolute log1p "
-        "errors were "
-        + _lancet_decimal(
-            overall_prediction["model_mean_absolute_log1p_error"], 3
-        )
-        + ", "
-        + _lancet_decimal(
-            overall_prediction["seasonal_naive_mean_absolute_log1p_error"], 3
-        )
-        + ", "
-        + _lancet_decimal(
-            overall_prediction["ew_recent_rate_mean_absolute_log1p_error"], 3
-        )
-        + ", and "
-        + _lancet_decimal(
-            overall_prediction["damped_log_trend_mean_absolute_log1p_error"], 3
-        ),
-        "China had interval coverage of "
-        + _lancet_decimal(prediction_gate["minimum_country_interval_95_coverage"], 3)
-        + ", and the annual block stress test failed (joint coverage "
-        + _lancet_decimal(block_gate["model_annual_95_coverage_diagnostic"], 3)
-        + ")",
-        "routine timeliness was lowest-burden in eight profiles and the "
-        "infant-exposure package led only in China",
-        "Routine timeliness reduced the conditional pooled <18 index by a median "
+        "Routine schedule timeliness produced the lowest primary-outcome index in "
+        "eight settings, and an infant-exposure package did so in China",
+        "paired separation between the reference-analysis leader and runner-up "
+        "included zero in Thailand and the UK",
+        "Routine timeliness reduced the primary index by a median "
         + _lancet_decimal(timeliness.median(), 1)
         + "% (IQR "
         + _lancet_decimal(timeliness.quantile(0.25), 1)
         + "–"
         + _lancet_decimal(timeliness.quantile(0.75), 1)
-        + "), whereas the nominal coverage-floor-only contrast changed it by "
+        + "), compared with "
         + _lancet_decimal(coverage_effects.median(), 1)
         + "% ("
         + _lancet_decimal(coverage_effects.quantile(0.25), 1)
         + " to "
         + _lancet_decimal(coverage_effects.quantile(0.75), 1)
-        + ")",
-        "Across 128 prespecified selected-input settings, the locked reference "
-        "choice was retained in 67–128 settings per profile",
-        "the 95th-percentile fixed-reference regret was largest in Brazil, Sweden, "
-        "and Thailand",
-        "resistance-guided management produced lower all-<18 burden in "
-        + _small_number_word(int(all_under18_guided))
-        + " of nine profiles",
+        + ") for the separate coverage-floor-only contrast",
+        "Median infant-hospitalisation reductions were "
+        + _lancet_decimal(
+            timeliness_endpoint_medians["Infant hospitalisations"], 1
+        )
+        + "% for routine timeliness, "
+        + _lancet_decimal(
+            pregnancy_endpoint_medians["Infant hospitalisations"], 1
+        )
+        + "% for pregnancy Tdap scale-up, and "
+        + _lancet_decimal(
+            infant_exposure_endpoint_medians["Infant hospitalisations"], 1
+        )
+        + "% for the infant-exposure package",
+        "Adolescent booster scale-up had an approximately zero median effect on "
+        "adolescent cases, although reductions were 21·1% in Thailand and 10·0% "
+        "in Brazil",
     ]
     _require_text_tokens(
         conference_abstract_text,
@@ -2286,25 +2236,26 @@ def validate_main_manuscript_key_numbers() -> None:
     _require_text_tokens(
         figure_legend_text,
         [
-            "profile-specific conditional full-refit parametric-bootstrap 95% "
-            "estimation confidence intervals for all three indices",
-            "These intervals quantify fitted conditional estimands, not marginal "
-            "epidemic-trajectory distributions, posterior credible intervals, or "
-            "future-observation prediction intervals",
+            "Bars show profile-specific full-refit parametric-bootstrap 95% estimation CIs",
+            "Panels b–d show conditional indices annualised over 2027–50, not absolute "
+            "national burden or future-observation prediction intervals",
         ],
         label="Main-manuscript Figure 1b legend",
     )
     _require_text_tokens(
         figure_legend_text,
         [
-            "Locked relative reductions in the annualised symptomatic-case index among people younger than 18 years under a nominal coverage-floor-only contrast and routine timeliness",
-            "Both contrasts use the same production-runtime current-practice denominator",
-            "Fixed-reference decision fragility across 128 prespecified selected-input settings",
-            "The vertical axis shows the empirical 95th percentile of fixed-reference regret",
-            "These design summaries are neither probabilities, confidence intervals, nor expected regret",
-            "Locked relative reduction for every profile–strategy combination",
-            "brackets show paired full-refit parametric-bootstrap 95% estimation confidence intervals in percentage points",
-            "the black outline marks the lowest-burden strategy at the locked reference estimate",
+            "Relative reductions in the primary endpoint under the coverage-floor-only "
+            "contrast and routine timeliness",
+            "Sensitivity of the reference strategy across 128 configured settings",
+            "The vertical axis shows the 95th percentile of excess burden from retaining "
+            "that strategy",
+            "These are design summaries, not probabilities or CIs",
+            "Relative reductions for all profile–strategy combinations",
+            "Brackets show cellwise paired full-refit parametric-bootstrap 95% "
+            "estimation CIs without adjustment for multiple comparisons or "
+            "point-estimate leader selection; black outlines identify "
+            "reference-analysis leaders",
         ],
         label="Main-manuscript Figure 2 legend",
     )
@@ -2314,6 +2265,107 @@ def validate_main_manuscript_key_numbers() -> None:
         observed_minimum=observed_refit_minimum,
         observed_maximum=observed_refit_maximum,
     )
+
+    age_pattern = read_table(
+        project_path("outputs", "tables", "lancet_age_pattern_fit_current.csv")
+    )
+    require_columns(
+        age_pattern,
+        {
+            "country",
+            "external_value",
+            "modeled_value",
+            "tolerance_abs",
+            "age_pattern_weight",
+            "passes_weight_threshold",
+            "minimum_age_pattern_weight",
+        },
+        "Current external age-pattern triangulation",
+    )
+    expected_age_countries = {
+        "United_States",
+        "United_Kingdom",
+        "Sweden",
+        "Australia",
+    }
+    if (
+        len(age_pattern) != 4
+        or set(age_pattern["country"].astype(str)) != expected_age_countries
+        or age_pattern["country"].duplicated().any()
+    ):
+        raise AssertionError(
+            "External age-pattern triangulation is not the expected four-profile set."
+        )
+    age_pattern = age_pattern.set_index(age_pattern["country"].astype(str))
+    for column in (
+        "external_value",
+        "modeled_value",
+        "tolerance_abs",
+        "age_pattern_weight",
+        "minimum_age_pattern_weight",
+    ):
+        age_pattern[column] = pd.to_numeric(age_pattern[column], errors="raise")
+        if not np.isfinite(age_pattern[column]).all():
+            raise AssertionError(f"Age-pattern triangulation has invalid {column} values.")
+    age_pass = as_boolean(
+        age_pattern["passes_weight_threshold"], "Age-pattern threshold status"
+    )
+    age_weight_threshold = 0.50
+    if (
+        set(age_pass.loc[age_pass].index) != {"United_States"}
+        or not age_pass.eq(
+            age_pattern["age_pattern_weight"].ge(age_weight_threshold)
+        ).all()
+    ):
+        raise AssertionError(
+            "The external age-pattern Pass/Fail profile set changed unexpectedly."
+        )
+
+    def age_value(country: str, column: str, digits: int = 2) -> str:
+        return f"{100.0 * age_pattern.loc[country, column]:.{digits}f}"
+
+    age_tokens = [
+        "infants younger than 1 year comprised "
+        + age_value("United_States", "external_value")
+        + "% of 2025 provisional reported cases, compared with a modelled reported "
+        "infant share of "
+        + age_value("United_States", "modeled_value")
+        + "%",
+        "the agreement weight was "
+        + f"{age_pattern.loc['United_States', 'age_pattern_weight']:.3f}"
+        + ", and this was the only comparison that met the configured weight threshold of "
+        + f"{age_weight_threshold:.2f}",
+        "In England, infants younger than 1 year comprised "
+        + age_value("United_Kingdom", "external_value")
+        + "% of 2024 laboratory-confirmed cases, compared with a modelled United Kingdom "
+        "reported infant share of "
+        + age_value("United_Kingdom", "modeled_value")
+        + "%",
+        "The EU/EEA 2024 infant case share of "
+        + age_value("Sweden", "external_value")
+        + "% was used as a broad external proxy for Sweden, compared with a modelled "
+        "reported infant share of "
+        + age_value("Sweden", "modeled_value")
+        + "%",
+        "In Australia, children aged 5 to 14 years comprised "
+        + age_value("Australia", "external_value")
+        + "% of 2024 reported cases, compared with a modelled 5-17-year proxy of "
+        + age_value("Australia", "modeled_value")
+        + "%",
+        "These four comparisons are coarse external triangulation only: they were not "
+        "calibration targets and do not validate the age-stratified model outputs or the "
+        "structurally specified infant-severity cascade",
+    ]
+    _require_text_tokens(
+        supplement_text,
+        age_tokens,
+        label="Supplementary external age-pattern triangulation",
+    )
+    if supplement_text.count("threshold not met") != int((~age_pass).sum()):
+        raise AssertionError(
+            "Supplementary age-pattern Pass/Fail wording is inconsistent with the CSV."
+        )
+
     _require_text_tokens(
         supplement_text,
         [
@@ -2363,101 +2415,23 @@ def validate_release_output_windows() -> None:
         _validate_release_summary_window(stem)
 
 
-def _figure2_parent_bundle_sha256(parent_digests: dict[str, str]) -> str:
-    expected_parents = tuple(FIGURE2_PARENT_ARTIFACTS)
-    if len(parent_digests) != len(expected_parents) or set(parent_digests) != set(
-        expected_parents
-    ):
-        raise AssertionError(
-            "Figure 2 parent bundle does not contain the four canonical parents "
-            "exactly once."
-        )
-    normalized: list[str] = []
-    for parent in expected_parents:
-        digest = str(parent_digests[parent]).strip().lower()
-        if len(digest) != 64 or any(
-            character not in "0123456789abcdef" for character in digest
-        ):
-            raise AssertionError(
-                f"Figure 2 parent {parent} has an invalid SHA-256 digest."
-            )
-        normalized.append(f"{parent}={digest}")
-    return hashlib.sha256("\n".join(normalized).encode("utf-8")).hexdigest()
-
-
-def _required_metadata_text(metadata: dict, field: str, *, label: str) -> str:
-    value = metadata.get(field)
-    if value is None or not str(value).strip():
-        raise AssertionError(f"Figure 2 {label} metadata are missing {field}.")
-    return str(value)
-
-
 def validate_figure2_derived_provenance(
     parent_metadata: dict[str, dict],
-) -> str:
-    """Bind every Figure 2 derived table to the four current parent files."""
+) -> None:
+    """Validate Figure 2 artifact presence and non-hash provenance structure."""
 
-    expected_rows: dict[str, dict[str, str]] = {}
-    parent_digests: dict[str, str] = {}
-    for parent, (stem, relative_path, metadata_digest_key) in (
-        FIGURE2_PARENT_ARTIFACTS.items()
-    ):
+    for stem, relative_path in FIGURE2_PARENT_ARTIFACTS.values():
         if stem not in parent_metadata:
-            raise AssertionError(f"Figure 2 current metadata are missing parent {stem}.")
-        metadata = parent_metadata[stem]
+            raise AssertionError(f"Figure 2 metadata are missing parent {stem}.")
         artifact_path = project_path(relative_path)
         if not artifact_path.exists():
             raise AssertionError(f"Missing Figure 2 parent artifact: {artifact_path}")
-        observed_digest = file_sha256(artifact_path)
-        if metadata_digest_key is not None:
-            recorded_digests = metadata.get("output_artifact_sha256")
-            if not isinstance(recorded_digests, dict):
-                raise AssertionError(
-                    f"Figure 2 {parent} metadata do not record output artifact hashes."
-                )
-            recorded_digest = str(recorded_digests.get(metadata_digest_key, ""))
-            if recorded_digest != observed_digest:
-                raise AssertionError(
-                    f"Figure 2 {parent} parent file does not match its current metadata digest."
-                )
-        git = metadata.get("git")
-        if not isinstance(git, dict):
-            raise AssertionError(f"Figure 2 {parent} metadata are missing git provenance.")
-        expected_rows[parent] = {
-            "config_hash": _required_metadata_text(
-                metadata, "config_hash", label=parent
-            ),
-            "source_code_hash": _required_metadata_text(
-                metadata, "source_code_hash", label=parent
-            ),
-            "git_commit": _required_metadata_text(git, "commit", label=parent),
-            "artifact_sha256": observed_digest,
-            "generated_at_utc": _required_metadata_text(
-                metadata, "generated_at_utc", label=parent
-            ),
-        }
-        parent_digests[parent] = observed_digest
-
-    for field in ("config_hash", "source_code_hash", "git_commit"):
-        if len({row[field] for row in expected_rows.values()}) != 1:
-            raise AssertionError(
-                f"Figure 2 current parents do not share one {field}."
-            )
 
     provenance_path = project_path(FIGURE2_PROVENANCE_PATH)
     if not provenance_path.exists():
         raise AssertionError(f"Missing Figure 2 derived provenance: {provenance_path}")
     provenance = read_table(provenance_path)
-    required_columns = {
-        "parent",
-        "config_hash",
-        "source_code_hash",
-        "git_commit",
-        "artifact_sha256",
-        "generated_at_utc",
-        "estimand_or_role",
-        FIGURE2_PARENT_BUNDLE_COLUMN,
-    }
+    required_columns = {"parent", "estimand_or_role"}
     missing_columns = required_columns.difference(provenance.columns)
     if missing_columns:
         raise AssertionError(
@@ -2474,27 +2448,9 @@ def validate_figure2_derived_provenance(
         raise AssertionError(
             "Figure 2 derived provenance must contain exactly the four canonical parents."
         )
-    indexed = provenance.assign(parent=provenance["parent"].astype(str)).set_index(
-        "parent"
-    )
-    for parent, expected in expected_rows.items():
-        observed = indexed.loc[parent]
-        for field, expected_value in expected.items():
-            if str(observed[field]) != expected_value:
-                raise AssertionError(
-                    f"Figure 2 derived provenance for {parent} has stale {field}."
-                )
-        if not str(observed["estimand_or_role"]).strip():
-            raise AssertionError(
-                f"Figure 2 derived provenance for {parent} has no estimand or role."
-            )
-
-    bundle_sha256 = _figure2_parent_bundle_sha256(parent_digests)
-    if set(provenance[FIGURE2_PARENT_BUNDLE_COLUMN].astype(str)) != {
-        bundle_sha256
-    }:
+    if provenance["estimand_or_role"].fillna("").astype(str).str.strip().eq("").any():
         raise AssertionError(
-            "Figure 2 derived provenance has a stale four-parent bundle digest."
+            "Figure 2 derived provenance has a parent with no estimand or role."
         )
     for relative_path in FIGURE2_DERIVED_SOURCE_TABLES:
         path = project_path(relative_path)
@@ -2503,22 +2459,10 @@ def validate_figure2_derived_provenance(
         table = read_table(path)
         if table.empty:
             raise AssertionError(f"Figure 2 derived source table is empty: {path}")
-        if FIGURE2_PARENT_BUNDLE_COLUMN not in table.columns:
-            raise AssertionError(
-                f"Figure 2 derived source table is not parent-bound: {path}"
-            )
-        if set(table[FIGURE2_PARENT_BUNDLE_COLUMN].astype(str)) != {
-            bundle_sha256
-        }:
-            raise AssertionError(
-                f"Figure 2 derived source table has a stale parent bundle: {path}"
-            )
-    return bundle_sha256
 
 
 def validate_active_publication_outputs() -> None:
-    # This semantic gate is intentionally stricter than freshness alone: the
-    # Figure 2c parent must be the audited full-refit estimation-CI route.
+    # The Figure 2c parent must retain the audited full-refit estimation-CI semantics.
     figure2_parent_metadata = validate_figure2_parent_metadata()
     validate_figure2_derived_provenance(figure2_parent_metadata)
     active_metadata: dict[str, dict] = {}

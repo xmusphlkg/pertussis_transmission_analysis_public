@@ -16,7 +16,7 @@ figure_3_strategy_source_labels <- function() {
     higher_child_coverage = "Coverage",
     timeliness_only = "Routine schedule timeliness",
     maternal_immunization = "Infant-exposure package",
-    cocooning_adjunct = "Close-contact adult adjuncts",
+    cocooning_adjunct = "Close-contact adult adjunct",
     targeted_pep_high_risk = "Targeted high-risk PEP",
     adolescent_booster = "Adolescent booster scale-up",
     pregnancy_tdap_scaleup = "Pregnancy Tdap scale-up"
@@ -28,7 +28,7 @@ figure_3_strategy_plot_labels <- function() {
     higher_child_coverage = "Coverage",
     timeliness_only = "Routine schedule\ntimeliness",
     maternal_immunization = "Infant-exposure\npackage",
-    cocooning_adjunct = "Close-contact\nadult adjuncts",
+    cocooning_adjunct = "Close-contact\nadult adjunct",
     targeted_pep_high_risk = "Targeted high-risk\nPEP",
     adolescent_booster = "Adolescent booster\nscale-up",
     pregnancy_tdap_scaleup = "Pregnancy Tdap\nscale-up"

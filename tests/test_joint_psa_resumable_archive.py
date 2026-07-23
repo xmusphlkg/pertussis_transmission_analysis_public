@@ -7,7 +7,6 @@ import pytest
 
 from manuscript_notes import run_joint_psa_resumable as wrapper
 from manuscript_notes import render_supplementary_tables as supplement_tables
-from src_python.simulation.common import file_sha256
 
 
 def _configure_bundle(
@@ -38,7 +37,7 @@ def test_stale_joint_psa_bundle_is_archived_exactly_with_manifest(
     simulation_csv = simulation.with_suffix(".csv")
     unrelated = table.parent / "joint_pilot.csv"
     files = {
-        metadata: b'{"config_hash":"old"}',
+        metadata: b'{"sample_size_requested":64}',
         table: b"sample,value\n1,2\n",
         table_parquet: b"table-parquet-placeholder",
         simulation: b"simulation-parquet-placeholder",
@@ -48,12 +47,8 @@ def test_stale_joint_psa_bundle_is_archived_exactly_with_manifest(
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(payload)
     unrelated.write_text("must remain active", encoding="utf-8")
-    expected_hashes = {str(path): file_sha256(path) for path in files}
-
     archive_dir = wrapper._archive_stale_outputs(
-        reason="uncertainty_config_hash mismatch",
-        old_fingerprint="old-fingerprint",
-        new_fingerprint="new-fingerprint",
+        reason="statistical design mismatch",
     )
 
     assert archive_dir is not None
@@ -61,17 +56,14 @@ def test_stale_joint_psa_bundle_is_archived_exactly_with_manifest(
     assert unrelated.read_text(encoding="utf-8") == "must remain active"
     assert all(not path.exists() for path in files)
     manifest = json.loads((archive_dir / "manifest.json").read_text())
-    assert manifest["reason"] == "uncertainty_config_hash mismatch"
+    assert manifest["reason"] == "statistical design mismatch"
     assert manifest["schema_version"] == 1
     assert manifest["stem"] == wrapper.STEM
-    assert manifest["old_fingerprint"] == "old-fingerprint"
-    assert manifest["new_fingerprint"] == "new-fingerprint"
     assert len(manifest["files"]) == len(files)
     for record in manifest["files"]:
         original = Path(record["original_path"])
         archived = archive_dir / record["archive_path"]
         assert archived.read_bytes() == files[original]
-        assert record["sha256"] == expected_hashes[str(original)]
         assert record["size_bytes"] == len(files[original])
 
 
@@ -106,8 +98,6 @@ def test_stale_joint_psa_archive_rolls_back_every_move_on_failure(
     with pytest.raises(RuntimeError, match="Could not archive stale joint PSA outputs"):
         wrapper._archive_stale_outputs(
             reason="test rollback",
-            old_fingerprint="old",
-            new_fingerprint="new",
         )
 
     assert failed
@@ -126,8 +116,6 @@ def test_stale_joint_psa_archive_is_noop_when_no_active_bundle_exists(
     assert (
         wrapper._archive_stale_outputs(
             reason="metadata unavailable",
-            old_fingerprint="",
-            new_fingerprint="new",
         )
         is None
     )
@@ -158,39 +146,6 @@ def test_stale_joint_psa_archive_rolls_back_keyboard_interrupt(
     with pytest.raises(KeyboardInterrupt):
         wrapper._archive_stale_outputs(
             reason="test interrupt",
-            old_fingerprint="old",
-            new_fingerprint="new",
-        )
-
-    assert all(path.read_bytes() == payload for path, payload in files.items())
-    assert not any(archive_root.glob("run_*"))
-
-
-def test_stale_joint_psa_archive_rolls_back_failed_hash_verification(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    metadata, table, simulation, archive_root = _configure_bundle(
-        tmp_path,
-        monkeypatch,
-    )
-    files = {metadata: b"metadata", table: b"table", simulation: b"simulation"}
-    for path, payload in files.items():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(payload)
-
-    original_hash = file_sha256
-
-    def corrupt_archive_hash(path: Path) -> str:
-        digest = original_hash(path)
-        return "0" * 64 if "archive" in path.parts else digest
-
-    monkeypatch.setattr(wrapper, "file_sha256", corrupt_archive_hash)
-    with pytest.raises(RuntimeError, match="Could not archive stale joint PSA outputs"):
-        wrapper._archive_stale_outputs(
-            reason="test verification",
-            old_fingerprint="old",
-            new_fingerprint="new",
         )
 
     assert all(path.read_bytes() == payload for path, payload in files.items())
@@ -210,7 +165,6 @@ def test_joint_psa_resume_requires_exact_statistical_design() -> None:
         "smoke_runtime": False,
         "keep_timeseries": False,
         "sample_batch_size": 99,
-        "input_artifact_path_sha256": {"outputs/calibrations/A.yaml": "a" * 64},
     }
     compatible, _ = wrapper._resume_design_compatibility(
         metadata,
@@ -218,7 +172,6 @@ def test_joint_psa_resume_requires_exact_statistical_design() -> None:
         seed=20260521,
         countries=countries,
         strategies=strategies,
-        calibration_input_hashes={"outputs/calibrations/A.yaml": "a" * 64},
     )
     assert compatible
 
@@ -241,39 +194,9 @@ def test_joint_psa_resume_requires_exact_statistical_design() -> None:
             seed=20260521,
             countries=countries,
             strategies=strategies,
-            calibration_input_hashes={"outputs/calibrations/A.yaml": "a" * 64},
         )
         assert not compatible
         assert key in reason
-
-    compatible, reason = wrapper._resume_design_compatibility(
-        metadata,
-        sample_size=128,
-        seed=20260521,
-        countries=countries,
-        strategies=strategies,
-        calibration_input_hashes={"outputs/calibrations/A.yaml": "b" * 64},
-    )
-    assert not compatible
-    assert "input_artifact_path_sha256" in reason
-
-
-def test_joint_contract_fingerprint_changes_with_calibration_artifact() -> None:
-    common = {
-        "config_hash": "config",
-        "uncertainty_hash": "uncertainty",
-        "source_hash": "source",
-    }
-    first = wrapper._joint_contract_fingerprint(
-        **common,
-        calibration_input_hashes={"outputs/calibrations/A.yaml": "a" * 64},
-    )
-    second = wrapper._joint_contract_fingerprint(
-        **common,
-        calibration_input_hashes={"outputs/calibrations/A.yaml": "b" * 64},
-    )
-    assert first != second
-
 
 def test_supplement_table_reader_rejects_legacy_seventh_dimension(
     tmp_path: Path,

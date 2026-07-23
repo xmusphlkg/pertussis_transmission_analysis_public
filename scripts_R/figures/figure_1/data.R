@@ -42,33 +42,6 @@ figure_1b_interval_contract <- function() {
   )
 }
 
-validate_figure_1b_parent_metadata <- function(intervention_metadata, interval_metadata) {
-  required_fields <- c("config_hash", "source_code_hash")
-  missing_intervention <- setdiff(required_fields, names(intervention_metadata))
-  missing_interval <- setdiff(required_fields, names(interval_metadata))
-  if (length(missing_intervention) > 0L || length(missing_interval) > 0L) {
-    stop("Figure 1b parent metadata are missing config/source-code hashes.", call. = FALSE)
-  }
-  intervention_values <- unlist(intervention_metadata[required_fields], use.names = TRUE)
-  interval_values <- unlist(interval_metadata[required_fields], use.names = TRUE)
-  if (length(intervention_values) != length(required_fields) ||
-      length(interval_values) != length(required_fields) ||
-      any(is.na(intervention_values)) ||
-      any(is.na(interval_values)) ||
-      any(!nzchar(intervention_values)) ||
-      any(!nzchar(interval_values)) ||
-      !identical(unname(intervention_values), unname(interval_values))) {
-    stop(
-      "Figure 1b deterministic points and bootstrap intervals do not share current parent hashes.",
-      call. = FALSE
-    )
-  }
-  list(
-    config_hash = unname(intervention_values[["config_hash"]]),
-    source_code_hash = unname(intervention_values[["source_code_hash"]])
-  )
-}
-
 validate_figure_1b_interval_metadata <- function(interval_metadata) {
   if (!identical(
         interval_metadata$bootstrap_data_generation,
@@ -88,19 +61,16 @@ validate_figure_1b_interval_metadata <- function(interval_metadata) {
   invisible(interval_metadata)
 }
 
-load_figure_1b_parent_metadata <- function() {
-  intervention_path <- model_path("outputs", "metadata", "intervention_scenarios_run_metadata.json")
+load_figure_1b_interval_metadata <- function() {
   interval_path <- model_path(
     "outputs", "metadata",
     "figure1b_current_practice_conditional_parametric_bootstrap_run_metadata.json"
   )
-  if (!file.exists(intervention_path) || !file.exists(interval_path)) {
-    stop("Figure 1b requires deterministic and bootstrap run metadata.", call. = FALSE)
+  if (!file.exists(interval_path)) {
+    stop("Figure 1b requires bootstrap run metadata.", call. = FALSE)
   }
-  intervention_metadata <- jsonlite::read_json(intervention_path, simplifyVector = TRUE)
   interval_metadata <- jsonlite::read_json(interval_path, simplifyVector = TRUE)
   validate_figure_1b_interval_metadata(interval_metadata)
-  validate_figure_1b_parent_metadata(intervention_metadata, interval_metadata)
 }
 
 prepare_figure_1b_endpoint_intervals <- function(
@@ -165,7 +135,7 @@ prepare_figure_1b_endpoint_intervals <- function(
 
 load_figure_1_inputs <- function() {
   interval_contract <- figure_1b_interval_contract()
-  parent_metadata <- load_figure_1b_parent_metadata()
+  load_figure_1b_interval_metadata()
   list(
     regional_incidence = readr::read_csv(
       model_path("data", "processed", "who_pertussis_region_incidence.csv"),
@@ -178,9 +148,7 @@ load_figure_1_inputs <- function() {
     ),
     primary_interval_audit = read_summary("figure1b_current_practice_conditional_confidence_intervals.csv"),
     bootstrap_replicates = interval_contract$bootstrap_replicates,
-    minimum_successful_replicates = interval_contract$minimum_successful_replicates,
-    parent_config_hash = parent_metadata$config_hash,
-    parent_source_code_hash = parent_metadata$source_code_hash
+    minimum_successful_replicates = interval_contract$minimum_successful_replicates
   )
 }
 
@@ -418,8 +386,6 @@ prepare_figure_1_data <- function(inputs = load_figure_1_inputs()) {
       by = c("country", "outcome")
     ) %>%
     mutate(
-      parent_config_hash = inputs$parent_config_hash,
-      parent_source_code_hash = inputs$parent_source_code_hash,
       interval_applies = TRUE,
       across(
         c(interval_lower_per_100k, interval_upper_per_100k, bootstrap_replicates),

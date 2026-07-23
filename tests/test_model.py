@@ -865,8 +865,6 @@ def _run_metadata_fixture() -> dict[str, object]:
     return {
         "schema_version": simulation_common.METADATA_SCHEMA_VERSION,
         "stem": "test_output",
-        "config_hash": "current-config",
-        "source_code_hash": "current-source",
         "dependency_versions": {
             "python": "3.12.3",
             **{name: "1.0" for name in simulation_common.DEPENDENCY_VERSION_PACKAGES},
@@ -879,8 +877,6 @@ def test_run_metadata_missing_dependency_version_is_rejected(monkeypatch):
     metadata = _run_metadata_fixture()
     metadata["dependency_versions"].pop("numba")
     monkeypatch.setattr(simulation_common, "read_run_metadata", lambda stem: metadata)
-    monkeypatch.setattr(simulation_common, "config_fingerprint", lambda: "current-config")
-    monkeypatch.setattr(simulation_common, "source_code_fingerprint", lambda: "current-source")
 
     with pytest.raises(ValueError, match="dependency_versions missing numba"):
         simulation_common.validate_run_metadata("test_output")
@@ -890,8 +886,6 @@ def test_run_metadata_dependency_check_can_be_deferred_for_qc(monkeypatch):
     metadata = _run_metadata_fixture()
     metadata["dependency_versions"].pop("numba")
     monkeypatch.setattr(simulation_common, "read_run_metadata", lambda stem: metadata)
-    monkeypatch.setattr(simulation_common, "config_fingerprint", lambda: "current-config")
-    monkeypatch.setattr(simulation_common, "source_code_fingerprint", lambda: "current-source")
 
     assert simulation_common.validate_run_metadata(
         "test_output",
@@ -899,91 +893,7 @@ def test_run_metadata_dependency_check_can_be_deferred_for_qc(monkeypatch):
     ) is metadata
 
 
-def test_run_metadata_does_not_reinterpret_label_keyed_artifact_hashes_as_paths(
-    monkeypatch,
-):
-    metadata = _run_metadata_fixture()
-    metadata["input_artifact_sha256"] = {
-        "calibration_Australia": "not-a-path-digest",
-        "decision_frontier": "also-not-a-path-digest",
-    }
-    monkeypatch.setattr(simulation_common, "read_run_metadata", lambda stem: metadata)
-    monkeypatch.setattr(simulation_common, "config_fingerprint", lambda: "current-config")
-    monkeypatch.setattr(simulation_common, "source_code_fingerprint", lambda: "current-source")
-
-    assert simulation_common.validate_run_metadata("test_output") is metadata
-
-
-def test_fitness_metadata_revalidates_uncertainty_and_upstream_path_digest(
-    monkeypatch,
-    tmp_path,
-):
-    artifact = tmp_path / "joint_psa_samples.csv"
-    artifact.write_text("sample_id,value\n1,0.5\n", encoding="utf-8")
-    metadata = _run_metadata_fixture()
-    metadata["uncertainty_config_hash"] = "current-uncertainty"
-    metadata["input_artifact_path_sha256"] = {
-        str(artifact): simulation_common.file_sha256(artifact)
-    }
-    monkeypatch.setattr(simulation_common, "read_run_metadata", lambda stem: metadata)
-    monkeypatch.setattr(simulation_common, "config_fingerprint", lambda: "current-config")
-    monkeypatch.setattr(simulation_common, "source_code_fingerprint", lambda: "current-source")
-    monkeypatch.setattr(
-        simulation_common,
-        "uncertainty_config_fingerprint",
-        lambda: "current-uncertainty",
-    )
-    stem = "fitness_resistance_grid_psa_benefit"
-
-    assert simulation_common.validate_run_metadata(stem) is metadata
-
-    artifact.write_text("sample_id,value\n1,0.9\n", encoding="utf-8")
-    with pytest.raises(ValueError, match="stale upstream input artifact"):
-        simulation_common.validate_run_metadata(stem)
-
-
-def test_fitness_metadata_requires_path_digest(monkeypatch):
-    metadata = _run_metadata_fixture()
-    metadata["uncertainty_config_hash"] = "current-uncertainty"
-    monkeypatch.setattr(simulation_common, "read_run_metadata", lambda stem: metadata)
-    monkeypatch.setattr(simulation_common, "config_fingerprint", lambda: "current-config")
-    monkeypatch.setattr(simulation_common, "source_code_fingerprint", lambda: "current-source")
-    monkeypatch.setattr(
-        simulation_common,
-        "uncertainty_config_fingerprint",
-        lambda: "current-uncertainty",
-    )
-
-    with pytest.raises(ValueError, match="upstream input-artifact fingerprints"):
-        simulation_common.validate_run_metadata(
-            "fitness_resistance_grid_psa_benefit"
-        )
-
-
-@pytest.mark.parametrize(
-    "stem",
-    ["joint_psa_rank_acceptability", "resistance_management_psa", "sensitivity_runs"],
-)
-def test_calibration_dependent_uncertainty_metadata_requires_path_digest(
-    stem,
-    monkeypatch,
-):
-    metadata = _run_metadata_fixture()
-    metadata["uncertainty_config_hash"] = "current-uncertainty"
-    monkeypatch.setattr(simulation_common, "read_run_metadata", lambda _stem: metadata)
-    monkeypatch.setattr(simulation_common, "config_fingerprint", lambda: "current-config")
-    monkeypatch.setattr(simulation_common, "source_code_fingerprint", lambda: "current-source")
-    monkeypatch.setattr(
-        simulation_common,
-        "uncertainty_config_fingerprint",
-        lambda: "current-uncertainty",
-    )
-
-    with pytest.raises(ValueError, match="input-artifact fingerprints"):
-        simulation_common.validate_run_metadata(stem)
-
-
-def test_calibration_artifact_hash_helper_rejects_stale_country(
+def test_calibration_artifact_validator_rejects_unavailable_country(
     tmp_path,
     monkeypatch,
 ):
@@ -1005,126 +915,17 @@ def test_calibration_artifact_hash_helper_rejects_stale_country(
         lambda country: {"metadata": {"accepted": True}} if country == "A" else None,
     )
 
-    with pytest.raises(RuntimeError, match="Missing or stale: B"):
-        simulation_common.validated_calibration_artifact_path_hashes(
+    with pytest.raises(RuntimeError, match="Missing or unaccepted: B"):
+        simulation_common.validate_calibration_artifacts(
             ("A", "B"),
             context="Test analysis",
         )
 
-    hashes = simulation_common.validated_calibration_artifact_path_hashes(
+    paths = simulation_common.validate_calibration_artifacts(
         ("A",),
         context="Test analysis",
     )
-    assert hashes == {"accepted.yaml": simulation_common.file_sha256(accepted)}
-
-
-@pytest.mark.parametrize("recorded_hash", [None, "stale-source"])
-def test_run_metadata_requires_current_source_code_hash(monkeypatch, recorded_hash):
-    metadata = _run_metadata_fixture()
-    if recorded_hash is None:
-        metadata.pop("source_code_hash")
-    else:
-        metadata["source_code_hash"] = recorded_hash
-    monkeypatch.setattr(simulation_common, "read_run_metadata", lambda stem: metadata)
-    monkeypatch.setattr(simulation_common, "config_fingerprint", lambda: "current-config")
-    monkeypatch.setattr(simulation_common, "source_code_fingerprint", lambda: "current-source")
-
-    with pytest.raises(ValueError, match="source-code fingerprint|stale source code"):
-        simulation_common.validate_run_metadata("test_output")
-
-
-def test_source_code_fingerprint_is_stable_and_excludes_bytecode_cache(monkeypatch, tmp_path):
-    model_dir = tmp_path / "src_python" / "model"
-    cache_dir = model_dir / "__pycache__"
-    calibration_dir = tmp_path / "src_python" / "calibration"
-    simulation_dir = tmp_path / "src_python" / "simulation"
-    utils_dir = tmp_path / "src_python" / "utils"
-    model_dir.mkdir(parents=True)
-    cache_dir.mkdir()
-    calibration_dir.mkdir(parents=True)
-    simulation_dir.mkdir(parents=True)
-    utils_dir.mkdir(parents=True)
-    source_path = model_dir / "example.py"
-    calibration_path = calibration_dir / "fit.py"
-    common_path = simulation_dir / "common.py"
-    analysis_path = simulation_dir / "analysis.py"
-    io_path = utils_dir / "io.py"
-    validation_path = utils_dir / "validation.py"
-    source_path.write_text("VALUE = 1\n", encoding="utf-8")
-    calibration_path.write_text("FIT = 1\n", encoding="utf-8")
-    common_path.write_text("COMMON = 1\n", encoding="utf-8")
-    analysis_path.write_text("ANALYSIS = 1\n", encoding="utf-8")
-    io_path.write_text("IO = 1\n", encoding="utf-8")
-    validation_path.write_text("CHECK = 1\n", encoding="utf-8")
-    bytecode_path = cache_dir / "example.py"
-    bytecode_path.write_text("ignored = 1\n", encoding="utf-8")
-    monkeypatch.setattr(simulation_common, "project_path", lambda *parts: tmp_path.joinpath(*parts))
-
-    simulation_common.source_code_fingerprint.cache_clear()
-    first = simulation_common.source_code_fingerprint()
-    simulation_common.calibration_source_code_fingerprint.cache_clear()
-    first_calibration = simulation_common.calibration_source_code_fingerprint()
-    simulation_common.source_code_fingerprint.cache_clear()
-    assert simulation_common.source_code_fingerprint() == first
-
-    bytecode_path.write_text("ignored = 2\n", encoding="utf-8")
-    simulation_common.source_code_fingerprint.cache_clear()
-    assert simulation_common.source_code_fingerprint() == first
-
-    validation_path.write_text("CHECK = 2\n", encoding="utf-8")
-    simulation_common.source_code_fingerprint.cache_clear()
-    simulation_common.calibration_source_code_fingerprint.cache_clear()
-    assert simulation_common.source_code_fingerprint() == first
-    assert simulation_common.calibration_source_code_fingerprint() == first_calibration
-
-    calibration_path.write_text("FIT = 2\n", encoding="utf-8")
-    simulation_common.source_code_fingerprint.cache_clear()
-    assert simulation_common.source_code_fingerprint() != first
-    simulation_common.calibration_source_code_fingerprint.cache_clear()
-    assert simulation_common.calibration_source_code_fingerprint() != first_calibration
-
-    calibration_path.write_text("FIT = 1\n", encoding="utf-8")
-    analysis_path.write_text("ANALYSIS = 2\n", encoding="utf-8")
-    simulation_common.calibration_source_code_fingerprint.cache_clear()
-    assert simulation_common.calibration_source_code_fingerprint() == first_calibration
-
-    common_path.write_text("COMMON = 2\n", encoding="utf-8")
-    simulation_common.calibration_source_code_fingerprint.cache_clear()
-    assert simulation_common.calibration_source_code_fingerprint() != first_calibration
-    simulation_common.source_code_fingerprint.cache_clear()
-    simulation_common.calibration_source_code_fingerprint.cache_clear()
-
-
-def test_runtime_data_hash_ignores_non_model_provenance_text(monkeypatch, tmp_path):
-    path = tmp_path / "country_resistance_timeline.csv"
-
-    def write_timeline(*, source: str, notes: str, resistant_fraction: str = "0.02") -> None:
-        path.write_text(
-            "\n".join(
-                [
-                    "country,iso3,year,sample_size,resistant_fraction,lower,upper,evidence_type,source,notes",
-                    f"Example,EXA,2025,,{resistant_fraction},0.00,0.05,anchor,{source},{notes}",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-        )
-
-    monkeypatch.setattr(simulation_common, "project_path", lambda *parts: tmp_path.joinpath(*parts))
-    data_sources = {"country_resistance_timeline_csv": "country_resistance_timeline.csv"}
-
-    write_timeline(source="https://example.org/source-a", notes="first note")
-    first_hash = simulation_common._runtime_data_file_hashes(data_sources)["country_resistance_timeline_csv"]
-
-    write_timeline(source="https://example.org/source-b", notes="reworded note")
-    provenance_only_hash = simulation_common._runtime_data_file_hashes(data_sources)[
-        "country_resistance_timeline_csv"
-    ]
-    assert provenance_only_hash == first_hash
-
-    write_timeline(source="https://example.org/source-b", notes="reworded note", resistant_fraction="0.03")
-    material_hash = simulation_common._runtime_data_file_hashes(data_sources)["country_resistance_timeline_csv"]
-    assert material_hash != first_hash
+    assert paths == (accepted,)
 
 
 def test_relative_reductions_fall_back_to_global_reference_when_needed():

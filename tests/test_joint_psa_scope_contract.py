@@ -8,7 +8,7 @@ import pytest
 from src_python.simulation import run_joint_psa_rank_acceptability as joint_runner
 from src_python.simulation.common import (
     PROSPECTIVE_POLICY_KEY,
-    _history_config_fingerprint,
+    _history_config_key,
     load_configs,
     make_intervention_config,
 )
@@ -215,8 +215,8 @@ def test_all_secondary_strategies_share_the_same_sampled_2027_history() -> None:
         for item in scenarios
     }
     assert set(histories) == set(SELECTED_STRATEGIES)
-    fingerprints = {_history_config_fingerprint(history) for history in histories.values()}
-    assert len(fingerprints) == 1
+    history_keys = {_history_config_key(history) for history in histories.values()}
+    assert len(history_keys) == 1
     assert "transmission_blocking_vaccine" in histories
 
 

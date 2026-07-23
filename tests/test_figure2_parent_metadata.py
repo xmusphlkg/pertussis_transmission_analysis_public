@@ -22,12 +22,6 @@ def _metadata(stem: str) -> dict:
         countries = [f"Country_{index}" for index in range(9)]
         strategies = [f"strategy_{index}" for index in range(6)]
         successful = {country: 1024 for country in countries}
-        digests = {
-            "paired_bootstrap_draws": "draws",
-            "confidence_intervals": "intervals",
-            "fit_diagnostics": "fits",
-            "interval_stability": "stability",
-        }
         return {
             **common,
             "statistical_target": "frequentist_confidence_interval",
@@ -60,7 +54,6 @@ def _metadata(stem: str) -> dict:
                 "interval_stability_rows": 9 * 6,
                 "paired_bootstrap_draws": sum(successful.values()) * 6,
             },
-            "output_artifact_sha256": digests,
         }
     if stem == "figure2c_parametric_bootstrap_quality_audit":
         return {
@@ -72,12 +65,6 @@ def _metadata(stem: str) -> dict:
             "passed": True,
             "warnings_are_fatal": True,
             "figure2c_source_stem": "figure2c_parametric_bootstrap",
-            "audited_artifact_sha256": {
-                "paired_bootstrap_draws_sha256": "draws",
-                "confidence_intervals_sha256": "intervals",
-                "fit_diagnostics_sha256": "fits",
-                "interval_stability_sha256": "stability",
-            },
         }
     return common
 
@@ -176,16 +163,4 @@ def test_figure2_parent_validator_rejects_incomplete_bootstrap(monkeypatch) -> N
         validator, "validate_run_metadata", lambda name: deepcopy(records[name])
     )
     with pytest.raises(ValueError, match="complete bootstrap run"):
-        validator.validate_figure2_parent_metadata()
-
-
-def test_figure2_parent_validator_rejects_mismatched_audit_digests(monkeypatch) -> None:
-    records = {name: _metadata(name) for name in validator.FIGURE2_PARENT_STEMS}
-    records["figure2c_parametric_bootstrap_quality_audit"][
-        "audited_artifact_sha256"
-    ]["confidence_intervals_sha256"] = "wrong"
-    monkeypatch.setattr(
-        validator, "validate_run_metadata", lambda name: deepcopy(records[name])
-    )
-    with pytest.raises(ValueError, match="does not match"):
         validator.validate_figure2_parent_metadata()

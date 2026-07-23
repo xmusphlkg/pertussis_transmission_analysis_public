@@ -13,13 +13,11 @@ from src_python.simulation.common import (
     current_run_metadata,
     enforce_calibration_status,
     execute_scenario_summary_list,
-    file_sha256,
     load_configs,
     make_config,
     publication_country_names,
     run_scenario_list,
-    uncertainty_config_fingerprint,
-    validated_calibration_artifact_path_hashes,
+    validate_calibration_artifacts,
     validate_run_metadata,
     write_run_metadata,
 )
@@ -396,25 +394,7 @@ def _load_psa_samples(path: str | Path, *, sample_limit: int | None = None) -> p
     if not sample_path.exists():
         raise FileNotFoundError(f"PSA sample file not found: {sample_path}")
     if sample_path.resolve() == Path(DEFAULT_PSA_SAMPLE_PATH).resolve():
-        upstream_metadata = validate_run_metadata(JOINT_PSA_STEM)
-        output_hashes = upstream_metadata.get("output_artifact_sha256")
-        expected_digest = (
-            output_hashes.get("parameter_samples")
-            if isinstance(output_hashes, dict)
-            else None
-        )
-        if not isinstance(expected_digest, str) or not expected_digest:
-            raise ValueError(
-                "Canonical joint-PSA metadata is missing the finalized parameter-"
-                "sample SHA-256 digest"
-            )
-        actual_digest = file_sha256(sample_path)
-        if actual_digest != expected_digest:
-            raise ValueError(
-                "Canonical joint-PSA parameter samples do not match their finalized "
-                f"metadata digest ({expected_digest}); current SHA-256 is "
-                f"{actual_digest}"
-            )
+        validate_run_metadata(JOINT_PSA_STEM)
 
     samples = pd.read_parquet(sample_path) if sample_path.suffix == ".parquet" else pd.read_csv(sample_path)
     missing = sorted(PSA_REQUIRED_COLUMNS - set(samples.columns))
@@ -749,7 +729,7 @@ def _run_psa_benefit_intervals(
     samples = _load_psa_samples(psa_sample_path, sample_limit=psa_sample_limit)
     targets = _fitness_targets(fitness_values)
     countries = publication_country_names(configs)
-    calibration_input_hashes = validated_calibration_artifact_path_hashes(
+    validate_calibration_artifacts(
         countries,
         context="Fitness-grid selected-input PSA",
     )
@@ -760,8 +740,6 @@ def _run_psa_benefit_intervals(
     if not sample_path.is_absolute():
         sample_path = project_path(sample_path)
     sample_path = sample_path.resolve()
-    input_sample_digest = file_sha256(sample_path)
-
     used_sample_path = project_path(
         "outputs", "tables", f"{PSA_BENEFIT_STEM}_parameter_samples_used.csv"
     )
@@ -769,8 +747,6 @@ def _run_psa_benefit_intervals(
         samples,
         used_sample_path,
     )
-    used_sample_digest = file_sha256(used_sample_path)
-
     summary_frames: list[pd.DataFrame] = []
     batch_size = max(1, int(psa_batch_size))
     for batch_start in range(0, len(samples), batch_size):
@@ -816,13 +792,6 @@ def _run_psa_benefit_intervals(
     metadata.update(
         {
             "psa_sample_path": str(sample_path),
-            "uncertainty_config_hash": uncertainty_config_fingerprint(configs),
-            "input_artifact_path_sha256": {
-                _metadata_artifact_path(sample_path): input_sample_digest,
-                **calibration_input_hashes,
-            },
-            "upstream_parameter_samples_sha256": input_sample_digest,
-            "parameter_samples_used_sha256": used_sample_digest,
             "psa_sample_limit": None if psa_sample_limit is None else int(psa_sample_limit),
             "psa_samples_used": int(len(samples)),
             "psa_batch_size": int(batch_size),

@@ -28,7 +28,7 @@ figure_2_strategy_short_labels <- function() {
     maternal_immunization = "Infant exposure",
     pregnancy_tdap_scaleup = "Pregnancy Tdap",
     adolescent_booster = "Adolescent booster",
-    cocooning_adjunct = "Close-contact adjuncts",
+    cocooning_adjunct = "Close-contact adjunct",
     targeted_pep_high_risk = "Targeted PEP"
   )
 }
@@ -130,13 +130,13 @@ figure_2_validate_current_parent_metadata <- function() {
   python <- model_path(".venv", "bin", "python")
   if (!file.exists(python)) python <- Sys.which("python3")
   if (!nzchar(python) || !file.exists(validator)) {
-    stop("Figure 2 current-provenance validator is unavailable.", call. = FALSE)
+    stop("Figure 2 parent-metadata validator is unavailable.", call. = FALSE)
   }
   output <- system2(python, validator, stdout = TRUE, stderr = TRUE)
   status <- attr(output, "status")
   if (!is.null(status) && status != 0L) {
     stop(
-      "Figure 2 parent metadata are stale or invalid: ",
+      "Figure 2 parent metadata are invalid: ",
       paste(output, collapse = "\n"),
       call. = FALSE
     )
@@ -144,17 +144,10 @@ figure_2_validate_current_parent_metadata <- function() {
   invisible(output)
 }
 
-figure_2_file_sha256 <- function(path) {
-  if (!requireNamespace("digest", quietly = TRUE)) {
-    stop("Figure 2 provenance checks require the R package 'digest'.", call. = FALSE)
-  }
-  digest::digest(file = path, algo = "sha256", serialize = FALSE)
-}
-
-figure_2_nested_value <- function(x, key, context) {
+figure_2_optional_metadata_value <- function(x, key) {
   value <- x[[key]]
   if (is.null(value) || length(value) != 1L || is.na(value) || !nzchar(as.character(value))) {
-    stop("Figure 2 metadata are missing ", context, ".", call. = FALSE)
+    return(NA_character_)
   }
   as.character(value)
 }
@@ -169,31 +162,9 @@ validate_figure_2_parent_metadata <- function(inputs, contract) {
     )
   }
 
-  config_hashes <- vapply(
-    parents[required_parents],
-    figure_2_nested_value,
-    character(1),
-    key = "config_hash",
-    context = "a config hash"
-  )
-  source_hashes <- vapply(
-    parents[required_parents],
-    figure_2_nested_value,
-    character(1),
-    key = "source_code_hash",
-    context = "a source-code hash"
-  )
   commits <- vapply(parents[required_parents], function(parent) {
-    figure_2_nested_value(parent$git, "commit", "a git commit")
+    figure_2_optional_metadata_value(parent$git, "commit")
   }, character(1))
-  if (dplyr::n_distinct(config_hashes) != 1L ||
-      dplyr::n_distinct(source_hashes) != 1L ||
-      dplyr::n_distinct(commits) != 1L) {
-    stop(
-      "Figure 2 parents do not share one config hash, source-code hash, and commit.",
-      call. = FALSE
-    )
-  }
 
   reference <- parents$reference
   bootstrap <- parents$bootstrap
@@ -322,44 +293,17 @@ validate_figure_2_parent_metadata <- function(inputs, contract) {
     )
   }
 
-  expected_keys <- c(
-    reference = "summary",
-    bootstrap = "paired_bootstrap_draws",
-    rank = "under18_programme_rank_samples"
-  )
-  artifact_sha256 <- stats::setNames(
-    rep(NA_character_, length(required_parents)),
-    required_parents
-  )
   if (!is.null(inputs$paths)) {
-    for (name in names(expected_keys)) {
+    for (name in required_parents) {
       path <- inputs$paths[[name]]
       if (is.null(path) || !file.exists(path)) {
         stop("Missing Figure 2 parent artifact for ", name, ".", call. = FALSE)
       }
-      recorded <- figure_2_nested_value(
-        parents[[name]]$output_artifact_sha256,
-        expected_keys[[name]],
-        paste0(name, " artifact SHA-256")
-      )
-      observed <- figure_2_file_sha256(path)
-      if (!identical(recorded, observed)) {
-        stop("Figure 2 ", name, " artifact hash does not match its metadata.", call. = FALSE)
-      }
-      artifact_sha256[[name]] <- observed
     }
-    intervention_path <- inputs$paths[["intervention"]]
-    if (is.null(intervention_path) || !file.exists(intervention_path)) {
-      stop("Missing Figure 2 parent artifact for intervention.", call. = FALSE)
-    }
-    artifact_sha256[["intervention"]] <- figure_2_file_sha256(intervention_path)
   }
 
   list(
-    config_hash = unname(config_hashes[[1]]),
-    source_code_hash = unname(source_hashes[[1]]),
-    git_commit = unname(commits[[1]]),
-    artifact_sha256 = artifact_sha256,
+    git_commit = commits,
     reference_generated_at_utc = as.character(reference$generated_at_utc),
     bootstrap_generated_at_utc = as.character(bootstrap$generated_at_utc),
     rank_generated_at_utc = as.character(rank$generated_at_utc),

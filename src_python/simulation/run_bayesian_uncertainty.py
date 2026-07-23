@@ -94,7 +94,6 @@ from src_python.simulation.common import (
     publication_country_names,
     run_prepared_case_exposure,
     run_prepared_config,
-    uncertainty_config_fingerprint,
     write_run_metadata,
     write_outputs,
 )
@@ -8142,7 +8141,6 @@ def main(
             if sampler == STATE_SPACE_LAPLACE_CUT_SAMPLER
             else []
         ),
-        "uncertainty_config_hash": uncertainty_config_fingerprint(configs),
         "prior_width_overrides": {
             "prior_sd_scale": prior_sd_scale,
             "beta_prior_log_sd": beta_prior_log_sd,

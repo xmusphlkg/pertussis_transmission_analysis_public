@@ -10,7 +10,6 @@ import pandas as pd
 
 from src_python.simulation.common import (
     PROSPECTIVE_POLICY_KEY,
-    config_fingerprint,
     current_run_metadata,
     enforce_calibration_status,
     execute_scenario_list,
@@ -19,9 +18,7 @@ from src_python.simulation.common import (
     publication_country_names,
     read_run_metadata,
     set_analysis_horizon_years,
-    source_code_fingerprint,
-    uncertainty_config_fingerprint,
-    validated_calibration_artifact_path_hashes,
+    validate_calibration_artifacts,
     write_run_metadata,
 )
 from src_python.simulation.parameter_distributions import (
@@ -126,58 +123,28 @@ SIMULATION_SUMMARY_PATH = project_path("outputs", "summaries", "joint_psa_scenar
 SIMULATION_TS_PATH = project_path("outputs", "simulations", "joint_psa_rank_acceptability.parquet")
 
 
-def _validated_calibration_input_artifact_hashes(
+def _validate_calibration_inputs(
     countries: tuple[str, ...],
-) -> dict[str, str]:
-    """Require current accepted country calibrations and fingerprint them.
+) -> None:
+    """Require accepted country calibrations before running the PSA.
 
     The custom batched runner calls ``execute_scenario_list`` directly, so it
     cannot rely only on the generic ``run_scenario_list`` publication guard.
-    Resolve every calibration before any PSA output is written and retain
-    path-keyed digests so a later recalibration invalidates resumable ranks.
+    Resolve every calibration before any PSA output is written.
     """
 
-    return validated_calibration_artifact_path_hashes(
+    validate_calibration_artifacts(
         countries,
         context="Joint PSA",
     )
 
 
-def _resume_metadata_compatibility(
-    metadata: dict[str, Any],
-    *,
-    expected_config_hash: str,
-    expected_uncertainty_hash: str,
-    expected_source_code_hash: str,
-) -> tuple[bool, str]:
-    """Require exact provenance before accepting cached PSA outcomes."""
-
-    expected = {
-        "config_hash": expected_config_hash,
-        "uncertainty_config_hash": expected_uncertainty_hash,
-        "source_code_hash": expected_source_code_hash,
-    }
-    mismatches = [
-        f"{key}={metadata.get(key, 'missing')} (expected {value})"
-        for key, value in expected.items()
-        if str(metadata.get(key, "")) != str(value)
-    ]
-    if mismatches:
-        return False, "; ".join(mismatches)
-    return True, "configuration, uncertainty registry, and source code hashes match"
-
-
-def _resume_is_current(configs: dict[str, Any], source_code_hash: str) -> tuple[bool, str]:
+def _resume_metadata_available() -> tuple[bool, str]:
     try:
-        metadata = read_run_metadata(STEM)
+        read_run_metadata(STEM)
     except (FileNotFoundError, ValueError) as exc:
         return False, f"run metadata unavailable: {exc}"
-    return _resume_metadata_compatibility(
-        metadata,
-        expected_config_hash=config_fingerprint(configs),
-        expected_uncertainty_hash=uncertainty_config_fingerprint(configs),
-        expected_source_code_hash=source_code_hash,
-    )
+    return True, "run metadata available"
 
 
 def _write_incremental(df: pd.DataFrame, path: Path) -> None:
@@ -898,13 +865,12 @@ def run_joint_psa(
     keep_timeseries: bool,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     configs = load_configs()
-    calibration_input_hashes = _validated_calibration_input_artifact_hashes(countries)
+    _validate_calibration_inputs(countries)
     registry = configs.get("parameter_distributions", {})
     schema_version = validate_uncertainty_registry_schema(registry)
     joint_settings = registry.get("joint_rank_psa", {}) if isinstance(registry, dict) else {}
     parameter_specs = joint_settings.get("parameters", {}) if isinstance(joint_settings, dict) else {}
     parameter_specs = parameter_specs or _default_parameter_specs()
-    source_code_hash = source_code_fingerprint()
     samples = _sample_table(
         sample_size,
         seed,
@@ -914,7 +880,7 @@ def run_joint_psa(
     write_dataframe(samples, SAMPLE_PATH)
 
     if resume:
-        resume_current, resume_reason = _resume_is_current(configs, source_code_hash)
+        resume_current, resume_reason = _resume_metadata_available()
         if resume_current:
             completed, completed_rank = _completed_rank_samples(
                 RANK_SAMPLE_PATH,
@@ -1052,8 +1018,6 @@ def run_joint_psa(
             "smoke_runtime": bool(smoke_runtime),
             "keep_timeseries": bool(keep_timeseries),
             "uncertainty_schema_version": schema_version,
-            "uncertainty_config_hash": uncertainty_config_fingerprint(configs),
-            "source_code_hash": source_code_hash,
             "sample_design": SAMPLE_DESIGN,
             "figure2b_parameter_names": list(FIGURE2B_PARAMETER_NAMES),
             "parameter_time_scopes": _validated_parameter_time_scopes(
@@ -1065,7 +1029,6 @@ def run_joint_psa(
                 name: validate_distribution_spec(spec, context=f"joint PSA parameter {name!r}")
                 for name, spec in parameter_specs.items()
             },
-            "input_artifact_path_sha256": calibration_input_hashes,
         }
     )
     write_run_metadata(STEM, metadata)

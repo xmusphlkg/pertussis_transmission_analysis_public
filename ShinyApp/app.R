@@ -277,7 +277,11 @@ ui <- page_sidebar(
   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")),
   title = div(
     class = "app-title",
-    span(class = "app-title-main", "Pertussis Strategy Simulator")
+    span(class = "app-title-main", "Pertussis Strategy Simulator"),
+    span(
+      class = "app-title-scope",
+      "Independent exploratory R implementation; not a reproduction of the submitted analyses"
+    )
   ),
   theme = app_theme,
   sidebar = sidebar(
@@ -326,7 +330,7 @@ ui <- page_sidebar(
       div(class = "control-section-title", icon("sliders"), span("Runtime")),
       div(
         class = "compact-grid two-col",
-        selectInput("horizon", "Horizon", choices = c("2027-2035 fast" = "fast", "2027-2050 publication" = "publication"), selected = "fast"),
+        selectInput("horizon", "Horizon", choices = c("2027-2035 fast" = "fast", "2027-2050 long horizon" = "publication"), selected = "fast"),
         selectInput(
           "solver_method",
           "Solver",

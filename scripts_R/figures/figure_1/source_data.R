@@ -20,8 +20,6 @@ make_figure_1_source_data <- function(data) {
         total_child_adolescent_infections,
         rate_per_100k,
         point_estimate_type = "deterministic conditional index",
-        parent_config_hash,
-        parent_source_code_hash,
         interval_applies,
         interval_lower_per_100k,
         interval_upper_per_100k,

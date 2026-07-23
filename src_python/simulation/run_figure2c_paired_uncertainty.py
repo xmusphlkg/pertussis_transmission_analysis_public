@@ -17,7 +17,6 @@ import pandas as pd
 from src_python.simulation.common import (
     current_run_metadata,
     execute_scenario_summary_list,
-    file_sha256,
     load_configs,
     publication_country_names,
     read_run_metadata,
@@ -812,7 +811,7 @@ def main(
     if not allow_conditional_posterior:
         if posterior_stem is None:
             raise ValueError(
-                "Cannot verify posterior freshness because its metadata stem could not be inferred"
+                "Cannot verify posterior quality because its metadata stem could not be inferred"
             )
         try:
             metadata = check_bayesian_quality(
@@ -820,7 +819,7 @@ def main(
                 require_recommended=True,
             )
         except (FileNotFoundError, ValueError, RuntimeError) as exc:
-            raise ValueError(f"Posterior freshness/quality validation failed: {exc}") from exc
+            raise ValueError(f"Posterior quality validation failed: {exc}") from exc
     required_variable = int(min_variable_parameters or len(JOINT_POSTERIOR_PARAMETERS))
     audit = _validate_joint_posterior_samples(
         samples,
@@ -890,10 +889,6 @@ def main(
             "publication_path": PUBLICATION_PATH,
             "figure2c_interval_source": FIGURE2C_INTERVAL_SOURCE,
             "posterior_samples_path": str(posterior_samples_path),
-            "posterior_samples_sha256": file_sha256(posterior_samples_path),
-            "paired_draws_sha256": file_sha256(DRAW_PATH),
-            "paired_intervals_sha256": file_sha256(INTERVAL_PATH),
-            "scenario_summary_sha256": file_sha256(SCENARIO_SUMMARY_PATH),
             "posterior_sample_stem": posterior_stem,
             "posterior_sample_metadata": {
                 key: metadata.get(key)

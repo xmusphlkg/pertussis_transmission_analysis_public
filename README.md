@@ -1,6 +1,6 @@
 # Pertussis Transmission Analysis
 
-This is the public reproducibility snapshot for the manuscript “Risk-targeted
+This is the public reproducibility snapshot for the manuscript “Programme
 strategies for post-pandemic pertussis control in children and adolescents: an
 age-structured transmission modelling study”. It contains the current
 deterministic scenario model, leakage-safe predictive validation, paired
@@ -33,7 +33,7 @@ MCMC workflow are recorded in `ANALYSIS_PROTOCOL.md`.
   table-generation inputs required by the computational pipeline; manuscript
   drafts and internal review records are excluded.
 - `outputs/tables/`, `outputs/summaries/`, and `outputs/metadata/`: retained
-  source data, diagnostics, hashes, and run metadata.
+  source data, diagnostics, and run metadata.
 - `outputs/figures/` and `outputs/appendix/`: rendered main and extended
   figures.
 - `ShinyApp/`: source and compact data bundle for the companion exploratory
@@ -64,7 +64,7 @@ make test
 ```
 
 Validation checks retained POMP/ensemble artifacts, audited source data,
-code/configuration hashes, and Figure 2 inputs for internal consistency.
+explicit metadata fields, and Figure 2 inputs for internal consistency.
 
 ## Rebuild
 
@@ -103,8 +103,9 @@ source("install_packages.R")
 shiny::runApp(".")
 ```
 
-The simulator is an exploratory interface, not a stand-alone policy
-recommendation tool and not a source of the submitted numerical results.
+The simulator is an independent R implementation with simplified exploratory
+defaults. The submitted analyses were not generated with and cannot be
+reproduced from it; it is not a stand-alone policy recommendation tool.
 
 ## Licence and data access
 

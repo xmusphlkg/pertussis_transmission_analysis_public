@@ -152,7 +152,6 @@ def test_student_t_mode_bank_density_is_symmetric_and_draws_are_finite() -> None
         ),
         degrees_of_freedom=7.0,
         source_stems=("left", "right"),
-        source_hashes=("a", "b"),
         dimension=2,
     )
     values = np.asarray([[-1.0, 0.5], [1.0, 0.5], [0.0, 0.0]])
@@ -202,7 +201,6 @@ def test_mode_bank_move_updates_complete_state_with_exact_mh(monkeypatch) -> Non
         cholesky_factors=(np.linalg.cholesky(covariance),),
         degrees_of_freedom=7.0,
         source_stems=("pilot",),
-        source_hashes=("hash",),
         dimension=coordinates.shape[1],
     )
     monkeypatch.setattr(

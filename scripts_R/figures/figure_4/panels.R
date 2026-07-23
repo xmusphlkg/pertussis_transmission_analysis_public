@@ -15,7 +15,7 @@ figure_4_endpoint_display <- function(data) {
 
 figure_4_management_key_outcomes <- function(data) {
   outcome_labels <- c(
-    "All <18 cases" = "All <18 cases",
+    "All <18 cases" = "<18 symptomatic cases",
     "Resistant infections" = "Resistant infections"
   )
 
@@ -35,24 +35,24 @@ plot_figure_4_panel_a <- function(data) {
   key_outcomes <- figure_4_management_key_outcomes(data)
   key_outcomes_long <- key_outcomes %>%
     pivot_longer(
-      cols = c("All <18 cases", "Resistant infections"),
+      cols = c("<18 symptomatic cases", "Resistant infections"),
       names_to = "outcome",
       values_to = "residual_index"
     ) %>%
-    mutate(outcome = factor(outcome, levels = c("All <18 cases", "Resistant infections")))
+    mutate(outcome = factor(outcome, levels = c("<18 symptomatic cases", "Resistant infections")))
 
   outcome_colours <- c(
-    "All <18 cases" = manuscript_colour("mid_grey"),
+    "<18 symptomatic cases" = manuscript_colour("mid_grey"),
     "Resistant infections" = manuscript_colour("blue")
   )
-  outcome_shapes <- c("All <18 cases" = 21, "Resistant infections" = 23)
+  outcome_shapes <- c("<18 symptomatic cases" = 21, "Resistant infections" = 23)
 
   ggplot() +
     geom_vline(xintercept = 1, linewidth = 0.30, linetype = "dashed", colour = manuscript_colour("mid_grey")) +
     geom_segment(
       data = key_outcomes,
       aes(
-        x = `All <18 cases`, xend = `Resistant infections`,
+        x = `<18 symptomatic cases`, xend = `Resistant infections`,
         y = country_label, yend = country_label
       ),
       linewidth = 0.38,
@@ -71,7 +71,7 @@ plot_figure_4_panel_a <- function(data) {
     scale_colour_manual(values = outcome_colours, name = "Outcome") +
     scale_shape_manual(values = outcome_shapes, name = "Outcome") +
     labs(
-      x = "Resistance-guided burden relative to routine timeliness",
+      x = "Guided / timeliness ratio",
       y = NULL,
       tag = "a"
     ) +
@@ -157,7 +157,7 @@ plot_figure_4_panel_b <- function(data) {
     scale_linetype_iqr() +
     coord_cartesian(xlim = c(0.35, 1.40), clip = "off") +
     labs(
-      x = "Resistance-guided burden relative to routine timeliness",
+      x = "Guided / timeliness ratio",
       y = NULL,
       tag = "b"
     ) +
@@ -191,6 +191,18 @@ plot_figure_4_panel_c <- function(data) {
     "Transmission blocking" = "Transmission\nblocking",
     "High-blocking target" = "High-blocking\ntarget"
   )
+  endpoint_axis_labels <- data$endpoint_axis_labels
+  endpoint_axis_labels[c(
+    "Infant hospitalisations",
+    "Adolescent cases",
+    "All <18 cases",
+    "Resistant infections"
+  )] <- c(
+    "Infant\nhospitalisations",
+    "Adolescent\ncases",
+    "<18 symptomatic\ncases",
+    "Resistant\ninfections"
+  )
   vaccine_summary <- data$vaccine_summary_matrix %>%
     mutate(
       log2_median_residual = log2(median_residual_index),
@@ -198,7 +210,7 @@ plot_figure_4_panel_c <- function(data) {
         dplyr::near(q75_residual_index, median_residual_index),
       summary_label = if_else(
         as.character(scenario_label) == "Current aP-like",
-        "Refer",
+        "Reference",
         if_else(
           interval_collapsed,
           lancet_percent(median_residual_index, accuracy = 0.1),
@@ -232,7 +244,7 @@ plot_figure_4_panel_c <- function(data) {
       size = journal_heatmap_cell_text_size,
       lineheight = 0.84
     ) +
-    scale_x_discrete(labels = data$endpoint_axis_labels) +
+    scale_x_discrete(labels = endpoint_axis_labels) +
     scale_y_discrete(labels = scenario_axis_labels) +
     scale_fill_gradient2(
       low = manuscript_colour("blue"),
@@ -243,7 +255,7 @@ plot_figure_4_panel_c <- function(data) {
       breaks = panel_c_colourbar_breaks,
       labels = panel_c_colourbar_labels,
       oob = scales::squish,
-      name = "Burden relative to current: median [IQR]",
+      name = "Burden relative to current aP-like: median [IQR]",
       guide = guide_lancet_colourbar(
         barwidth = unit(0.30, "cm"),
         barheight = unit(5.2, "cm"),

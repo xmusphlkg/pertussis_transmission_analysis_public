@@ -18,11 +18,11 @@ figure_4_endpoint_levels <- function(include_resistance = TRUE) {
 figure_4_endpoint_axis_labels <- function() {
   c(
     `Infant cases` = "Infant cases",
-    `Infant hospitalisations` = "Infant admissions",
+    `Infant hospitalisations` = "Infant hospitalisations",
     `Infant deaths` = "Infant deaths",
     `Children cases` = "Child cases",
     `Adolescent cases` = "Adolescent cases",
-    `All <18 cases` = "All <18 cases",
+    `All <18 cases` = "<18 symptomatic cases",
     `Resistant infections` = "Resistant infections"
   )
 }

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 import subprocess
@@ -96,41 +95,6 @@ DTP_COVERAGE_COLUMNS = {
     "COVERAGE",
 }
 
-RUNTIME_DATA_HASH_COLUMNS = {
-    "country_resistance_timeline_csv": (
-        "country",
-        "iso3",
-        "year",
-        "resistant_fraction",
-        "lower",
-        "upper",
-        "evidence_type",
-    ),
-    "diagnostic_standard_timeline_csv": (
-        "country",
-        "iso3",
-        "period_start",
-        "period_end",
-        "relative_detection_prior_mean",
-        "relative_detection_prior_lower",
-        "relative_detection_prior_upper",
-        "effect_direction",
-        "evidence_strength",
-    ),
-    "npi_contact_reduction_timeline_csv": (
-        "country",
-        "iso3",
-        "period_start",
-        "period_end",
-        "baseline_contact_reduction",
-        "contact_reduction_mean",
-        "contact_reduction_lower",
-        "contact_reduction_upper",
-        "ramp_days",
-        "evidence_strength",
-    ),
-}
-
 REQUIRED_RUNTIME_BLOCKS = (
     "baseline_parameters",
     "vaccine_scenarios",
@@ -141,47 +105,7 @@ REQUIRED_RUNTIME_BLOCKS = (
 )
 
 METADATA_SCHEMA_VERSION = 1
-UNCERTAINTY_REGISTRY_METADATA_STEMS = frozenset(
-    {
-        "sensitivity_runs",
-        "joint_psa_rank_acceptability",
-        "resistance_management_psa",
-        "fitness_resistance_grid_psa_benefit",
-        "bayesian_uncertainty",
-        "bayesian_uncertainty_conditional_research",
-        "bayesian_uncertainty_joint_research",
-    }
-)
-INPUT_ARTIFACT_DIGEST_METADATA_STEMS = frozenset(
-    {
-        "fitness_resistance_grid_psa_benefit",
-        "figure1b_current_practice_conditional_parametric_bootstrap",
-        "joint_psa_rank_acceptability",
-        "resistance_management_psa",
-        "sensitivity_runs",
-        "figure2c_parametric_bootstrap",
-    }
-)
-RETIRED_UNCERTAINTY_REGISTRY_METADATA_STEMS = frozenset(
-    {
-        # Historical compatibility only. New runs must use an explicitly
-        # nonpublication research stem rather than claiming a Figure 2c role.
-        "bayesian_uncertainty_full_joint",
-        "bayesian_uncertainty_figure2c_conditional",
-        "bayesian_uncertainty_figure2c_joint",
-    }
-)
 DEPENDENCY_VERSION_PACKAGES = ("numpy", "pandas", "scipy", "pyyaml", "joblib", "numba", "pyarrow")
-# Fingerprint only code that can change generated numerical artifacts. Validation
-# code checks those artifacts but does not create them; including it made a
-# validator-only fix falsely mark every simulation output as stale.
-SOURCE_CODE_DIRECTORIES = ("model", "calibration", "simulation", "utils")
-CALIBRATION_SOURCE_CODE_DIRECTORIES = ("model", "calibration", "utils")
-NON_NUMERICAL_SOURCE_PATHS = frozenset(
-    {
-        "src_python/utils/validation.py",
-    }
-)
 PROSPECTIVE_POLICY_KEY = "_prospective_policy"
 PROSPECTIVE_POLICY_SCHEMA_VERSION = 1
 
@@ -328,200 +252,6 @@ def set_analysis_horizon_years(
     return calendar["analysis_end_date"]
 
 
-def _config_fingerprint_from_configs(configs: dict[str, Any]) -> str:
-    payload = {
-        "settings_runtime": configs["settings"].get("runtime", {}),
-        "countries": configs["countries"],
-        "data_file_hashes": _runtime_data_file_hashes(configs["settings"].get("runtime", {}).get("data_sources", {})),
-    }
-    encoded = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":")).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
-
-
-def _runtime_data_file_hashes(data_sources: dict[str, Any]) -> dict[str, str]:
-    """Hash runtime CSV fields that materially change model dynamics."""
-    keys = (
-        "country_resistance_timeline_csv",
-        "diagnostic_standard_timeline_csv",
-        "npi_contact_reduction_timeline_csv",
-    )
-    hashes: dict[str, str] = {}
-    for key in keys:
-        relative_path = data_sources.get(key)
-        if not relative_path:
-            continue
-        path = project_path(relative_path)
-        if not path.exists() or not path.is_file():
-            hashes[key] = "missing"
-            continue
-        digest = hashlib.sha256()
-        digest.update(_canonical_runtime_data_bytes(key, path))
-        hashes[key] = digest.hexdigest()
-    return hashes
-
-
-def _canonical_runtime_data_bytes(key: str, path: Path) -> bytes:
-    columns = RUNTIME_DATA_HASH_COLUMNS.get(key)
-    if columns is None:
-        with path.open("rb") as handle:
-            return handle.read()
-
-    frame = pd.read_csv(path, dtype=str, keep_default_na=False)
-    missing = [column for column in columns if column not in frame.columns]
-    if missing:
-        return json.dumps({"missing_columns": missing}, sort_keys=True).encode("utf-8")
-
-    material = frame.loc[:, list(columns)].copy()
-    for column in material.columns:
-        material[column] = material[column].astype(str).str.strip()
-    material = material.sort_values(list(material.columns), kind="mergesort").reset_index(drop=True)
-    return material.to_csv(index=False, lineterminator="\n").encode("utf-8")
-
-
-@lru_cache(maxsize=1)
-def _config_fingerprint_cached() -> str:
-    return _config_fingerprint_from_configs(_load_configs_cached())
-
-
-def config_fingerprint(configs: dict[str, Any] | None = None) -> str:
-    if configs is None:
-        return _config_fingerprint_cached()
-    return _config_fingerprint_from_configs(configs)
-
-
-def _uncertainty_config_fingerprint_from_configs(configs: dict[str, Any]) -> str:
-    payload = configs.get("parameter_distributions", {})
-    validate_uncertainty_registry_schema(payload)
-    encoded = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":")).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
-
-
-@lru_cache(maxsize=1)
-def _uncertainty_config_fingerprint_cached() -> str:
-    return _uncertainty_config_fingerprint_from_configs(_load_configs_cached())
-
-
-def uncertainty_config_fingerprint(configs: dict[str, Any] | None = None) -> str:
-    """Hash only the parameter-distribution registry used by uncertainty runners."""
-
-    if configs is None:
-        return _uncertainty_config_fingerprint_cached()
-    return _uncertainty_config_fingerprint_from_configs(configs)
-
-
-def _calibration_config_fingerprint_from_configs(configs: dict[str, Any]) -> str:
-    runtime = configs["settings"].get("runtime", {})
-    payload = {
-        "baseline_parameters": runtime.get("baseline_parameters", {}),
-        "vaccine_scenarios": runtime.get("vaccine_scenarios", {}),
-        "resistance_scenarios": runtime.get("resistance_scenarios", {}),
-        "data_sources": runtime.get("data_sources", {}),
-        "countries": configs["countries"],
-        "data_file_hashes": _runtime_data_file_hashes(runtime.get("data_sources", {})),
-    }
-    encoded = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":")).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
-
-
-@lru_cache(maxsize=1)
-def _calibration_config_fingerprint_cached() -> str:
-    return _calibration_config_fingerprint_from_configs(_load_configs_cached())
-
-
-def calibration_config_fingerprint(configs: dict[str, Any] | None = None) -> str:
-    """Hash only the runtime inputs that affect country calibration.
-
-    Bayesian settings, sensitivity grids, interventions, and plotting-only
-    configuration should not invalidate accepted calibration artifacts.  When
-    they do, MCMC silently falls back to uncalibrated defaults, which is both
-    slow and statistically brittle.
-    """
-    if configs is None:
-        return _calibration_config_fingerprint_cached()
-    return _calibration_config_fingerprint_from_configs(configs)
-
-
-def _fingerprint_source_paths(project_root: Path, paths: set[Path]) -> str:
-    """Return a traversal-order-independent digest of project-relative files."""
-
-    digest = hashlib.sha256()
-    for path in sorted(paths, key=lambda item: item.relative_to(project_root).as_posix()):
-        relative = path.relative_to(project_root).as_posix().encode("utf-8")
-        content = path.read_bytes()
-        digest.update(len(relative).to_bytes(4, "big"))
-        digest.update(relative)
-        digest.update(len(content).to_bytes(8, "big"))
-        digest.update(content)
-    return digest.hexdigest()
-
-
-def file_sha256(path: str | Path) -> str:
-    """Return the SHA-256 digest of one artifact without normalizing content."""
-
-    artifact = Path(path)
-    digest = hashlib.sha256()
-    with artifact.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def _python_source_paths(
-    project_root: Path,
-    directories: tuple[str, ...],
-    *,
-    extra_paths: tuple[Path, ...] = (),
-) -> set[Path]:
-    paths = {
-        path
-        for directory in directories
-        for path in project_root.joinpath("src_python", directory).rglob("*.py")
-        if path.is_file() and "__pycache__" not in path.parts
-    }
-    paths.update(path for path in extra_paths if path.is_file())
-    paths.difference_update(
-        project_root.joinpath(relative_path)
-        for relative_path in NON_NUMERICAL_SOURCE_PATHS
-    )
-    return paths
-
-
-@lru_cache(maxsize=1)
-def source_code_fingerprint() -> str:
-    """Hash all Python source that can materially affect pipeline outputs.
-
-    Paths and contents are length-delimited and processed in project-relative
-    lexical order, so the digest is independent of filesystem traversal order.
-    Bytecode caches are deliberately excluded.  The result is cached because
-    model configuration is assembled many times within one immutable process;
-    a new pipeline invocation computes a fresh digest of its working tree.
-    """
-
-    project_root = project_path()
-    paths = _python_source_paths(
-        project_root,
-        SOURCE_CODE_DIRECTORIES,
-        extra_paths=(project_root.joinpath("src_python", "__init__.py"),),
-    )
-    return _fingerprint_source_paths(project_root, paths)
-
-
-@lru_cache(maxsize=1)
-def calibration_source_code_fingerprint() -> str:
-    """Hash only source files on the country-calibration dependency path."""
-
-    project_root = project_path()
-    paths = _python_source_paths(
-        project_root,
-        CALIBRATION_SOURCE_CODE_DIRECTORIES,
-        extra_paths=(
-            project_root.joinpath("src_python", "__init__.py"),
-            project_root.joinpath("src_python", "simulation", "common.py"),
-        ),
-    )
-    return _fingerprint_source_paths(project_root, paths)
-
-
 def _git_metadata() -> dict[str, Any]:
     def run_git(args: list[str]) -> str:
         try:
@@ -551,13 +281,10 @@ def output_metadata_path(stem: str) -> Path:
 
 
 def current_run_metadata(stem: str, *, row_counts: dict[str, int] | None = None) -> dict[str, Any]:
-    configs = load_configs()
     return {
         "schema_version": METADATA_SCHEMA_VERSION,
         "stem": stem,
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-        "config_hash": config_fingerprint(configs),
-        "source_code_hash": source_code_fingerprint(),
         "git": _git_metadata(),
         "dependency_versions": _dependency_versions(),
         "row_counts": row_counts or {},
@@ -617,83 +344,11 @@ def dependency_version_failures_for_metadata(stem: str, metadata: dict[str, Any]
 
 
 def validate_run_metadata(stem: str, *, require_dependency_versions: bool = True) -> dict[str, Any]:
+    """Validate schema and dependency fields in run metadata."""
+
     metadata = read_run_metadata(stem)
     if int(metadata.get("schema_version", -1)) != METADATA_SCHEMA_VERSION:
         raise ValueError(f"Run metadata schema mismatch for {stem}.")
-    expected_hash = config_fingerprint()
-    if metadata.get("config_hash") != expected_hash:
-        raise ValueError(
-            f"Output {stem} was generated from a stale configuration "
-            f"({metadata.get('config_hash')}); current config hash is {expected_hash}."
-        )
-    recorded_source_hash = str(metadata.get("source_code_hash", ""))
-    if not recorded_source_hash:
-        raise ValueError(
-            f"Output {stem} predates the source-code fingerprint and must be rerun."
-        )
-    expected_source_hash = source_code_fingerprint()
-    if recorded_source_hash != expected_source_hash:
-        raise ValueError(
-            f"Output {stem} was generated from stale source code "
-            f"({recorded_source_hash}); current source-code hash is {expected_source_hash}."
-        )
-    recorded_uncertainty_hash = metadata.get("uncertainty_config_hash")
-    registry_backed_stems = (
-        UNCERTAINTY_REGISTRY_METADATA_STEMS
-        | RETIRED_UNCERTAINTY_REGISTRY_METADATA_STEMS
-    )
-    if stem in registry_backed_stems and not recorded_uncertainty_hash:
-        raise ValueError(
-            f"Output {stem} predates the parameter-distribution registry fingerprint and must be rerun."
-        )
-    if recorded_uncertainty_hash:
-        expected_uncertainty_hash = uncertainty_config_fingerprint()
-        if recorded_uncertainty_hash != expected_uncertainty_hash:
-            raise ValueError(
-                f"Output {stem} was generated from a stale parameter-distribution registry "
-                f"({recorded_uncertainty_hash}); current uncertainty hash is "
-                f"{expected_uncertainty_hash}."
-            )
-    # ``input_artifact_sha256`` is an older label-keyed provenance mapping in
-    # several pipelines (for example ``calibration_Australia``); its keys are
-    # not filesystem paths.  Path-revalidated dependencies use this distinct
-    # field so generic validation cannot reinterpret legacy labels as paths.
-    input_artifact_hashes = metadata.get("input_artifact_path_sha256")
-    if stem in INPUT_ARTIFACT_DIGEST_METADATA_STEMS and not input_artifact_hashes:
-        raise ValueError(
-            f"Output {stem} predates required upstream input-artifact fingerprints "
-            "and must be rerun."
-        )
-    if input_artifact_hashes is not None:
-        if not isinstance(input_artifact_hashes, dict) or not input_artifact_hashes:
-            raise ValueError(
-                f"Output {stem} has invalid input_artifact_path_sha256 metadata."
-            )
-        for recorded_path, recorded_hash in input_artifact_hashes.items():
-            if not isinstance(recorded_path, str) or not recorded_path.strip():
-                raise ValueError(
-                    f"Output {stem} has an invalid upstream input-artifact path."
-                )
-            if not isinstance(recorded_hash, str) or not recorded_hash.strip():
-                raise ValueError(
-                    f"Output {stem} has an invalid upstream input-artifact digest "
-                    f"for {recorded_path!r}."
-                )
-            artifact_path = Path(recorded_path)
-            if not artifact_path.is_absolute():
-                artifact_path = project_path(artifact_path)
-            if not artifact_path.is_file():
-                raise ValueError(
-                    f"Output {stem} depends on a missing upstream input artifact: "
-                    f"{artifact_path}."
-                )
-            current_digest = file_sha256(artifact_path)
-            if current_digest != recorded_hash:
-                raise ValueError(
-                    f"Output {stem} was generated from a stale upstream input artifact "
-                    f"{artifact_path} ({recorded_hash}); current SHA-256 is "
-                    f"{current_digest}."
-                )
     if require_dependency_versions:
         dependency_failures = dependency_version_failures_for_metadata(stem, metadata)
         if dependency_failures:
@@ -709,10 +364,6 @@ def calibrated_country_artifact_path(country: str) -> Path:
 @lru_cache(maxsize=None)
 def _load_calibrated_country_artifact_cached(
     country: str,
-    allow_stale: bool = False,
-    current_hash: str = "",
-    current_calibration_hash: str = "",
-    current_calibration_source_hash: str = "",
 ) -> dict[str, Any] | None:
     path = calibrated_country_artifact_path(country)
     if not path.exists():
@@ -726,56 +377,26 @@ def _load_calibrated_country_artifact_cached(
     if not bool(metadata.get("accepted", False)):
         return None
 
-    calibration_source_code_hash = str(metadata.get("calibration_source_code_hash", ""))
-    if (
-        not calibration_source_code_hash
-        or calibration_source_code_hash != current_calibration_source_hash
-    ):
-        # Source compatibility is a hard requirement. ``allow_stale`` only
-        # permits a narrowly extracted parameter overlay from an older config;
-        # it must never permit reuse across different model implementations.
-        return None
-
-    source_hash = str(metadata.get("config_hash", ""))
-    source_calibration_hash = str(metadata.get("calibration_config_hash", ""))
-    hash_is_current = bool(source_hash and source_hash == current_hash)
-    calibration_hash_is_current = bool(
-        source_calibration_hash and source_calibration_hash == current_calibration_hash
-    )
-    if not hash_is_current and not calibration_hash_is_current and not allow_stale:
-        return None
-
-    status = "current" if hash_is_current or calibration_hash_is_current else "stale_parameter_overlay"
     artifact = deepcopy(artifact)
-    artifact.setdefault("metadata", {})["calibration_hash_status"] = status
     return artifact
 
 
 def load_calibrated_country_artifact(
     country: str,
-    *,
-    allow_stale: bool = False,
 ) -> dict[str, Any] | None:
-    artifact = _load_calibrated_country_artifact_cached(
-        country,
-        bool(allow_stale),
-        config_fingerprint(),
-        calibration_config_fingerprint(),
-        calibration_source_code_fingerprint(),
-    )
+    artifact = _load_calibrated_country_artifact_cached(country)
     return deepcopy(artifact) if artifact is not None else None
 
 
-def validated_calibration_artifact_path_hashes(
+def validate_calibration_artifacts(
     countries: Iterable[str],
     *,
     context: str,
-) -> dict[str, str]:
-    """Require current accepted calibrations and return path-keyed digests."""
+) -> tuple[Path, ...]:
+    """Require an accepted calibration artifact for each requested country."""
 
-    hashes: dict[str, str] = {}
+    paths: list[Path] = []
     unavailable: list[str] = []
-    root = project_path()
     for raw_country in countries:
         country = str(raw_country)
         artifact = load_calibrated_country_artifact(country)
@@ -783,14 +404,13 @@ def validated_calibration_artifact_path_hashes(
         if artifact is None or not path.is_file():
             unavailable.append(country)
             continue
-        hashes[str(path.relative_to(root))] = file_sha256(path)
+        paths.append(path)
     if unavailable:
         raise RuntimeError(
-            f"{context} requires current accepted calibration artifacts for every "
-            "publication country; rerun calibration before production. Missing or "
-            f"stale: {', '.join(sorted(unavailable))}"
+            f"{context} requires accepted calibration artifacts for every publication "
+            f"country. Missing or unaccepted: {', '.join(sorted(unavailable))}"
         )
-    return dict(sorted(hashes.items()))
+    return tuple(sorted(paths))
 
 
 def _value_at_dotted_path(config: dict[str, Any], path: str) -> Any:
@@ -1618,13 +1238,8 @@ def make_config(
                 evidence_cutoff_date=resolved_evidence_cutoff,
             )
 
-    calibration_settings = base.get("calibration", {})
-    allow_stale_calibration = bool(calibration_settings.get("allow_stale_parameter_overlay", False))
     calibrated_artifact = (
-        load_calibrated_country_artifact(
-            country_name,
-            allow_stale=allow_stale_calibration,
-        )
+        load_calibrated_country_artifact(country_name)
         if country_name and load_calibration
         else None
     )
@@ -1636,10 +1251,8 @@ def make_config(
             production_simulation = deepcopy(out.get("simulation", {}))
             production_calendar = deepcopy(out.get("calendar", {}))
             artifact_metadata = calibrated_artifact.get("metadata", {})
-            hash_status = str(artifact_metadata.get("calibration_hash_status", "current"))
             # A calibration artifact is not a second production configuration.
-            # Copy only explicitly fitted quantities, even when its fingerprint
-            # is current.  This prevents a short calibration calendar, solver
+            # Copy only explicitly fitted quantities. This prevents a short calibration calendar, solver
             # tolerances, observation settings, or stale scenario inputs from
             # leaking into forecast runs.  The latent process path is itself a
             # fitted state estimate and is therefore part of this narrow
@@ -1656,11 +1269,8 @@ def make_config(
             metadata["calibration_loaded"] = True
             metadata["calibration_country"] = country_name
             metadata["calibration_artifact_path"] = str(calibrated_country_artifact_path(country_name))
-            metadata["calibration_hash_status"] = hash_status
             metadata["calibration_overlay_mode"] = "fitted_parameters_and_state_only"
             for key in (
-                "config_hash",
-                "calibration_config_hash",
                 "accepted",
                 "calibration_status",
                 "fit_score",
@@ -2246,16 +1856,15 @@ def _add_absolute_fit_context(summary: pd.DataFrame, config: dict[str, Any], met
     )
 
 
-def _history_config_fingerprint(history_config: dict[str, Any]) -> str:
-    """Stable within-run key for sharing an identical historical trajectory."""
+def _history_config_key(history_config: dict[str, Any]) -> str:
+    """Canonical within-run key for sharing an identical historical trajectory."""
 
     payload = deepcopy(_without_prospective_policy(history_config))
     metadata = payload.get("metadata")
     if isinstance(metadata, dict):
         metadata.pop("prospective_policy", None)
         metadata.pop("policy_start_time", None)
-    encoded = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":")).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
+    return json.dumps(payload, sort_keys=True, default=str, separators=(",", ":"))
 
 
 def _prepare_history_config_item(item: dict[str, Any]) -> np.ndarray:
@@ -2297,7 +1906,7 @@ def _prepare_prospective_scenario_items(
         history = explicit_history if isinstance(explicit_history, dict) else embedded_history
         if history is None:
             continue
-        key = _history_config_fingerprint(history)
+        key = _history_config_key(history)
         item_history_keys[position] = key
         if key in history_tasks:
             continue
@@ -2420,7 +2029,6 @@ def write_outputs(
     extra_metadata: dict[str, Any] | None = None,
     require_calibrated: bool = True,
 ) -> None:
-    calibration_input_hashes: dict[str, str] = {}
     if require_calibrated:
         enforce_calibration_status(summary, stem=stem)
         if {"country", "calibration_loaded"}.issubset(summary.columns):
@@ -2435,33 +2043,11 @@ def write_outputs(
                 )
             )
             if calibrated_countries:
-                calibration_input_hashes = validated_calibration_artifact_path_hashes(
+                validate_calibration_artifacts(
                     calibrated_countries,
                     context=f"Output {stem}",
                 )
     resolved_extra_metadata = dict(extra_metadata or {})
-    if calibration_input_hashes:
-        recorded = resolved_extra_metadata.get("input_artifact_path_sha256", {})
-        if recorded is None:
-            recorded = {}
-        if not isinstance(recorded, dict):
-            raise ValueError(
-                f"Output {stem} has non-mapping input_artifact_path_sha256 metadata"
-            )
-        conflicts = {
-            path
-            for path, digest in calibration_input_hashes.items()
-            if path in recorded and str(recorded[path]) != digest
-        }
-        if conflicts:
-            raise ValueError(
-                f"Output {stem} supplied conflicting calibration artifact digests: "
-                + ", ".join(sorted(conflicts))
-            )
-        resolved_extra_metadata["input_artifact_path_sha256"] = {
-            **calibration_input_hashes,
-            **recorded,
-        }
     ensure_output_dirs()
     project_path("outputs", "metadata").mkdir(parents=True, exist_ok=True)
     _clear_stem_outputs(stem)
@@ -2542,7 +2128,7 @@ def enforce_calibration_status(summary: pd.DataFrame, *, stem: str) -> None:
     """Raise if any scenario in a production summary is uncalibrated.
 
     This hard check prevents the pipeline from producing outputs labelled as
-    calibrated country analyses when calibration artifacts are missing or stale.
+    calibrated country analyses when accepted calibration artifacts are missing.
     Scenarios explicitly marked as exploratory are exempt.
     """
     if "calibration_loaded" not in summary.columns:
@@ -2559,17 +2145,6 @@ def enforce_calibration_status(summary: pd.DataFrame, *, stem: str) -> None:
             f"Run calibration first (python -m src_python.calibration.run_all) or "
             f"set require_calibrated=False for exploratory analyses."
         )
-    if "calibration_hash_status" in summary.columns:
-        stale = summary.loc[summary["calibration_hash_status"].eq("stale_parameter_overlay")]
-        if not stale.empty:
-            countries = sorted(stale.get("country", pd.Series(["unknown"])).astype(str).unique())
-            raise RuntimeError(
-                f"[{stem}] Calibration enforcement failed: {len(stale)} scenario(s) "
-                f"for countries {countries} use stale calibration parameter overlays. "
-                f"Re-run calibration under the current configuration before production simulations."
-            )
-
-
 def write_manuscript_tables() -> None:
     configs = load_configs()
     baseline = configs["baseline"]

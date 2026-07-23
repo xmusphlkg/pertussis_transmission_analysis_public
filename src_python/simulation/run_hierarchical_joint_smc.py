@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass, replace
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -30,11 +29,8 @@ from scipy import special as scipy_special
 from src_python.calibration.mcmc_diagnostics import summarize_convergence
 from src_python.simulation.common import (
     current_run_metadata,
-    config_fingerprint,
-    file_sha256,
     load_configs,
     publication_country_names,
-    source_code_fingerprint,
     write_run_metadata,
 )
 from src_python.simulation.run_bayesian_uncertainty import (
@@ -172,7 +168,6 @@ class ModeBank:
     cholesky_factors: tuple[np.ndarray, ...]
     degrees_of_freedom: float
     source_stems: tuple[str, ...]
-    source_hashes: tuple[str, ...]
     dimension: int
 
 
@@ -779,7 +774,6 @@ def _load_mode_bank(
     if not np.isfinite(df) or df <= 2.0:
         raise ValueError("Mode-bank Student-t degrees of freedom must exceed 2")
     values_by_mode: list[np.ndarray] = []
-    source_hashes: list[str] = []
     for stem in stems:
         posterior_path = project_path(
             "outputs", "simulations", f"{stem}_posterior_samples.parquet"
@@ -804,7 +798,6 @@ def _load_mode_bank(
             )
         posterior = pd.read_parquet(posterior_path)
         values_by_mode.append(_pilot_mode_coordinates(posterior, contexts))
-        source_hashes.append(file_sha256(posterior_path))
     dimension = int(values_by_mode[0].shape[1])
     if any(values.shape[1] != dimension for values in values_by_mode):
         raise ValueError("Mode-bank pilots have inconsistent joint dimensions")
@@ -837,7 +830,6 @@ def _load_mode_bank(
         cholesky_factors=tuple(cholesky_factors),
         degrees_of_freedom=df,
         source_stems=tuple(stems),
-        source_hashes=tuple(source_hashes),
         dimension=dimension,
     )
 
@@ -1066,7 +1058,6 @@ def _mode_bank_with_empirical_component(
         degrees_of_freedom=mode_bank.degrees_of_freedom,
         source_stems=mode_bank.source_stems
         + ("adaptive_crossfit_population",),
-        source_hashes=mode_bank.source_hashes + ("conditional_current_cloud",),
         dimension=mode_bank.dimension,
     )
 
@@ -2134,45 +2125,40 @@ def run_hierarchical_joint_smc(
         )
 
     workers = min(max(1, int(n_jobs)), available_cpus())
-    fingerprint = hashlib.sha256()
-    fingerprint.update(config_fingerprint().encode("utf-8"))
-    fingerprint.update(source_code_fingerprint().encode("utf-8"))
-    fingerprint.update(
-        repr(
-            (
-                resolved,
-                int(islands),
-                int(particles_per_island),
-                float(target_ess_fraction),
-                int(max_stages),
-                int(move_rounds_per_stage),
-                int(final_move_rounds),
-                int(final_mode_bank_rounds),
-                float(global_covariance_fraction),
-                int(seed),
-                float(process_support_bound)
-                if process_support_bound is not None
-                else None,
-                tuple(mode_bank.source_stems) if mode_bank is not None else (),
-                tuple(mode_bank.source_hashes) if mode_bank is not None else (),
-                float(mode_bank_covariance_inflation),
-                float(mode_bank_covariance_floor_fraction),
-                float(mode_bank_degrees_of_freedom),
-                float(mode_bank_activation_temperature),
-                bool(mode_bank_crossfit_current_population),
-            )
-        ).encode("utf-8")
-    )
-    run_fingerprint = fingerprint.hexdigest()
+    checkpoint_design = {
+        "countries": list(resolved),
+        "islands": int(islands),
+        "particles_per_island": int(particles_per_island),
+        "target_ess_fraction": float(target_ess_fraction),
+        "max_stages": int(max_stages),
+        "move_rounds_per_stage": int(move_rounds_per_stage),
+        "final_move_rounds": int(final_move_rounds),
+        "final_mode_bank_rounds": int(final_mode_bank_rounds),
+        "global_covariance_fraction": float(global_covariance_fraction),
+        "seed": int(seed),
+        "process_support_bound": (
+            float(process_support_bound) if process_support_bound is not None else None
+        ),
+        "mode_bank_source_stems": (
+            list(mode_bank.source_stems) if mode_bank is not None else []
+        ),
+        "mode_bank_covariance_inflation": float(mode_bank_covariance_inflation),
+        "mode_bank_covariance_floor_fraction": float(mode_bank_covariance_floor_fraction),
+        "mode_bank_degrees_of_freedom": float(mode_bank_degrees_of_freedom),
+        "mode_bank_activation_temperature": float(mode_bank_activation_temperature),
+        "mode_bank_crossfit_current_population": bool(
+            mode_bank_crossfit_current_population
+        ),
+    }
     checkpoint_path = project_path(
         "outputs", "metadata", f"{output_stem}_smc_checkpoint.joblib"
     )
     rng = np.random.default_rng(int(seed))
     if checkpoint_path.exists():
         checkpoint = joblib_load(checkpoint_path)
-        if checkpoint.get("fingerprint") != run_fingerprint:
+        if checkpoint.get("design") != checkpoint_design:
             raise RuntimeError(
-                f"Stale/incompatible SMC checkpoint exists: {checkpoint_path}"
+                f"SMC checkpoint design does not match the requested run: {checkpoint_path}"
             )
         cloud = _cloud_from_payload(checkpoint["cloud"])
         temperature = float(checkpoint["temperature"])
@@ -2469,7 +2455,7 @@ def run_hierarchical_joint_smc(
         _atomic_checkpoint(
             checkpoint_path,
             {
-                "fingerprint": run_fingerprint,
+                "design": checkpoint_design,
                 "cloud": _cloud_payload(cloud),
                 "temperature": temperature,
                 "shared_scale": shared_scale,
@@ -2734,9 +2720,6 @@ def run_hierarchical_joint_smc(
         "mode_bank_source_stems": (
             list(mode_bank.source_stems) if mode_bank is not None else []
         ),
-        "mode_bank_source_hashes": (
-            list(mode_bank.source_hashes) if mode_bank is not None else []
-        ),
         "mode_bank_dimension": (
             int(mode_bank.dimension) if mode_bank is not None else None
         ),
@@ -2808,10 +2791,6 @@ def run_hierarchical_joint_smc(
         "seed": int(seed),
         "n_jobs": workers,
         "checkpoint_path": str(checkpoint_path),
-        "posterior_samples_sha256": file_sha256(posterior_path),
-        "convergence_diagnostics_sha256": file_sha256(diagnostics_path),
-        "smc_stage_audit_sha256": file_sha256(stage_path),
-        "smc_boundary_audit_sha256": file_sha256(boundary_path),
         "quality": quality,
         "convergence_summary": convergence,
         "posterior_interpretation": (

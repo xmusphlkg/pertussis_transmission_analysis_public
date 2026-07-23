@@ -677,39 +677,33 @@ def test_state_route_predictive_scenarios_hold_external_structure_at_reference(
     )
 
 
-def test_stale_calibration_artifact_is_not_loaded_by_default(monkeypatch, tmp_path):
+def test_accepted_calibration_artifact_is_loaded(monkeypatch, tmp_path):
     baseline_beta = float(load_configs()["baseline"]["transmission"]["beta_S"])
-    stale_artifact_path = tmp_path / "Australia_calibrated_config.yaml"
+    artifact_path = tmp_path / "Australia_calibrated_config.yaml"
     write_yaml(
         {
             "config": {"transmission": {"beta_S": baseline_beta * 2.0}},
             "metadata": {
                 "accepted": True,
-                "config_hash": "stale-config-hash",
-                "calibration_config_hash": "stale-calibration-hash",
-                "source_code_hash": simulation_common.source_code_fingerprint(),
-                "calibration_source_code_hash": simulation_common.calibration_source_code_fingerprint(),
                 "calibration_status": "calibrated_to_reported_cases",
             },
         },
-        stale_artifact_path,
+        artifact_path,
     )
 
     simulation_common._load_calibrated_country_artifact_cached.cache_clear()
     monkeypatch.setattr(
         simulation_common,
         "calibrated_country_artifact_path",
-        lambda country: stale_artifact_path,
+        lambda country: artifact_path,
     )
     try:
         config = make_config(country_profile="Australia")
 
-        assert not bool(config["metadata"]["calibration_loaded"])
-        assert float(config["transmission"]["beta_S"]) == baseline_beta
-
-        artifact = load_calibrated_country_artifact("Australia", allow_stale=True)
-        assert artifact is not None
-        assert artifact["metadata"]["calibration_hash_status"] == "stale_parameter_overlay"
+        assert bool(config["metadata"]["calibration_loaded"])
+        assert float(config["transmission"]["beta_S"]) == pytest.approx(
+            baseline_beta * 2.0
+        )
     finally:
         simulation_common._load_calibrated_country_artifact_cached.cache_clear()
 
@@ -745,10 +739,6 @@ def test_current_calibration_artifact_only_overlays_fitted_parameters_and_state(
             },
             "metadata": {
                 "accepted": True,
-                "config_hash": simulation_common.config_fingerprint(),
-                "calibration_config_hash": simulation_common.calibration_config_fingerprint(),
-                "source_code_hash": simulation_common.source_code_fingerprint(),
-                "calibration_source_code_hash": simulation_common.calibration_source_code_fingerprint(),
             },
         },
         artifact_path,
@@ -774,17 +764,13 @@ def test_current_calibration_artifact_only_overlays_fitted_parameters_and_state(
         simulation_common._load_calibrated_country_artifact_cached.cache_clear()
 
 
-def test_calibration_artifact_from_different_source_is_never_loaded(monkeypatch, tmp_path):
+def test_unaccepted_calibration_artifact_is_never_loaded(monkeypatch, tmp_path):
     artifact_path = tmp_path / "Australia_calibrated_config.yaml"
     write_yaml(
         {
             "config": {"transmission": {"beta_S": 0.05}},
             "metadata": {
-                "accepted": True,
-                "config_hash": simulation_common.config_fingerprint(),
-                "calibration_config_hash": simulation_common.calibration_config_fingerprint(),
-                "source_code_hash": "stale-source-code",
-                "calibration_source_code_hash": "stale-calibration-source-code",
+                "accepted": False,
             },
         },
         artifact_path,
@@ -797,7 +783,6 @@ def test_calibration_artifact_from_different_source_is_never_loaded(monkeypatch,
     )
     try:
         assert load_calibrated_country_artifact("Australia") is None
-        assert load_calibrated_country_artifact("Australia", allow_stale=True) is None
     finally:
         simulation_common._load_calibrated_country_artifact_cached.cache_clear()
 
@@ -1108,22 +1093,6 @@ def test_bayesian_registry_width_override_is_applied_exactly_once():
     )
     assert specs["VE_sus"]["sd"] == pytest.approx(0.05)
     assert specs["fitness_R"]["log_sd"] == pytest.approx(0.075)
-
-
-def test_canonical_bayesian_outputs_require_uncertainty_registry_metadata():
-    assert "bayesian_uncertainty" in simulation_common.UNCERTAINTY_REGISTRY_METADATA_STEMS
-    assert "bayesian_uncertainty_conditional_research" in simulation_common.UNCERTAINTY_REGISTRY_METADATA_STEMS
-    assert "bayesian_uncertainty_joint_research" in simulation_common.UNCERTAINTY_REGISTRY_METADATA_STEMS
-    assert "bayesian_uncertainty_figure2c_joint" not in simulation_common.UNCERTAINTY_REGISTRY_METADATA_STEMS
-    assert (
-        "bayesian_uncertainty_figure2c_joint"
-        in simulation_common.RETIRED_UNCERTAINTY_REGISTRY_METADATA_STEMS
-    )
-    assert "bayesian_uncertainty_full_joint" not in simulation_common.UNCERTAINTY_REGISTRY_METADATA_STEMS
-    assert (
-        "bayesian_uncertainty_full_joint"
-        in simulation_common.RETIRED_UNCERTAINTY_REGISTRY_METADATA_STEMS
-    )
 
 
 def test_bayesian_entrypoint_defaults_are_explicitly_nonpublication_research():

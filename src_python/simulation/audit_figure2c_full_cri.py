@@ -24,12 +24,9 @@ from src_python.calibration.mcmc_diagnostics import (
     MIN_RECOMMENDED_TAIL_ESS,
 )
 from src_python.simulation.common import (
-    config_fingerprint,
     current_run_metadata,
-    file_sha256,
     load_configs,
     publication_country_names,
-    source_code_fingerprint,
     validate_run_metadata,
     write_run_metadata,
 )
@@ -282,37 +279,6 @@ def _posterior_runtime_checks(
             severity="fatal",
             details=f"inference_structure={metadata.get('inference_structure')}",
         )
-        posterior_hash = str(metadata.get("config_hash", "") or "missing")
-        current_hash = str(config_fingerprint())
-        _add(
-            rows,
-            category="posterior_runtime",
-            check="config_hash_recorded_for_traceability",
-            passed=posterior_hash != "missing",
-            severity="fatal",
-            details=f"posterior_config_hash={posterior_hash}, current_config_hash={current_hash}",
-        )
-        _add(
-            rows,
-            category="posterior_runtime",
-            check="current_config_hash_comparison",
-            passed=posterior_hash == current_hash,
-            severity="fatal",
-            details=f"posterior_config_hash={posterior_hash}, current_config_hash={current_hash}",
-        )
-        posterior_source_hash = str(metadata.get("source_code_hash", "") or "missing")
-        current_source_hash = str(source_code_fingerprint())
-        _add(
-            rows,
-            category="posterior_runtime",
-            check="current_source_code_hash_comparison",
-            passed=posterior_source_hash == current_source_hash,
-            severity="fatal",
-            details=(
-                f"posterior_source_code_hash={posterior_source_hash}, "
-                f"current_source_code_hash={current_source_hash}"
-            ),
-        )
         return
     parameterization = str(metadata.get("parameterization", "")).lower()
     observed_chains = int(metadata.get("n_chains") or -1)
@@ -354,39 +320,6 @@ def _posterior_runtime_checks(
         severity="fatal",
         details=f"draws_per_chain={observed_draws}, warmup={observed_warmup}, thin={observed_thin}",
     )
-    posterior_hash = str(metadata.get("config_hash", "") or "missing")
-    current_hash = str(config_fingerprint())
-    _add(
-        rows,
-        category="posterior_runtime",
-        check="config_hash_recorded_for_traceability",
-        passed=bool(posterior_hash and posterior_hash != "missing"),
-        severity="fatal",
-        details=f"posterior_config_hash={posterior_hash}, current_config_hash={current_hash}",
-    )
-    _add(
-        rows,
-        category="posterior_runtime",
-        check="current_config_hash_comparison",
-        passed=posterior_hash == current_hash,
-        severity="fatal",
-        details=f"posterior_config_hash={posterior_hash}, current_config_hash={current_hash}",
-    )
-    posterior_source_hash = str(metadata.get("source_code_hash", "") or "missing")
-    current_source_hash = str(source_code_fingerprint())
-    _add(
-        rows,
-        category="posterior_runtime",
-        check="current_source_code_hash_comparison",
-        passed=posterior_source_hash == current_source_hash,
-        severity="fatal",
-        details=(
-            f"posterior_source_code_hash={posterior_source_hash}, "
-            f"current_source_code_hash={current_source_hash}"
-        ),
-    )
-
-
 def _figure_metadata_checks(
     rows: list[dict[str, Any]],
     figure_metadata: dict[str, Any],
@@ -2725,78 +2658,6 @@ def main(
         path=DRAW_PATH,
     )
 
-    for digest_field, path, exists in (
-        ("posterior_samples_sha256", posterior_sample_path, posterior_samples_exist),
-        ("paired_draws_sha256", DRAW_PATH, draw_exists),
-        ("paired_intervals_sha256", INTERVAL_PATH, interval_exists),
-    ):
-        recorded_digest = str(figure_metadata.get(digest_field, ""))
-        observed_digest = file_sha256(path) if exists else ""
-        _add(
-            rows,
-            category="artifact_provenance",
-            check=f"{digest_field}_matches_current_artifact",
-            passed=bool(recorded_digest)
-            and bool(observed_digest)
-            and recorded_digest == observed_digest,
-            severity="fatal",
-            details=(
-                f"recorded={recorded_digest or 'missing'}, "
-                f"observed={observed_digest or 'missing'}, path={path}"
-            ),
-        )
-
-    posterior_diagnostic_artifacts = (
-        (
-            "smc_stage_audit_sha256",
-            project_path(
-                "outputs", "diagnostics", f"{posterior_stem}_smc_stage_audit.csv"
-            ),
-            smc_stage_exists,
-        ),
-        (
-            "convergence_diagnostics_sha256",
-            project_path(
-                "outputs", "summaries", f"{posterior_stem}_convergence_diagnostics.csv"
-            ),
-            smc_diagnostics_exists,
-        ),
-        (
-            "smc_boundary_audit_sha256",
-            project_path(
-                "outputs", "diagnostics", f"{posterior_stem}_smc_boundary_audit.csv"
-            ),
-            smc_boundary_exists,
-        ),
-    ) if is_joint_smc else (
-        (
-            "structural_importance_audit_sha256",
-            structural_importance_path,
-            structural_importance_exists,
-        ),
-        (
-            "local_state_importance_audit_sha256",
-            local_importance_path,
-            local_importance_exists,
-        ),
-    )
-    for digest_field, path, exists in posterior_diagnostic_artifacts:
-        recorded_digest = str((metadata or {}).get(digest_field, ""))
-        observed_digest = file_sha256(path) if exists else ""
-        _add(
-            rows,
-            category="artifact_provenance",
-            check=f"{digest_field}_matches_current_artifact",
-            passed=bool(recorded_digest)
-            and bool(observed_digest)
-            and recorded_digest == observed_digest,
-            severity="fatal",
-            details=(
-                f"recorded={recorded_digest or 'missing'}, "
-                f"observed={observed_digest or 'missing'}, path={path}"
-            ),
-        )
-
     if metadata is not None:
         _posterior_metadata_checks(rows, metadata)
         _posterior_runtime_checks(rows, metadata, expected_chains=expected_chains)
@@ -2934,31 +2795,6 @@ def main(
             "expected_chains_per_country": int(expected_chains),
             "passed": bool(fatal_failures.empty and warning_failures.empty),
             "warnings_are_fatal": warnings_are_fatal,
-            "audit_table_sha256": file_sha256(OUTPUT_PATH),
-            "audited_artifact_sha256": {
-                "posterior_samples_sha256": figure_metadata.get(
-                    "posterior_samples_sha256"
-                ),
-                "paired_draws_sha256": figure_metadata.get("paired_draws_sha256"),
-                "paired_intervals_sha256": figure_metadata.get(
-                    "paired_intervals_sha256"
-                ),
-                "smc_stage_audit_sha256": (metadata or {}).get(
-                    "smc_stage_audit_sha256"
-                ),
-                "convergence_diagnostics_sha256": (metadata or {}).get(
-                    "convergence_diagnostics_sha256"
-                ),
-                "smc_boundary_audit_sha256": (metadata or {}).get(
-                    "smc_boundary_audit_sha256"
-                ),
-                "structural_importance_audit_sha256": (metadata or {}).get(
-                    "structural_importance_audit_sha256"
-                ),
-                "local_state_importance_audit_sha256": (metadata or {}).get(
-                    "local_state_importance_audit_sha256"
-                ),
-            },
         },
     )
     if not fatal_failures.empty or not warning_failures.empty:

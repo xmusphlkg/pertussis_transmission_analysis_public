@@ -11,10 +11,8 @@ from src_python.model.parameters import PreparedParameters
 from src_python.simulation import run_sensitivity as sensitivity_runner
 from src_python.simulation.common import (
     PROSPECTIVE_POLICY_KEY,
-    config_fingerprint,
     load_configs,
     make_config,
-    uncertainty_config_fingerprint,
 )
 from src_python.simulation.parameter_distributions import inverse_cdf, validate_distribution_spec
 from src_python.simulation.run_all import BAYESIAN_FIXED_PARAMETERS
@@ -153,15 +151,6 @@ def test_global_sensitivity_registry_schema_fails_closed(bad_version) -> None:
 
     with pytest.raises(ValueError, match="schema_version"):
         _settings(configs)
-
-
-def test_uncertainty_registry_has_a_separate_provenance_fingerprint() -> None:
-    configs = load_configs()
-    changed = load_configs()
-    changed["parameter_distributions"]["global_sensitivity"]["sample_size"] += 1
-
-    assert config_fingerprint(changed) == config_fingerprint(configs)
-    assert uncertainty_config_fingerprint(changed) != uncertainty_config_fingerprint(configs)
 
 
 def test_sensitivity_uses_the_same_china_country_profile_as_the_baseline_runner(

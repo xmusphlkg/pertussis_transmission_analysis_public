@@ -23,8 +23,8 @@ def test_frontier_only_never_reads_bootstrap_or_writes_table1(
     )
     monkeypatch.setattr(
         tables,
-        "_validated_parent_artifact_hashes",
-        lambda *_args, **_kwargs: {"deterministic-parent": "digest"},
+        "_validate_parent_artifacts",
+        lambda *_args, **_kwargs: None,
     )
 
     def fake_read(relative_path: str) -> pd.DataFrame:
@@ -64,7 +64,6 @@ def test_frontier_only_never_reads_bootstrap_or_writes_table1(
         "current_run_metadata",
         lambda stem, **kwargs: {"stem": stem, **kwargs},
     )
-    monkeypatch.setattr(tables, "file_sha256", lambda _path: "frontier-digest")
     monkeypatch.setattr(
         tables,
         "write_run_metadata",
@@ -86,41 +85,41 @@ def test_frontier_only_never_reads_bootstrap_or_writes_table1(
     assert metadata_writes[0][1]["reads_bootstrap_artifact"] is False
 
 
-def test_frontier_parent_validation_requires_exact_current_calibration_hashes(
+def test_frontier_parent_validation_requires_calibrations_and_parent_files(
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
 ) -> None:
     countries = tuple(f"Profile_{index}" for index in range(9))
-    expected = {
-        f"outputs/calibrations/Profile_{index}_calibrated_config.yaml": f"hash-{index}"
-        for index in range(9)
-    }
+    parent = tmp_path / "parent.csv"
+    parent.write_text("country,value\nTest,1\n", encoding="utf-8")
+    calibration_calls: list[tuple[str, ...]] = []
+    metadata_calls: list[str] = []
     monkeypatch.setattr(
         tables,
-        "validated_calibration_artifact_path_hashes",
-        lambda *_args, **_kwargs: expected,
+        "validate_calibration_artifacts",
+        lambda observed, **_kwargs: calibration_calls.append(tuple(observed)),
     )
-    monkeypatch.setattr(tables, "_parent_artifact_paths", lambda _stem: ())
+    monkeypatch.setattr(tables, "_parent_artifact_paths", lambda _stem: (parent,))
     monkeypatch.setattr(
         tables,
         "validate_run_metadata",
-        lambda _stem: {"input_artifact_path_sha256": {**expected, "extra": "stale"}},
+        lambda stem: metadata_calls.append(stem) or {},
     )
 
-    with pytest.raises(ValueError, match="exactly the current 9 accepted"):
-        tables._validated_parent_artifact_hashes(
+    tables._validate_parent_artifacts(
+        ("figure2_programme_reference",),
+        countries=countries,
+    )
+
+    assert calibration_calls == [countries]
+    assert metadata_calls == ["figure2_programme_reference"]
+
+    parent.unlink()
+    with pytest.raises(FileNotFoundError, match="parent.csv"):
+        tables._validate_parent_artifacts(
             ("figure2_programme_reference",),
             countries=countries,
         )
-
-    monkeypatch.setattr(
-        tables,
-        "validate_run_metadata",
-        lambda _stem: {"input_artifact_path_sha256": expected.copy()},
-    )
-    assert tables._validated_parent_artifact_hashes(
-        ("figure2_programme_reference",),
-        countries=countries,
-    ) == expected
 
 
 def test_bootstrap_preflight_recomputes_and_matches_current_frontier(
@@ -133,18 +132,13 @@ def test_bootstrap_preflight_recomputes_and_matches_current_frontier(
         tables,
         "_build_frontier_products",
         lambda: SimpleNamespace(
-            input_artifact_path_sha256={"parent": "digest"},
             frontier=expected,
         ),
     )
     monkeypatch.setattr(
         tables,
         "_validated_frontier_artifact",
-        lambda *, expected_input_hashes: (
-            observed
-            if expected_input_hashes == {"parent": "digest"}
-            else pytest.fail("wrong parent hashes")
-        ),
+        lambda: observed,
     )
     monkeypatch.setattr(
         tables,

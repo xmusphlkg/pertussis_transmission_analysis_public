@@ -534,13 +534,15 @@ runtime:
         naturally slows selection in finite populations.
     calibration:
       enabled: false
-      allow_stale_parameter_overlay: false
       default_country_profile: Australia
       method: state_space_map
       objective: negative_binomial_reporting_interval_cases
       # Deterministic transmission does not represent notification-delay and
-      # short-range surveillance autocorrelation; fit annual totals and retain
-      # native intervals for posterior-predictive validation.
+      # short-range surveillance autocorrelation. Preserve dated source
+      # intervals and their exact covered days, then assign each whole interval
+      # by midpoint year and aggregate to annual likelihood groups. Annual latent
+      # states describe transmission variation; native intervals remain available
+      # for predictive checks.
       likelihood_observation_frequency: annual
       dispersion: 50.0
       maxiter: 12
@@ -592,11 +594,12 @@ runtime:
         rtol: 1.0e-4
         atol: 1.0e-6
       relative_incidence_tolerance: 0.25
-      # staged_fast estimates only beta_S and the observation multiplier.
+      # Numerical starting fit only: staged_fast estimates beta_S and the
+      # observation multiplier. The retained state-space MAP fit then jointly
+      # updates those two quantities and the annual latent log-beta deviations.
       # Seasonal and importation inputs remain fixed scenario assumptions.
       fit_parameters:
         - transmission.beta_S
-        - transmission.multi_year_phase
         - reporting_multiplier
     demography:
       enabled: true
@@ -1489,19 +1492,19 @@ parameter_sources:
     note: "Initialization choice used to reduce dependence on arbitrary starting infections and immunity; not a directly cited biological parameter."
   natural_history.latent_duration:
     source: CDC clinical guidance
-    note: "Uses 8 days within CDC's common 7-10 day incubation range."
+    note: "Uses 9 days within CDC's common 7-10 day incubation range."
   natural_history.infectious_duration_symptomatic:
     source: CDC clinical guidance
-    note: "Uses 21 days, aligned with infectiousness through roughly the third week after paroxysm onset."
+    note: "Uses a 24-day population-level mean symptomatic infectious duration; the uncertainty distribution spans the clinically plausible infectious window."
   natural_history.infectious_duration_asymptomatic:
     source: Literature-informed assumption
-    note: "Shorter duration for mild/asymptomatic infections is a modeling assumption anchored to the symptomatic infectious window; sensitivity range retained."
+    note: "Uses a 17.3-day population-level mean; the shorter duration for mild/asymptomatic infections is a modelling assumption anchored to the symptomatic infectious window and varied in sensitivity analysis."
   natural_history.recovered_immunity_duration:
     source: CDC clinical guidance and cycle-model evidence
-    note: "Uses 9 years within CDC's 4-20 year observational range; longer natural-immunity values remain sensitivity cases within the current SIRWS waning-and-boosting structure."
+    note: "The submitted SIRWS model uses consecutive recovered-to-waned and waned-to-susceptible stages of 6113.75 days each (12227.5 days total without boosting); effective duration also depends on exposure-driven immune boosting."
   natural_history.vaccine_protection_duration:
     source: aP waning literature
-    note: "Uses 5 years to approximate rapid aP waning; meta-analysis shows marked decline by 3-7 years."
+    note: "The submitted dose-history model uses 798 days for the recent-to-waned stage and a further 798 days for loss of residual waned vaccine-origin protection; these are population-level stage means varied in sensitivity analysis."
   transmission.seasonal_amplitude:
     source: Calibrated/processed pertussis incidence
     note: "Country profiles override this from circular seasonal concentration of reported cases."

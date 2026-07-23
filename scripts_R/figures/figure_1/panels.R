@@ -231,13 +231,6 @@ plot_figure_1_panel_c <- function(data) {
   panel_breaks <- seq(0, panel_upper, by = 200)
 
   ggplot(decision_map, aes(primary_cases_per_100k, infant_hospitalizations_per_100k)) +
-    geom_abline(
-      intercept = 0,
-      slope = 1,
-      linewidth = 0.28,
-      linetype = "22",
-      colour = manuscript_colour("mid_grey")
-    ) +
     geom_point(aes(fill = who_region), shape = 21, size = 2.35, colour = manuscript_colour("black"), stroke = 0.25, alpha = 0.9) +
     ggrepel::geom_text_repel(
       aes(label = country_label_text),

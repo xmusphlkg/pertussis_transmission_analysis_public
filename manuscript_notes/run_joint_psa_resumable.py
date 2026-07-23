@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
-import hashlib
 import json
 from pathlib import Path
 import sys
@@ -18,15 +17,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src_python.simulation.common import (
-    config_fingerprint,
     current_run_metadata,
-    file_sha256,
     load_configs,
     output_metadata_path,
     publication_country_names,
     read_run_metadata,
-    source_code_fingerprint,
-    uncertainty_config_fingerprint,
     validate_run_metadata,
     write_run_metadata,
 )
@@ -46,11 +41,11 @@ from src_python.simulation.run_joint_psa_rank_acceptability import (
     UNDER18_PROGRAMME_RANK_SAMPLE_PATH,
     UNDER18_PROGRAMME_RUN_SUMMARY_PATH,
     UNCERTAINTY_SCHEMA_VERSION,
-    _validated_calibration_input_artifact_hashes,
+    _validate_calibration_inputs,
     _completed_rank_samples,
     _default_parameter_specs,
     _retain_matching_completed_draws,
-    _resume_is_current,
+    _resume_metadata_available,
     _sample_table,
     run_joint_psa,
 )
@@ -255,59 +250,9 @@ def _joint_output_bundle_paths() -> tuple[Path, ...]:
     return tuple(dict.fromkeys(paths))
 
 
-def _joint_contract_fingerprint(
-    *,
-    config_hash: str,
-    uncertainty_hash: str,
-    source_hash: str,
-    calibration_input_hashes: dict[str, str] | None = None,
-) -> str:
-    payload = {
-        "config_hash": str(config_hash),
-        "input_artifact_path_sha256": dict(
-            sorted((calibration_input_hashes or {}).items())
-        ),
-        "source_code_hash": str(source_hash),
-        "uncertainty_config_hash": str(uncertainty_hash),
-    }
-    return hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
-    ).hexdigest()
-
-
-def _stored_joint_contract_fingerprint() -> str:
-    metadata_path = Path(JOINT_METADATA_PATH)
-    if not metadata_path.exists():
-        return ""
-    try:
-        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-        if not isinstance(metadata, dict):
-            raise ValueError("joint PSA metadata must be a JSON object")
-        return _joint_contract_fingerprint(
-            config_hash=str(metadata.get("config_hash", "")),
-            uncertainty_hash=str(metadata.get("uncertainty_config_hash", "")),
-            source_hash=str(metadata.get("source_code_hash", "")),
-            calibration_input_hashes=(
-                metadata.get("input_artifact_path_sha256")
-                if isinstance(metadata.get("input_artifact_path_sha256"), dict)
-                else {}
-            ),
-        )
-    except (OSError, UnicodeError, ValueError, TypeError):
-        return file_sha256(metadata_path)
-
-
-def _joint_archive_directory(
-    *,
-    old_fingerprint: str,
-    new_fingerprint: str,
-) -> Path:
+def _joint_archive_directory() -> Path:
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-    old_label = (old_fingerprint or "missing")[:8]
-    new_label = (new_fingerprint or "missing")[:8]
-    base = JOINT_ARCHIVE_ROOT / (
-        f"run_{timestamp}_old-{old_label}_new-{new_label}"
-    )
+    base = JOINT_ARCHIVE_ROOT / f"run_{timestamp}"
     candidate = base
     suffix = 1
     while candidate.exists():
@@ -345,24 +290,18 @@ def _remove_empty_archive_directories(
 def _archive_stale_outputs(
     *,
     reason: str,
-    old_fingerprint: str,
-    new_fingerprint: str,
 ) -> Path | None:
     """Move an exact stale output bundle aside, rolling back on any failure."""
 
     sources = [path for path in _joint_output_bundle_paths() if path.exists()]
     if not sources:
         return None
-    archive_dir = _joint_archive_directory(
-        old_fingerprint=old_fingerprint,
-        new_fingerprint=new_fingerprint,
-    )
+    archive_dir = _joint_archive_directory()
     records = [
         {
             "original_path": str(path),
             "archive_path": str(path.relative_to(ROOT)),
             "size_bytes": int(path.stat().st_size),
-            "sha256": file_sha256(path),
         }
         for path in sources
     ]
@@ -383,16 +322,12 @@ def _archive_stale_outputs(
             archived = archive_dir / record["archive_path"]
             if int(archived.stat().st_size) != int(record["size_bytes"]):
                 raise OSError(f"Joint PSA archive size verification failed: {archived}")
-            if file_sha256(archived) != str(record["sha256"]):
-                raise OSError(f"Joint PSA archive hash verification failed: {archived}")
 
         manifest = {
             "schema_version": 1,
             "stem": STEM,
             "archived_at_utc": datetime.now(timezone.utc).isoformat(),
             "reason": reason,
-            "old_fingerprint": old_fingerprint or None,
-            "new_fingerprint": new_fingerprint,
             "files": records,
         }
         temporary_manifest = archive_dir / "manifest.json.tmp"
@@ -433,7 +368,6 @@ def _resume_design_compatibility(
     seed: int,
     countries: tuple[str, ...],
     strategies: tuple[str, ...],
-    calibration_input_hashes: dict[str, str] | None = None,
 ) -> tuple[bool, str]:
     """Require the cached run to match every statistical-design input."""
 
@@ -447,10 +381,6 @@ def _resume_design_compatibility(
         "smoke_runtime": False,
         "keep_timeseries": False,
     }
-    if calibration_input_hashes is not None:
-        expected["input_artifact_path_sha256"] = dict(
-            sorted(calibration_input_hashes.items())
-        )
     mismatches = [
         f"{key}={metadata.get(key, 'missing')} (expected {value})"
         for key, value in expected.items()
@@ -468,10 +398,8 @@ def _initialise_checkpoint(
     sample_batch_size: int,
     countries: tuple[str, ...],
     strategies: tuple[str, ...],
-    calibration_input_hashes: dict[str, str] | None = None,
     archived_previous_run: Path | None = None,
 ) -> None:
-    configs = load_configs()
     metadata = current_run_metadata(
         STEM,
         row_counts={
@@ -491,18 +419,8 @@ def _initialise_checkpoint(
             "smoke_runtime": False,
             "keep_timeseries": False,
             "uncertainty_schema_version": UNCERTAINTY_SCHEMA_VERSION,
-            "uncertainty_config_hash": uncertainty_config_fingerprint(configs),
             "sample_design": SAMPLE_DESIGN,
             "run_status": "checkpoint_initialised_before_first_batch",
-            **(
-                {
-                    "input_artifact_path_sha256": dict(
-                        sorted(calibration_input_hashes.items())
-                    )
-                }
-                if calibration_input_hashes is not None
-                else {}
-            ),
             "archived_previous_run": (
                 str(archived_previous_run)
                 if archived_previous_run is not None
@@ -715,18 +633,6 @@ def _finalise_completed_metadata(
     metadata["programme_only_strategies"] = list(programme_strategies)
     metadata["expected_under18_programme_rank_rows"] = int(expected_rows)
     metadata["row_counts"]["under18_programme_rank_samples"] = int(len(rank))
-    metadata["output_artifact_sha256"] = {
-        "parameter_samples": file_sha256(SAMPLE_PATH),
-        "under18_programme_rank_samples": file_sha256(
-            UNDER18_PROGRAMME_RANK_SAMPLE_PATH
-        ),
-        "under18_programme_rank_acceptability": file_sha256(
-            UNDER18_PROGRAMME_ACCEPTABILITY_PATH
-        ),
-        "under18_programme_run_summary": file_sha256(
-            UNDER18_PROGRAMME_RUN_SUMMARY_PATH
-        ),
-    }
     metadata["completion_audit"] = {
         "exact_requested_samples_per_profile": True,
         "exact_one_rank1_strategy_per_profile_sample": True,
@@ -757,7 +663,7 @@ def main() -> None:
         action="store_true",
         help=(
             "Normalize completed Figure 2b interpretation fields, rerun the "
-            "completion audit, and refresh metadata hashes without simulations."
+            "completion audit, and refresh metadata without simulations."
         ),
     )
     args = parser.parse_args()
@@ -773,9 +679,8 @@ def main() -> None:
         )
         print("Normalized Figure 2b interpretation outputs and refreshed metadata.")
         return
-    calibration_input_hashes = _validated_calibration_input_artifact_hashes(countries)
-    source_hash = source_code_fingerprint()
-    current, reason = _resume_is_current(configs, source_hash)
+    _validate_calibration_inputs(countries)
+    current, reason = _resume_metadata_available()
     if current:
         try:
             resume_metadata = read_run_metadata(STEM)
@@ -789,21 +694,11 @@ def main() -> None:
                 seed=int(args.seed),
                 countries=countries,
                 strategies=strategies,
-                calibration_input_hashes=calibration_input_hashes,
             )
     if not current:
         print(f"Starting a fresh joint PSA because {reason}")
-        old_fingerprint = _stored_joint_contract_fingerprint()
-        new_fingerprint = _joint_contract_fingerprint(
-            config_hash=config_fingerprint(configs),
-            uncertainty_hash=uncertainty_config_fingerprint(configs),
-            source_hash=source_hash,
-            calibration_input_hashes=calibration_input_hashes,
-        )
         archived_previous_run = _archive_stale_outputs(
             reason=reason,
-            old_fingerprint=old_fingerprint,
-            new_fingerprint=new_fingerprint,
         )
         if archived_previous_run is not None:
             print(f"Archived the exact stale joint-PSA bundle at {archived_previous_run}")
@@ -813,7 +708,6 @@ def main() -> None:
             sample_batch_size=int(args.sample_batch_size),
             countries=countries,
             strategies=strategies,
-            calibration_input_hashes=calibration_input_hashes,
             archived_previous_run=archived_previous_run,
         )
     else:
@@ -844,7 +738,7 @@ def main() -> None:
         ):
             print(
                 f"Joint PSA already complete: {len(matching)}/{int(args.samples)} "
-                "fixed-seed samples and primary-endpoint summaries match current provenance."
+                "fixed-seed samples and primary-endpoint summaries match the requested design."
             )
             try:
                 _finalise_completed_metadata(

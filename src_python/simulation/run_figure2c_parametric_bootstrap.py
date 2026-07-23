@@ -14,7 +14,6 @@ import argparse
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import hashlib
 import io
 import json
 from pathlib import Path
@@ -35,16 +34,12 @@ from src_python.calibration.calibrate_baseline import (
     state_space_map_calibration,
 )
 from src_python.simulation.common import (
-    calibrated_country_artifact_path,
-    config_fingerprint,
     current_run_metadata,
-    file_sha256,
     load_calibrated_country_artifact,
     load_configs,
     make_config,
     publication_country_names,
-    source_code_fingerprint,
-    validated_calibration_artifact_path_hashes,
+    validate_calibration_artifacts,
     write_run_metadata,
 )
 from src_python.simulation.programme_uncertainty_helpers import (
@@ -168,43 +163,15 @@ def _bootstrap_settings(configs: dict[str, Any]) -> dict[str, Any]:
     return settings
 
 
-def _metadata_artifact_path(path: Path) -> str:
-    """Return a portable project-relative metadata path where possible."""
+def _validate_figure2c_inputs(countries: list[str]) -> None:
+    """Require the accepted calibrations and decision-frontier table."""
 
-    resolved = path.resolve()
-    try:
-        return resolved.relative_to(project_path().resolve()).as_posix()
-    except ValueError:
-        return str(resolved)
-
-
-def _figure2c_input_artifact_hashes(
-    countries: list[str],
-) -> tuple[dict[str, str], dict[str, str]]:
-    """Fail fast on upstream drift and return new plus legacy digest maps."""
-
-    calibration_hashes = validated_calibration_artifact_path_hashes(
+    validate_calibration_artifacts(
         countries,
         context="Figure 2c parametric bootstrap",
     )
     if not FRONTIER_PATH.is_file():
         raise FileNotFoundError(FRONTIER_PATH)
-    frontier_key = _metadata_artifact_path(FRONTIER_PATH)
-    frontier_digest = file_sha256(FRONTIER_PATH)
-    path_hashes = {
-        frontier_key: frontier_digest,
-        **calibration_hashes,
-    }
-    legacy_hashes = {
-        "decision_frontier": frontier_digest,
-        **{
-            f"calibration_{country}": calibration_hashes[
-                _metadata_artifact_path(calibrated_country_artifact_path(country))
-            ]
-            for country in countries
-        },
-    }
-    return dict(sorted(path_hashes.items())), legacy_hashes
 
 
 def _fixed_intervention_reference_values(
@@ -686,16 +653,9 @@ def _checkpoint_bundle_paths() -> tuple[Path, ...]:
 
 
 def _checkpoint_archive_directory(
-    *,
-    old_fingerprint: str,
-    new_fingerprint: str,
 ) -> Path:
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-    old_label = (old_fingerprint or "missing")[:8]
-    new_label = (new_fingerprint or "missing")[:8]
-    base = CHECKPOINT_ARCHIVE_ROOT / (
-        f"checkpoint_{timestamp}_old-{old_label}_new-{new_label}"
-    )
+    base = CHECKPOINT_ARCHIVE_ROOT / f"checkpoint_{timestamp}"
     candidate = base
     suffix = 1
     while candidate.exists():
@@ -707,8 +667,6 @@ def _checkpoint_archive_directory(
 def _archive_incompatible_checkpoint_bundle(
     *,
     reason: str,
-    old_fingerprint: str,
-    new_fingerprint: str,
 ) -> Path:
     """Move an incompatible active checkpoint aside without deleting any bytes.
 
@@ -720,16 +678,12 @@ def _archive_incompatible_checkpoint_bundle(
     sources = [path for path in _checkpoint_bundle_paths() if path.exists()]
     if not sources:
         raise RuntimeError("Checkpoint archival was requested but no active files exist")
-    archive_dir = _checkpoint_archive_directory(
-        old_fingerprint=old_fingerprint,
-        new_fingerprint=new_fingerprint,
-    )
+    archive_dir = _checkpoint_archive_directory()
     records = [
         {
             "original_path": str(path),
             "archive_name": path.name,
             "size_bytes": int(path.stat().st_size),
-            "sha256": file_sha256(path),
         }
         for path in sources
     ]
@@ -746,8 +700,6 @@ def _archive_incompatible_checkpoint_bundle(
         manifest = {
             "archived_at_utc": datetime.now(timezone.utc).isoformat(),
             "reason": reason,
-            "old_fingerprint": old_fingerprint or None,
-            "new_fingerprint": new_fingerprint,
             "files": records,
         }
         temporary_manifest = archive_dir / "manifest.json.tmp"
@@ -777,41 +729,8 @@ def _archive_incompatible_checkpoint_bundle(
     return archive_dir
 
 
-def _checkpoint_fingerprint(
-    *,
-    countries: list[str],
-    replicates: int,
-    seed: int,
-    maxiter: int,
-) -> str:
-    artifact_hashes = {
-        country: file_sha256(
-            project_path(
-                "outputs",
-                "calibrations",
-                f"{country.replace(' ', '_')}_calibrated_config.yaml",
-            )
-        )
-        for country in countries
-    }
-    payload = {
-        "schema": 1,
-        "config_hash": config_fingerprint(),
-        "source_code_hash": source_code_fingerprint(),
-        "countries": countries,
-        "replicates": int(replicates),
-        "seed": int(seed),
-        "maxiter": int(maxiter),
-        "calibration_artifact_hashes": artifact_hashes,
-    }
-    return hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
-    ).hexdigest()
-
-
 def _validate_or_create_checkpoint_metadata(
     *,
-    fingerprint: str,
     countries: list[str],
     replicates: int,
     seed: int,
@@ -820,7 +739,6 @@ def _validate_or_create_checkpoint_metadata(
     active_paths = _checkpoint_bundle_paths()
     temporary_paths = active_paths[3:]
     archive_reason = ""
-    old_fingerprint = ""
     metadata: dict[str, Any] | None = None
     if CHECKPOINT_METADATA_PATH.exists():
         try:
@@ -828,12 +746,23 @@ def _validate_or_create_checkpoint_metadata(
             if not isinstance(loaded, dict):
                 raise ValueError("checkpoint metadata must be a JSON object")
             metadata = loaded
-            old_fingerprint = str(metadata.get("fingerprint", ""))
         except (OSError, UnicodeError, ValueError, TypeError) as exc:
             archive_reason = f"checkpoint metadata are unreadable: {type(exc).__name__}: {exc}"
         else:
-            if old_fingerprint != fingerprint:
-                archive_reason = "checkpoint fingerprint does not match the current run contract"
+            expected = {
+                "countries": countries,
+                "replicates": int(replicates),
+                "seed": int(seed),
+                "maxiter": int(maxiter),
+            }
+            mismatches = [
+                key for key, value in expected.items() if metadata.get(key) != value
+            ]
+            if mismatches:
+                archive_reason = (
+                    "checkpoint design fields do not match the requested run: "
+                    + ", ".join(mismatches)
+                )
             elif any(path.exists() for path in temporary_paths):
                 archive_reason = "atomic checkpoint temporary files remain from an interrupted write"
             elif CHECKPOINT_DRAW_PATH.exists() != CHECKPOINT_FIT_PATH.exists():
@@ -847,15 +776,12 @@ def _validate_or_create_checkpoint_metadata(
     if archive_reason:
         archive_dir = _archive_incompatible_checkpoint_bundle(
             reason=archive_reason,
-            old_fingerprint=old_fingerprint,
-            new_fingerprint=fingerprint,
         )
     CHECKPOINT_METADATA_PATH.parent.mkdir(parents=True, exist_ok=True)
     temporary = CHECKPOINT_METADATA_PATH.with_suffix(".json.tmp")
     temporary.write_text(
         json.dumps(
             {
-                "fingerprint": fingerprint,
                 "countries": countries,
                 "replicates": int(replicates),
                 "seed": int(seed),
@@ -1157,9 +1083,7 @@ def run_parametric_bootstrap(
     outside = sorted(set(resolved).difference(publication))
     if outside or len(set(resolved)) != len(resolved):
         raise ValueError(f"Invalid bootstrap countries: {outside or resolved}")
-    input_artifact_path_hashes, legacy_input_artifact_hashes = (
-        _figure2c_input_artifact_hashes(resolved)
-    )
+    _validate_figure2c_inputs(resolved)
     if int(replicates) < 100:
         raise ValueError("Parametric bootstrap requires at least 100 replicates")
     if int(minimum_successful_replicates) > int(replicates):
@@ -1182,14 +1106,7 @@ def run_parametric_bootstrap(
         )
     workers = min(max(1, int(n_jobs)), available_cpus())
     chunk_size = max(workers, int(chunk_size))
-    fingerprint = _checkpoint_fingerprint(
-        countries=resolved,
-        replicates=int(replicates),
-        seed=int(seed),
-        maxiter=resolved_maxiter,
-    )
     archived_checkpoint = _validate_or_create_checkpoint_metadata(
-        fingerprint=fingerprint,
         countries=resolved,
         replicates=int(replicates),
         seed=int(seed),
@@ -1379,17 +1296,6 @@ def run_parametric_bootstrap(
         "checkpoint_archive_path": (
             str(archived_checkpoint) if archived_checkpoint is not None else None
         ),
-        # ``input_artifact_sha256`` is retained for compatibility with older
-        # consumers.  The path-keyed field is the fail-closed contract used by
-        # ``validate_run_metadata`` to re-hash every upstream artifact.
-        "input_artifact_sha256": legacy_input_artifact_hashes,
-        "input_artifact_path_sha256": input_artifact_path_hashes,
-        "output_artifact_sha256": {
-            "paired_bootstrap_draws": file_sha256(DRAW_PATH),
-            "confidence_intervals": file_sha256(INTERVAL_PATH),
-            "fit_diagnostics": file_sha256(FIT_DIAGNOSTIC_PATH),
-            "interval_stability": file_sha256(STABILITY_PATH),
-        },
     }
     write_run_metadata(STEM, metadata)
     return draws, intervals, fits

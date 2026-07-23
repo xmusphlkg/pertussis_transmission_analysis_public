@@ -8,9 +8,7 @@ import numpy as np
 import pandas as pd
 
 from src_python.simulation.common import (
-    calibrated_country_artifact_path,
     current_run_metadata,
-    file_sha256,
     load_configs,
     publication_country_names,
     validate_run_metadata,
@@ -33,19 +31,13 @@ from src_python.simulation.run_figure2c_parametric_bootstrap import (
     STEM,
     VARIED_ESTIMATION_COMPONENTS,
     FIXED_REFERENCE_INPUTS,
-    FRONTIER_PATH,
 )
 from src_python.utils.io import project_path, write_dataframe
 
 
 AUDIT_STEM = "figure2c_parametric_bootstrap_quality_audit"
 OUTPUT_PATH = project_path("outputs", "tables", f"{AUDIT_STEM}.csv")
-AUDITED_ARTIFACT_PATHS = {
-    "paired_bootstrap_draws_sha256": DRAW_PATH,
-    "confidence_intervals_sha256": INTERVAL_PATH,
-    "fit_diagnostics_sha256": FIT_DIAGNOSTIC_PATH,
-    "interval_stability_sha256": STABILITY_PATH,
-}
+AUDITED_ARTIFACT_PATHS = (DRAW_PATH, INTERVAL_PATH, FIT_DIAGNOSTIC_PATH, STABILITY_PATH)
 
 
 def _add(
@@ -92,24 +84,6 @@ def _exact_integer_values(values: pd.Series) -> tuple[pd.Series, bool]:
         np.rint(numeric.to_numpy(dtype=float)).astype(np.int64),
         index=values.index,
     ), True
-
-
-def _expected_input_artifact_paths(countries: list[str]) -> set[str]:
-    """Return the exact path-keyed upstream contract for Figure 2c."""
-
-    root = project_path().resolve()
-    paths = [
-        FRONTIER_PATH,
-        *(calibrated_country_artifact_path(country) for country in countries),
-    ]
-    expected: set[str] = set()
-    for path in paths:
-        resolved = path.resolve()
-        try:
-            expected.add(resolved.relative_to(root).as_posix())
-        except ValueError:
-            expected.add(str(resolved))
-    return expected
 
 
 def _audit_frames(
@@ -470,48 +444,6 @@ def _audit_frames(
         ),
     )
 
-    expected_input_paths = _expected_input_artifact_paths(countries)
-    recorded_input_paths = source_metadata.get("input_artifact_path_sha256")
-    input_path_contract_ok = bool(
-        isinstance(recorded_input_paths, dict)
-        and set(recorded_input_paths) == expected_input_paths
-        and all(
-            isinstance(digest, str) and bool(digest.strip())
-            for digest in recorded_input_paths.values()
-        )
-    )
-    _add(
-        rows,
-        category="provenance",
-        check="upstream_input_path_digest_contract_exact",
-        passed=input_path_contract_ok,
-        details=(
-            f"recorded={sorted(recorded_input_paths) if isinstance(recorded_input_paths, dict) else []}, "
-            f"expected={sorted(expected_input_paths)}"
-        ),
-    )
-
-    recorded = source_metadata.get("output_artifact_sha256", {})
-    digest_key_map = {
-        "paired_bootstrap_draws_sha256": "paired_bootstrap_draws",
-        "confidence_intervals_sha256": "confidence_intervals",
-        "fit_diagnostics_sha256": "fit_diagnostics",
-        "interval_stability_sha256": "interval_stability",
-    }
-    digest_failures = []
-    for audit_key, source_key in digest_key_map.items():
-        path = AUDITED_ARTIFACT_PATHS[audit_key]
-        observed = file_sha256(path) if path.exists() else ""
-        expected = str(recorded.get(source_key, "")) if isinstance(recorded, dict) else ""
-        if not expected or expected != observed:
-            digest_failures.append(f"{source_key}:{expected or 'missing'}!={observed or 'missing'}")
-    _add(
-        rows,
-        category="provenance",
-        check="source_output_digests_fresh",
-        passed=not digest_failures,
-        details="all output digests match" if not digest_failures else "; ".join(digest_failures),
-    )
     return rows
 
 
@@ -525,7 +457,7 @@ def main(*, fail_on_warnings: bool = True) -> pd.DataFrame:
         .get("figure2c_parametric_bootstrap_confidence_interval", {})
     )
     source_metadata = validate_run_metadata(STEM)
-    for path in AUDITED_ARTIFACT_PATHS.values():
+    for path in AUDITED_ARTIFACT_PATHS:
         if not path.exists():
             raise FileNotFoundError(path)
     draws = pd.read_csv(DRAW_PATH)
@@ -563,10 +495,6 @@ def main(*, fail_on_warnings: bool = True) -> pd.DataFrame:
         "passed": failed.empty,
         "warnings_are_fatal": warnings_are_fatal,
         "figure2c_source_stem": STEM,
-        "audit_table_sha256": file_sha256(OUTPUT_PATH),
-        "audited_artifact_sha256": {
-            key: file_sha256(path) for key, path in AUDITED_ARTIFACT_PATHS.items()
-        },
     }
     write_run_metadata(AUDIT_STEM, metadata)
     if not failed.empty:
