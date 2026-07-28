@@ -560,7 +560,7 @@ def validate_main_manuscript_key_numbers() -> None:
     conference_abstract_text = Path(conference_abstract_path).read_text(
         encoding="utf-8"
     )
-    summary_text = _markdown_section(main_text, "Summary", "Research in context")
+    abstract_text = _markdown_section(main_text, "Abstract", "Introduction")
     results_text = _markdown_section(main_text, "Results", "Discussion")
     table_text = _markdown_section(main_text, "Tables", "Figure legends")
     figure_legend_text = _markdown_section(main_text, "Figure legends", "References")
@@ -2434,14 +2434,11 @@ def validate_main_manuscript_key_numbers() -> None:
         label="Main-manuscript Table 1 footnote",
     )
 
-    summary_tokens = [
+    abstract_tokens = [
         "Routine schedule timeliness produced the lowest "
-        "primary-outcome index in eight profiles, and the infant-exposure package did "
+        "primary-outcome index in eight profiles; the infant-exposure package did "
         "so in China",
-        "Each leader's cellwise 95% CI versus current practice excluded zero, without "
-        "adjustment for point-estimate selection; however, paired separation from the "
-        "second-ranked strategy included zero in Thailand and the UK",
-        "Routine schedule timeliness reduced the primary index by a median "
+        "Timeliness reduced the primary index by a median "
         + _lancet_decimal(timeliness.median(), 1)
         + "% (IQR "
         + _lancet_decimal(timeliness.quantile(0.25), 1)
@@ -2453,12 +2450,12 @@ def validate_main_manuscript_key_numbers() -> None:
         + _lancet_decimal(coverage_effects.quantile(0.25), 1)
         + " to "
         + _lancet_decimal(coverage_effects.quantile(0.75), 1)
-        + ") for a coverage-floor-only contrast, and was larger in all nine profiles",
+        + ") for a coverage-floor-only contrast",
         "Median infant-hospitalisation reductions were "
         + _lancet_decimal(
             timeliness_endpoint_medians["Infant hospitalisations"], 1
         )
-        + "% for routine schedule timeliness, "
+        + "% for timeliness, "
         + _lancet_decimal(
             pregnancy_endpoint_medians["Infant hospitalisations"], 1
         )
@@ -2466,18 +2463,20 @@ def validate_main_manuscript_key_numbers() -> None:
         + _lancet_decimal(
             infant_exposure_endpoint_medians["Infant hospitalisations"], 1
         )
-        + "% for the infant-exposure package; corresponding primary-outcome reductions "
-        "were "
+        + "% for the infant-exposure package",
+        "The corresponding primary-outcome reductions were "
         + _lancet_decimal(timeliness_endpoint_medians["All <18 cases"], 1)
         + "%, "
         + _lancet_decimal(pregnancy_endpoint_medians["All <18 cases"], 1)
         + "%, and "
         + _lancet_decimal(infant_exposure_endpoint_medians["All <18 cases"], 1)
         + "%",
-        "The median adolescent-booster effect on adolescent cases was approximately zero, "
-        "but reductions were 21·1% in Thailand and 10·0% in Brazil",
+        "Adolescent-booster effects were near zero in most profiles but larger in "
+        "Thailand (21·1%) and Brazil (10·0%)",
     ]
-    _require_text_tokens(summary_text, summary_tokens, label="Main-manuscript Summary")
+    _require_text_tokens(
+        abstract_text, abstract_tokens, label="Main-manuscript Abstract"
+    )
     conference_abstract_tokens = [
         "Routine schedule timeliness produced the lowest primary-outcome index in "
         "eight settings, and an infant-exposure package did so in China",
@@ -2532,7 +2531,7 @@ def validate_main_manuscript_key_numbers() -> None:
         figure_legend_text,
         [
             "Relative reduction in the annualised symptomatic-case index among people "
-            "aged younger than 18 years under the coverage-floor-only contrast and "
+            "younger than 18 years under the coverage-floor-only contrast and "
             "routine schedule timeliness",
             "Robustness of the reference strategy across 128 configured selected-input settings",
             "the vertical axis gives the 95th percentile of excess burden from retaining "
@@ -3422,7 +3421,13 @@ def main() -> None:
     validate_release_output_windows()
     validate_active_publication_outputs()
     validate_under18_programme_psa()
-    validate_main_manuscript_key_numbers()
+    manuscript_path = project_path(
+        "manuscript", "submission_ready", "main_manuscript.md"
+    )
+    if manuscript_path.exists():
+        validate_main_manuscript_key_numbers()
+    else:
+        print("Skipped manuscript text checks; the public snapshot excludes manuscript drafts.")
     print("Active publication validation checks passed.")
 
 

@@ -1,8 +1,8 @@
 # Pertussis Transmission Analysis
 
-This is the public reproducibility snapshot for the manuscript “Programme
-strategies for post-pandemic pertussis control in children and adolescents: an
-age-structured transmission modelling study”. It contains the current
+This is the public reproducibility snapshot for the manuscript “Modelling
+pertussis programmes for child and adolescent morbidity and infant
+hospitalisations”. It contains the current
 deterministic scenario model, leakage-safe predictive validation, paired
 Latin-hypercube sensitivity workflow, retained source-data tables, figures,
 run metadata, and companion Shiny application source.
@@ -32,8 +32,8 @@ MCMC workflow are recorded in `ANALYSIS_PROTOCOL.md`.
 - `manuscript_notes/`: a strict allowlist of scenario, parameter, and
   table-generation inputs required by the computational pipeline; manuscript
   drafts and internal review records are excluded.
-- `outputs/tables/`, `outputs/summaries/`, and `outputs/metadata/`: retained
-  source data, diagnostics, and run metadata.
+- `outputs/tables/`, `outputs/summaries/`, `outputs/diagnostics/`, and
+  `outputs/metadata/`: retained source data, diagnostics, and run metadata.
 - `outputs/figures/` and `outputs/appendix/`: rendered main and extended
   figures.
 - `ShinyApp/`: source and compact data bundle for the companion exploratory
