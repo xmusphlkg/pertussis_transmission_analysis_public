@@ -566,10 +566,18 @@ def validate_main_manuscript_key_numbers() -> None:
     figure_legend_text = _markdown_section(main_text, "Figure legends", "References")
 
     observed_results_headings = re.findall(r"^### (.+)$", results_text, flags=re.M)
-    if observed_results_headings:
+    expected_results_headings = [
+        "Reported incidence, model validation, and current-practice burden",
+        "Programme effects on child and adolescent morbidity",
+        "Programme effects by outcome and age group",
+        "Robustness of programme rankings",
+        "Resistance management and vaccine-mechanism contrasts",
+    ]
+    if observed_results_headings != expected_results_headings:
         raise AssertionError(
-            "Main-manuscript Results should use paragraph-led transitions without "
-            f"nested section headings: {observed_results_headings}"
+            "Main-manuscript Results subsection headings differ from the approved "
+            f"structure: observed={observed_results_headings}, "
+            f"expected={expected_results_headings}"
         )
 
     regional_incidence = read_table(
