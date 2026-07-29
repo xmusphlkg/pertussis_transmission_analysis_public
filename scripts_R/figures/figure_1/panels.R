@@ -47,10 +47,11 @@ figure_1_region_label_positions <- function() {
   tibble::tibble(
     region_key = c(
       "European Region", "Western Pacific Region", "Global",
-      "Region of the Americas", "African Region", "South-East Asia Region"
+      "Region of the Americas", "Eastern Mediterranean Region",
+      "African Region", "South-East Asia Region"
     ),
-    label_x = c(2024.35, 2024.35, 2024.35, 2024.35, 2024.35, 2024.35),
-    label_y = c(39.0, 23.5, 14.3, 5.6, 0.83, 0.41)
+    label_x = rep(2024.35, 7),
+    label_y = c(39.0, 23.5, 14.3, 5.6, 1.18, 0.72, 0.41)
   )
 }
 
@@ -81,7 +82,7 @@ plot_figure_1_panel_a <- function(data) {
       labels = label_lancet_number(accuracy = 0.1),
       expand = expansion(mult = c(0, 0))
     ) +
-    coord_cartesian(xlim = c(2000, 2029.5), ylim = c(0.25, 50)) +
+    coord_cartesian(xlim = c(2000, 2031.5), ylim = c(0.25, 50)) +
     labs(x = "Year", y = "Reported incidence per 100 000 (log)", tag = "a") +
     theme_lancet(base_size = journal_base_text_size)
 }

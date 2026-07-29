@@ -1,7 +1,14 @@
 ## Figure 1 data preparation ---------------------------------------------------
 
 figure_1_selected_regions <- function() {
-  country_region_levels
+  c(
+    "European Region",
+    "Western Pacific Region",
+    "Eastern Mediterranean Region",
+    "South-East Asia Region",
+    "Region of the Americas",
+    "African Region"
+  )
 }
 
 figure_1_region_display_labels <- function() {
@@ -9,6 +16,7 @@ figure_1_region_display_labels <- function() {
     "Global" = "Global",
     "Western Pacific Region" = "Western\nPacific",
     "European Region" = "Europe",
+    "Eastern Mediterranean Region" = "Eastern\nMediterranean",
     "Region of the Americas" = "Americas",
     "African Region" = "Africa",
     "South-East Asia Region" = "South-East\nAsia"
@@ -163,9 +171,22 @@ prepare_figure_1_data <- function(inputs = load_figure_1_inputs()) {
     ) %>%
     mutate(reported_incidence_per_100k = reported_incidence_per_million / 10)
 
+  expected_regions <- c("Global", selected_regions)
+  missing_regions <- setdiff(expected_regions, unique(regional_incidence$region))
+  missing_labels <- setdiff(expected_regions, names(region_labels))
+  missing_colours <- setdiff(expected_regions, names(region_colours))
+  if (length(missing_regions) > 0L ||
+      length(missing_labels) > 0L ||
+      length(missing_colours) > 0L) {
+    stop(
+      "Figure 1a requires Global plus all six WHO regions with complete labels and colours.",
+      call. = FALSE
+    )
+  }
+
   regional_focus <- regional_incidence %>%
-    filter(region == "Global" | region %in% selected_regions) %>%
-    mutate(region = factor(region, levels = c("Global", selected_regions)))
+    filter(region %in% expected_regions) %>%
+    mutate(region = factor(region, levels = expected_regions))
 
   regional_focus_latest <- regional_focus %>%
     group_by(region) %>%

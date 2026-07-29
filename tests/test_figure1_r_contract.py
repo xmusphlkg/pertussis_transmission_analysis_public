@@ -11,6 +11,42 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.skipif(shutil.which("Rscript") is None, reason="Rscript is unavailable")
+def test_r_figure1a_requires_all_six_who_regions() -> None:
+    expression = r"""
+    source('scripts_R/lib/bootstrap.R')
+    source('scripts_R/figures/figure_1/data.R')
+    source('scripts_R/figures/figure_1/panels.R')
+
+    expected_regions <- c(
+      'European Region',
+      'Western Pacific Region',
+      'Eastern Mediterranean Region',
+      'South-East Asia Region',
+      'Region of the Americas',
+      'African Region'
+    )
+    stopifnot(identical(figure_1_selected_regions(), expected_regions))
+    stopifnot(setequal(
+      names(figure_1_region_display_labels()),
+      c('Global', expected_regions)
+    ))
+    stopifnot(setequal(
+      figure_1_region_label_positions()$region_key,
+      c('Global', expected_regions)
+    ))
+    stopifnot(all(c('Global', expected_regions) %in% names(region_colours)))
+    """
+
+    subprocess.run(
+        ["Rscript", "-e", expression],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+
+@pytest.mark.skipif(shutil.which("Rscript") is None, reason="Rscript is unavailable")
 def test_r_figure1b_requires_audited_intervals_for_all_endpoints_and_draws_them() -> None:
     expression = r"""
     source('scripts_R/lib/bootstrap.R')

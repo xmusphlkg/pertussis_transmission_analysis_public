@@ -799,6 +799,7 @@ metric_labels <- c(
 region_colours <- c(
   "Global" = manuscript_colours[["black"]],
   "Western Pacific Region" = manuscript_discrete_core[["blue"]],
+  "Eastern Mediterranean Region" = manuscript_discrete_core[["deep_teal"]],
   "South-East Asia Region" = manuscript_discrete_core[["purple"]],
   "European Region" = manuscript_discrete_core[["vermillion"]],
   "Region of the Americas" = manuscript_discrete_core[["green"]],
@@ -808,6 +809,7 @@ region_colours <- c(
 region_short_colours <- c(
   Neutral = manuscript_colours[["light_grey"]],
   WPR = region_colours[["Western Pacific Region"]],
+  EMR = region_colours[["Eastern Mediterranean Region"]],
   SEAR = region_colours[["South-East Asia Region"]],
   EUR = region_colours[["European Region"]],
   AMR = region_colours[["Region of the Americas"]],
