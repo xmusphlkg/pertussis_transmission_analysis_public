@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "job": {
+    "country": "England",
+    "draw_id": 0,
+    "saved_local_index": 1,
+    "source_parameter_row": 25,
+    "source_replicate": 0,
+    "selected_particle_weight": 0.0333333333333333,
+    "projection_root": "outputs/core2026/current_preserving_local_uncertainty_20261103/draw_000",
+    "kind": "local",
+    "history": "adopted_local",
+    "label": "local_England_000",
+    "nasal_coverage": 0.7,
+    "n_draws": 50
+  },
+  "nasal_profiles": [
+    "b050_a000_d03_point",
+    "b050_a050_d03_point",
+    "b050_a100_d03_point"
+  ],
+  "zero_effect_max_difference": 0.0,
+  "standard_current_replayed": true,
+  "paired_standard_components_reconstructed": true,
+  "nasal_coverage": 0.7,
+  "maternal_coverage": 0.73
+}

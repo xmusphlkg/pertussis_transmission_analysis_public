@@ -1,0 +1,181 @@
+{
+  "country": "New_Zealand",
+  "country_profile": {
+    "schema": "core2026-country-health-v1",
+    "start_year": 2027,
+    "horizons": [
+      1,
+      3,
+      5,
+      10,
+      20
+    ],
+    "budget_doses_per_1000_births": 20.0,
+    "maternal_effective_share": 0.9,
+    "clinical_variant": "erlang4_120d_sigma1",
+    "parameter_policy": "Independent national inference and draws; shared biological priors retained unless evidence supports differences",
+    "mortality": {
+      "status": "not_estimated_pending_matched_evidence",
+      "required": "National age- and case-definition-matched fatality and ascertainment evidence",
+      "early_age_end_months": 2
+    },
+    "test_interpretation": "Prior predictive migration and sensitivity test; not calibrated burden estimates or posterior strategy probabilities",
+    "adolescent_age": 11.0,
+    "adolescent_policy": "Expand existing age-11 Tdap coverage",
+    "context": "aP primary at 6 weeks, 3 and 5 months; maternal and age-11 programmes already present",
+    "sources": {
+      "national_policy": {
+        "url": "https://www.healthnz.govt.nz/health-professionals/guidance-standards/topic/immunisation/immunisation-handbook/pertussis-whooping-cough",
+        "citation": "Health NZ immunisation handbook: infant doses, age-4 and age-11 boosters, maternal vaccination",
+        "ledger": "country_health_migration_20261027"
+      },
+      "migration_assumption": {
+        "url": "analysis/country_health_migration_20261027.md",
+        "citation": "Exploratory scenario assumption; uptake levels are not observed national estimates; nominal monthly spacing for Japan doses 2–3",
+        "ledger": "country_health_migration_20261027"
+      }
+    },
+    "scenarios": {
+      "baseline": {},
+      "maternal_lower_uptake": {
+        "programme_updates": [
+          {
+            "kind": "coverage_from_year",
+            "series": "maternal",
+            "value": 0.5,
+            "from": 2027,
+            "source": "migration_assumption",
+            "evidence_grade": "D"
+          }
+        ]
+      },
+      "short_tdap": {
+        "parameter_quantiles": {
+          "tdap_years": 0.25
+        },
+        "interpretation": "Prespecified shared-prior quantile sensitivity, not a national estimate"
+      },
+      "long_tdap": {
+        "parameter_quantiles": {
+          "tdap_years": 0.75
+        },
+        "interpretation": "Prespecified shared-prior quantile sensitivity, not a national estimate"
+      }
+    },
+    "country": "New_Zealand",
+    "programme": "config/core2026/programmes/New_Zealand.yaml",
+    "observation": {
+      "case_path": "data/processed/analysis_observations/New_Zealand.csv",
+      "age_path": "data/processed/pertussis_age_case_observations_source_audited.csv",
+      "train_start": 2016,
+      "train_end": 2024,
+      "holdout_year": 2025,
+      "case_source_status": "harmonized_workbook_requires_country_source_review"
+    },
+    "assumptions": [
+      "Future uptake in the inherited programme is a projection assumption, not an observation",
+      "Shared passive-protection clinical mechanism is conditional; country effectiveness has not been fitted",
+      "Fixed additional doses are 20 per 1000 annual births; this is not an equal-cost comparison"
+    ]
+  },
+  "country_scenario": "baseline",
+  "settings": {
+    "history_start_year": 1970,
+    "spinup_years": 70,
+    "last_year": 2025,
+    "reference_year": 2019,
+    "n_starts": 2,
+    "max_iterations": 150,
+    "gradient_step": 5e-05,
+    "n_workers": 4,
+    "seed": 20264027,
+    "variant": "baseline",
+    "train_start_year": 2016,
+    "train_end_year": 2024,
+    "holdout_years": [],
+    "model_overrides": [
+      [
+        "maternal_days",
+        120.0
+      ],
+      [
+        "maternal_waning_stages",
+        4
+      ],
+      [
+        "sigma_maternal",
+        1.0
+      ],
+      [
+        "pi_maternal",
+        0.01572706908584722
+      ]
+    ],
+    "age_observations_path": "data/processed/pertussis_age_case_observations_source_audited.csv",
+    "case_observations_path": "data/processed/analysis_observations/New_Zealand.csv",
+    "seasonal_phase_prior": "auto",
+    "childhood_coverage_variant": "inherited_proxy",
+    "programme_path": "outputs/core2026/country_health_calibration_20261027/New_Zealand/fit/programme_snapshot.yaml",
+    "diagnostic_geography": null
+  },
+  "clinical_variant": "erlang4_120d_sigma1",
+  "structure": "erlang2",
+  "train_case_years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "holdout_case_years": [
+    2025
+  ],
+  "train_age_years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2022,
+    2023,
+    2024
+  ],
+  "holdout_age_years": [
+    2015
+  ],
+  "seasonal_prior_uses": "training_within_year_counts",
+  "candidate_starts": "new prior draws screened using training objective only",
+  "selection": "training posterior objective; held-out outcomes not used for selection",
+  "model_version": "overlapping_tdap_v2_39",
+  "covid_scenario": "recovery_365",
+  "reestimation_scope": "full",
+  "estimated_coordinate_names": [
+    "R0",
+    "seasonal_amplitude",
+    "seasonal_peak",
+    "npi_scale",
+    "importation_per_million_per_year",
+    "natural_immunity_years",
+    "boosting_kappa",
+    "wP_years",
+    "aP_years",
+    "tdap_years",
+    "sigma_aP",
+    "pi_aP_waned",
+    "reporting_logit_<1",
+    "reporting_logit_1-4",
+    "reporting_logit_5-9",
+    "reporting_logit_10-19",
+    "reporting_logit_20-59",
+    "reporting_logit_60+",
+    "breakthrough_reporting_ratio",
+    "nb_size",
+    "dirichlet_concentration"
+  ],
+  "fixed_coordinate_names": [],
+  "projection_builder": "scripts.run_covid_refit_20261104.build_scenario_inputs"
+}

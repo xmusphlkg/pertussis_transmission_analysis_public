@@ -1,0 +1,295 @@
+schema: core2026-programme-v1
+country: Sweden
+iso3: SWE
+status: migration_test_country_specific_assumptions
+sources:
+  wuenic_2025:
+    citation: WHO/UNICEF Estimates of National Immunization Coverage, DTP1/DTP3, 2025
+      revision; repository export used by core2026.
+    url: https://immunizationdata.who.int/
+    ledger: coverage_series_external_validation
+  coverage_pre1990_assumption:
+    citation: Modeling assumption for pre-1990 coverage where the M2 ledger has policy
+      context but no annual national uptake series; replace when historical survey/registry
+      data are assembled.
+    url: data/processed/m2_vaccination_history/README.md
+    ledger: coverage_pre_1990_open_item
+  coverage_projection_2050:
+    citation: Core2026 projection assumption after the last observed WUENIC year;
+      held near the recent national level for forward simulation.
+    url: config/core2026/programmes/README.md
+    ledger: projection_assumption
+  ledger_schedule:
+    citation: 'M2 Sweden ledger: 1979-1995 programme interruption, 1996 aP restart
+      and 2005/2007/2016 boosters.'
+    url: data/processed/m2_vaccination_history/new_zealand_sweden_thailand_uk.md
+    ledger: Sweden event ledger
+  ledger_gap:
+    citation: 'M2 Sweden ledger: national programme gap from 1979 through 1995; WUENIC
+      DTP is not pertussis coverage during the gap.'
+    url: data/processed/m2_vaccination_history/new_zealand_sweden_thailand_uk.md
+    ledger: Sweden programme gap
+  ledger_maternal:
+    citation: 'M2 Sweden ledger: national recommendation after August 2022 with regional
+      implementation.'
+    url: data/processed/m2_vaccination_history/new_zealand_sweden_thailand_uk.md
+    ledger: Sweden maternal programme
+  timeliness_assumption:
+    citation: Shared whole-month timeliness prior used for the core2026 input bundle;
+      country-specific dose-date distributions are not yet available.
+    url: config/core2026/programmes/README.md
+    ledger: timeliness_open_item
+  national_policy:
+    url: https://www.folkhalsomyndigheten.se/vara-amnesomraden/vaccinationer/vaccinationer-a-o/vaccination-mot-kikhosta/
+    citation: 'Public Health Agency of Sweden, updated 11 June 2026: infancy, preschool
+      and grades 8–9; maternal vaccination from week 16'
+    ledger: country_health_migration_20261027
+  migration_assumption:
+    url: analysis/country_health_migration_20261027.md
+    citation: Exploratory scenario assumption; uptake levels are not observed national
+      estimates; nominal monthly spacing for Japan doses 2–3
+    ledger: country_health_migration_20261027
+primary_product:
+- start: '1970-01-01'
+  product: wP
+  sources:
+  - ledger_schedule
+  evidence_grade: A
+- start: '1996-01-01'
+  product: aP
+  sources:
+  - ledger_schedule
+  evidence_grade: A
+coverage_series:
+  dtp1:
+  - from: 1970
+    to: 1978
+    interpolate: &id001
+      '1970': 0.65
+      '1978': 0.8
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1979
+    to: 1995
+    value: 0.0
+    sources:
+    - ledger_gap
+    evidence_grade: A
+  - from: 1996
+    to: 2024
+    wuenic: DTPCV1
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 2025
+    to: 2050
+    value: 0.97
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  dtp3:
+  - from: 1970
+    to: 1978
+    interpolate: *id001
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1979
+    to: 1995
+    value: 0.0
+    sources:
+    - ledger_gap
+    evidence_grade: A
+  - from: 1996
+    to: 2024
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 2025
+    to: 2050
+    value: 0.97
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  dtp2:
+    derived_mean:
+    - dtp1
+    - dtp3
+  booster_10y:
+  - from: 1970
+    to: 2004
+    value: 0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 2005
+    to: 2006
+    value: 0.7
+    sources:
+    - ledger_schedule
+    evidence_grade: B
+  - from: 2007
+    to: 2024
+    value: 0.85
+    sources:
+    - wuenic_2025
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.9
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  preschool:
+  - from: 1970
+    to: 2006
+    value: 0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 2007
+    to: 2024
+    value: 0.9
+    sources:
+    - wuenic_2025
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.92
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  adolescent:
+  - from: 1970
+    to: 2015
+    value: 0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 2016
+    to: 2024
+    value: 0.85
+    sources:
+    - ledger_schedule
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.9
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  maternal:
+  - from: 1970
+    to: 2021
+    value: 0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 2022
+    to: 2024
+    value: 0.3
+    sources:
+    - ledger_maternal
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.5
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+infant_doses:
+- name: primary_1
+  kind: dose1
+  age_months: 3
+  start: '1970-01-01'
+  end: null
+  coverage: dtp1
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_2
+  kind: dose2
+  age_months: 5
+  start: '1970-01-01'
+  end: null
+  coverage: dtp2
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_3
+  kind: dose3
+  age_months: 12
+  start: '1970-01-01'
+  end: null
+  coverage: dtp3
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+cohort_doses:
+- name: booster_10y
+  kind: child_booster
+  age_years: 10.0
+  start: '2005-01-01'
+  end: '2007-01-01'
+  birth_year_start: 1995
+  birth_year_end: 2002
+  coverage: booster_10y
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: preschool
+  kind: child_booster
+  age_years: 5.5
+  start: '2007-01-01'
+  end: null
+  birth_year_start: 2002
+  coverage: preschool
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: adolescent
+  kind: tdap_booster
+  age_years: 15.0
+  start: '2007-01-01'
+  end: null
+  birth_year_start: 2002
+  coverage: adolescent
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+maternal:
+- start: '2022-08-01'
+  end: null
+  coverage: maternal
+  effective_share: 0.9
+  sources:
+  - ledger_maternal
+  evidence_grade: D
+timeliness:
+  delay_pmf_months:
+  - 0.75
+  - 0.15
+  - 0.06
+  - 0.04
+  sources:
+  - timeliness_assumption
+  evidence_grade: D
+sensitivity_variants:
+  sweden_booster_cohort_boundary:
+    description: 2005 10-year transition versus 2007 birth-cohort schedule; core uses
+      non-overlapping calendar windows.
+    alternative: birth_cohort_exact
+    operations:
+    - kind: set_birth_cohort
+      block: cohort_doses
+      name: booster_10y
+      birth_year_start: 1995
+      birth_year_end: 2002
+  sweden_maternal_delivery:
+    description: Recommendation is national but uptake/delivery is regional.
+    coverage: regional_parameter
+    operations: []
+notes: 1979-1995 programme gap is explicit; WUENIC is used only from 1996 when pertussis-containing
+  vaccination resumed.

@@ -1,0 +1,17 @@
+Setting,Years,Status,Matched adolescent cases,Onward strength,Acquisition strength,Onward infant cases averted,Acquisition infant cases averted,DALY difference,Lower 95% UI,Upper 95% UI
+Australia,20,matched,473.3,0.061,0.04903,55.86,19.6,2.979,2.253,4.09
+Australia,30,matched,4496,0.3262,0.2511,611.5,320.7,18.98,14.26,26.22
+Brazil,20,matched,389.8,0.6454,0.4238,1855,902.7,265.4,216.2,324.6
+Brazil,30,no positive endpoint overlap,—,—,—,—,—,—,—,—
+China,20,matched,797.6,0.3728,0.07636,4390,605.8,937.4,384,1745
+China,30,matched,916.6,0.3835,0.06581,5358,471.8,1111,454.7,2068
+England,20,matched,695.1,0.4369,0.3523,225.5,98.63,39.49,29.68,54.62
+England,30,matched,135.2,0.803,0.06017,104.5,4.643,51.33,38.07,71.55
+Japan,20,no positive endpoint overlap,—,—,—,—,—,—,—,—
+Japan,30,no positive endpoint overlap,—,—,—,—,—,—,—,—
+New Zealand,20,matched,73.43,0.378,0.1277,-0.1293,-5.897,1.042,0.7907,1.55
+New Zealand,30,matched,109.4,0.3535,0.1167,4.139,-3.417,1.464,1.116,2.178
+Sweden,20,matched,144,0.315,0.1916,25.9,12.8,4.76,3.334,7.849
+Sweden,30,matched,163.7,0.3196,0.1783,15.29,-0.3171,5.387,3.755,8.924
+Thailand,20,no positive endpoint overlap,—,—,—,—,—,—,—,—
+Thailand,30,matched,13.52,0.6706,0.2798,67.9,2.272,14.72,4.033,32.73

@@ -1,0 +1,9 @@
+Setting,Persistent multiplier,Coverage combinations,Reference-value × horizon comparisons,Preferred strategy
+Australia,1,6,8,Baseline
+England,1,8,8,Baseline
+Sweden,1,3,8,Baseline
+Japan,1.3,16,8,Baseline
+New Zealand,0.95,4,8,Baseline
+China,2.25,16,32,Baseline
+Brazil,1.15,8,20,Baseline
+Thailand,1.1,12,12,Baseline

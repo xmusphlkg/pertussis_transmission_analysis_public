@@ -1,0 +1,17 @@
+Setting,Initial condition,Initial infected fraction,Year,Population-normalised $L_1$ difference,Largest within-bin state-share difference
+Japan,reference,1e-05,1970,0,0
+Japan,reference,1e-05,2027,0,0
+Japan,lower_seed,1e-06,1970,8.375e-05,0.0002142
+Japan,lower_seed,1e-06,2027,2.721e-05,4.795e-05
+Japan,higher_seed,0.0001,1970,0.0005467,0.0008741
+Japan,higher_seed,0.0001,2027,0.0002072,0.0003763
+Japan,susceptible_start,1e-05,1970,0.001088,0.002502
+Japan,susceptible_start,1e-05,2027,0.0002363,0.0004402
+Brazil,reference,1e-05,1970,0,0
+Brazil,reference,1e-05,2027,0,0
+Brazil,lower_seed,1e-06,1970,0.001234,0.001401
+Brazil,lower_seed,1e-06,2027,0.0001379,0.0001346
+Brazil,higher_seed,0.0001,1970,0.0006905,0.0007946
+Brazil,higher_seed,0.0001,2027,7.094e-05,6.802e-05
+Brazil,susceptible_start,1e-05,1970,0.0008017,0.0009089
+Brazil,susceptible_start,1e-05,2027,8.831e-05,8.597e-05

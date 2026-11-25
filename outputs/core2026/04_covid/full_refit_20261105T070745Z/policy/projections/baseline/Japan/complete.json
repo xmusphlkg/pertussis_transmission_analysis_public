@@ -1,0 +1,15 @@
+{
+  "country": "Japan",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/Japan/baseline",
+  "draw_id": 0,
+  "scenario_id": "baseline",
+  "reporting": {
+    "reporting_logit_<1": -4.491547369651998,
+    "reporting_logit_1-4": -4.355574312429841,
+    "reporting_logit_5-9": -4.056060481352967,
+    "reporting_logit_10-19": -4.72858239699264,
+    "reporting_logit_20-59": -5.822356260104856,
+    "reporting_logit_60+": -6.182908126726344,
+    "breakthrough_reporting_ratio": 0.049858604472644
+  }
+}

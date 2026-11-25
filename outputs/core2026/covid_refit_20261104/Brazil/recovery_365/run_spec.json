@@ -1,0 +1,223 @@
+{
+  "country": "Brazil",
+  "country_profile": {
+    "schema": "core2026-country-health-v1",
+    "start_year": 2027,
+    "horizons": [
+      1,
+      3,
+      5,
+      10,
+      20
+    ],
+    "budget_doses_per_1000_births": 20.0,
+    "maternal_effective_share": 0.9,
+    "clinical_variant": "erlang4_120d_sigma1",
+    "parameter_policy": "Independent national inference and draws; shared biological priors retained unless evidence supports differences",
+    "mortality": {
+      "status": "extrapolated_from_reference_country_risk",
+      "required": "National age- and case-definition-matched fatality and ascertainment evidence",
+      "early_age_end_months": 2,
+      "extrapolation": {
+        "risk_source_profiles": [
+          "Australia",
+          "England"
+        ],
+        "interpretation": "Deaths apply the separately calibrated Australian and English conditional course risks to nationally modelled onsets. This is a declared method extrapolation, not national fatality evidence. Each source is reported separately at its own published infant age boundary and is never pooled, averaged or reconciled; the risk-independent mortality_rank_bounds remain the evidence that does not depend on this assumption."
+      }
+    },
+    "test_interpretation": "Prior predictive migration and sensitivity test; not calibrated burden estimates or posterior strategy probabilities",
+    "adolescent_age": 12.0,
+    "adolescent_policy": "Hypothetical new adolescent pertussis booster",
+    "context": "wP primary series; maternal programme since 2014; 2016–2025 official confirmed-case age likelihood including monthly infant ages",
+    "sources": {
+      "national_policy": {
+        "url": "https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/d/dtpa/dtpa",
+        "citation": "Ministry of Health: maternal dTpa introduced in 2014, from 20 weeks gestation",
+        "ledger": "country_health_migration_20261027"
+      },
+      "migration_assumption": {
+        "url": "analysis/country_health_migration_20261027.md",
+        "citation": "Exploratory scenario assumption; uptake levels are not observed national estimates; nominal monthly spacing for Japan doses 2–3",
+        "ledger": "country_health_migration_20261027"
+      },
+      "age_case_source_verification": {
+        "url": "analysis/country_age_source_verification_20261027.md",
+        "citation": "Independent checks of official national age and month cells with original-file SHA256; 2026-10-27",
+        "ledger": "analysis/country_age_verification/decisions.csv"
+      }
+    },
+    "scenarios": {
+      "baseline": {},
+      "short_wp": {
+        "parameter_quantiles": {
+          "wP_years": 0.25
+        },
+        "interpretation": "Prespecified shared-prior quantile sensitivity, not a national estimate"
+      },
+      "long_wp": {
+        "parameter_quantiles": {
+          "wP_years": 0.75
+        },
+        "interpretation": "Prespecified shared-prior quantile sensitivity, not a national estimate"
+      },
+      "maternal_lower_uptake": {
+        "programme_updates": [
+          {
+            "kind": "coverage_from_year",
+            "series": "maternal",
+            "value": 0.55,
+            "from": 2027,
+            "source": "migration_assumption",
+            "evidence_grade": "D"
+          }
+        ]
+      }
+    },
+    "country": "Brazil",
+    "programme": "config/core2026/programmes/Brazil.yaml",
+    "observation": {
+      "case_path": "data/processed/country_health_age_20261027/Brazil/monthly_cases.csv",
+      "age_path": "data/processed/country_health_age_20261027/Brazil/age_observations.csv",
+      "train_start": 2016,
+      "train_end": 2024,
+      "holdout_year": 2025,
+      "case_source_status": "independently_verified_official_national_matched_age_and_month_snapshot",
+      "available_years": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "age_resolution": "monthly_infants_plus_native_adult_groups",
+      "verification_manifest": "analysis/country_age_verification/decisions.csv",
+      "date_basis": "calendar notification month; age at symptom onset/diagnosis",
+      "source_status_note": "2016–2022 FINAIS; 2023–2025 PRELIM. Notification-delay medians 10–14 days; not onset-date observations."
+    },
+    "assumptions": [
+      "Future uptake in the inherited programme is a projection assumption, not an observation",
+      "Shared passive-protection clinical mechanism is conditional; country effectiveness has not been fitted",
+      "Fixed additional doses are 20 per 1000 annual births; this is not an equal-cost comparison"
+    ]
+  },
+  "country_scenario": "baseline",
+  "settings": {
+    "history_start_year": 1970,
+    "spinup_years": 70,
+    "last_year": 2025,
+    "reference_year": 2019,
+    "n_starts": 2,
+    "max_iterations": 150,
+    "gradient_step": 5e-05,
+    "n_workers": 2,
+    "seed": 20261026,
+    "variant": "baseline",
+    "train_start_year": 2010,
+    "train_end_year": 2024,
+    "holdout_years": [],
+    "model_overrides": [
+      [
+        "maternal_days",
+        120.0
+      ],
+      [
+        "maternal_waning_stages",
+        4
+      ],
+      [
+        "sigma_maternal",
+        1.0
+      ],
+      [
+        "pi_maternal",
+        0.01572706908584722
+      ]
+    ],
+    "age_observations_path": "data/processed/brazil_extended_20261029/age_observations.csv",
+    "case_observations_path": "data/processed/brazil_extended_20261029/monthly_cases.csv",
+    "seasonal_phase_prior": "auto",
+    "childhood_coverage_variant": "inherited_proxy",
+    "programme_path": "outputs/core2026/brazil_extended_fit_20261029/programme_snapshot.yaml",
+    "diagnostic_geography": null
+  },
+  "clinical_variant": "erlang4_120d_sigma1",
+  "structure": "erlang2",
+  "train_case_years": [
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "holdout_case_years": [
+    2025
+  ],
+  "train_age_years": [
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "holdout_age_years": [
+    2025
+  ],
+  "seasonal_prior_uses": "training_within_year_counts",
+  "candidate_starts": "new prior draws screened using training objective only",
+  "model_version": "overlapping_tdap_v2_39",
+  "selection": "training posterior objective; held-out outcomes not used for selection",
+  "covid_scenario": "recovery_365",
+  "reestimation_scope": "restricted",
+  "estimated_coordinate_names": [
+    "npi_scale",
+    "importation_per_million_per_year",
+    "reporting_logit_<1",
+    "reporting_logit_1-4",
+    "reporting_logit_5-9",
+    "reporting_logit_10-19",
+    "reporting_logit_20-59",
+    "reporting_logit_60+",
+    "breakthrough_reporting_ratio",
+    "nb_size",
+    "dirichlet_concentration"
+  ],
+  "fixed_coordinate_names": [
+    "R0",
+    "seasonal_amplitude",
+    "seasonal_peak",
+    "natural_immunity_years",
+    "boosting_kappa",
+    "wP_years",
+    "aP_years",
+    "tdap_years",
+    "sigma_aP",
+    "pi_aP_waned"
+  ],
+  "projection_builder": "scripts.run_covid_refit_20261104.build_scenario_inputs"
+}

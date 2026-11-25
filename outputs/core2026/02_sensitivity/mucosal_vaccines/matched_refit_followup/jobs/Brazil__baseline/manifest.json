@@ -1,0 +1,10 @@
+{
+  "country": "Brazil",
+  "history": "baseline",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/Brazil/baseline",
+  "seconds": 34.418374673463404,
+  "reused_projection_trajectories": 3,
+  "history_replays": 1,
+  "new_projection_integrations": 11,
+  "matched_conditions": 1
+}

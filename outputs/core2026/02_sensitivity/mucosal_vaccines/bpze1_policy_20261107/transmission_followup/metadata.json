@@ -1,0 +1,29 @@
+{
+  "status": "completed_transmission_followup",
+  "local_countries": [
+    "England",
+    "Brazil"
+  ],
+  "local_particles_per_country": 30,
+  "local_clinical_cost_draws_per_particle": 50,
+  "historical_countries": [
+    "Japan",
+    "Brazil"
+  ],
+  "histories": [
+    "adopted",
+    "baseline",
+    "recovery_365"
+  ],
+  "historical_clinical_cost_draws": 1000,
+  "profiles": [
+    "b050_a000_d03_point",
+    "b050_a050_d03_point",
+    "b050_a100_d03_point"
+  ],
+  "nasal_trajectories": 198,
+  "replayed_standard_trajectories": 66,
+  "active_zero_effect_replays": 8,
+  "price_definition": "Ratio of mean incremental NMB before nasal cost to mean discounted nasal doses; comparator fixed by expected NMB.",
+  "snapshots": "States on the 15th of each month, before any events that day; completed ages use the actual calendar-year fraction."
+}

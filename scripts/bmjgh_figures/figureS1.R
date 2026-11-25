@@ -1,0 +1,7 @@
+source("scripts/bmjgh_figures/supplement_style.R")
+
+nodes <- data.frame(x=c(.3,.3,1.6,1.6,2.9,2.9,4.2,4.2),y=c(3,1.2,3,1.2,3,1.2,3,1.2),label=c('Eight settings\nSurveillance\nDemography and contacts\nVaccination schedules','Human BPZE1 study\nLate burden / AUC','Maternal coverage\nPassive infant states\nTypical-course risk','Assumed nasal layers\nAcquisition or onward\nDuration','54 age bins\nTransmission and timing','Shared health outcomes\nInfant deaths\nAll-age YLD + included YLL','Health opportunity cost\nTreatment and delivery','Joint programme choice\nCoverage, route\nand price boundary'))
+edges <- data.frame(x=c(.79,.79,2.09,2.09,2.9,3.39,4.2,.3,.3,2.9),y=c(3,1.2,3,1.2,2.65,1.2,2.62,3.5,3.9,3.9),xend=c(1.11,1.11,2.41,2.41,2.9,3.71,4.2,.3,2.9,2.9),yend=c(3,1.2,3,2.65,1.65,1.2,1.65,3.9,3.9,3.36),kind=c('Input / projection','Assumed bridge','Input / projection','Assumed bridge','Input / projection','Input / projection','Input / projection','Input / projection','Input / projection','Input / projection'))
+p <- ggplot()+geom_segment(data=edges,aes(x=x,y=y,xend=xend,yend=yend,linetype=kind),arrow=grid::arrow(length=grid::unit(1.1,'mm')),linewidth=.35,colour='#777777')+geom_text(data=nodes,aes(x,y,label=label),size=6.5/.pt,lineheight=1.25)+scale_linetype_manual(values=c('Input / projection'='solid','Assumed bridge'='dashed'),name=NULL)+coord_cartesian(xlim=c(-.35,4.85),ylim=c(.4,4.15),clip='off')+theme_void(base_size=8)+theme(legend.position='bottom',legend.text=element_text(size=7),plot.margin=margin(10,10,10,10))
+
+export_supplement(p, "S1", 183, 95)

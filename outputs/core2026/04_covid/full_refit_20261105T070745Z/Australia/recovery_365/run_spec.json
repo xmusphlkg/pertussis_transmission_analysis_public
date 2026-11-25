@@ -1,0 +1,97 @@
+{
+  "country": "Australia",
+  "settings": {
+    "history_start_year": 1970,
+    "spinup_years": 70,
+    "last_year": 2025,
+    "reference_year": 2019,
+    "n_starts": 2,
+    "max_iterations": 150,
+    "gradient_step": 5e-05,
+    "n_workers": 2,
+    "seed": 20261026,
+    "variant": "baseline",
+    "train_start_year": 2016,
+    "train_end_year": 2025,
+    "holdout_years": [],
+    "model_overrides": [
+      [
+        "maternal_days",
+        120.0
+      ],
+      [
+        "maternal_waning_stages",
+        4
+      ],
+      [
+        "sigma_maternal",
+        1.0
+      ],
+      [
+        "pi_maternal",
+        0.01572706908584722
+      ]
+    ],
+    "age_observations_path": "data/processed/health_outcomes_20261026/australia_official_age_composition.csv",
+    "case_observations_path": "data/processed/analysis_observations/Australia.csv",
+    "seasonal_phase_prior": "auto",
+    "childhood_coverage_variant": "inherited_proxy",
+    "programme_path": null,
+    "diagnostic_geography": null
+  },
+  "clinical_variant": "erlang4_120d_sigma1",
+  "structure": "erlang2",
+  "train_case_years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "holdout_case_years": [],
+  "train_age_years": [
+    2018,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "holdout_age_years": [],
+  "seasonal_prior_uses": "training_within_year_counts",
+  "candidate_starts": "new prior draws screened using training objective only",
+  "selection": "training posterior objective; held-out outcomes not used for selection",
+  "model_version": "overlapping_tdap_v2_39",
+  "covid_scenario": "recovery_365",
+  "reestimation_scope": "full",
+  "estimated_coordinate_names": [
+    "R0",
+    "seasonal_amplitude",
+    "seasonal_peak",
+    "npi_scale",
+    "importation_per_million_per_year",
+    "natural_immunity_years",
+    "boosting_kappa",
+    "wP_years",
+    "aP_years",
+    "tdap_years",
+    "sigma_aP",
+    "pi_aP_waned",
+    "reporting_logit_<1",
+    "reporting_logit_1-4",
+    "reporting_logit_5-9",
+    "reporting_logit_10-19",
+    "reporting_logit_20-59",
+    "reporting_logit_60+",
+    "breakthrough_reporting_ratio",
+    "nb_size",
+    "dirichlet_concentration"
+  ],
+  "fixed_coordinate_names": [],
+  "projection_builder": "scripts.run_covid_refit_20261104.build_scenario_inputs"
+}

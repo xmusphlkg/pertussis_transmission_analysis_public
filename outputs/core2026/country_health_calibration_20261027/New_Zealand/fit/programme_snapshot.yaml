@@ -1,0 +1,301 @@
+schema: core2026-programme-v1
+country: New Zealand
+iso3: NZL
+status: migration_test_country_specific_assumptions
+sensitivity_priority: high
+sources:
+  wuenic_2025:
+    citation: WHO/UNICEF Estimates of National Immunization Coverage, DTP1/DTP3, 2025
+      revision; repository export used by core2026.
+    url: https://immunizationdata.who.int/
+    ledger: coverage_series_external_validation
+  coverage_pre1990_assumption:
+    citation: Modeling assumption for pre-1990 coverage where the M2 ledger has policy
+      context but no annual national uptake series; replace when historical survey/registry
+      data are assembled.
+    url: data/processed/m2_vaccination_history/README.md
+    ledger: coverage_pre_1990_open_item
+  coverage_projection_2050:
+    citation: Core2026 projection assumption after the last observed WUENIC year;
+      held near the recent national level for forward simulation.
+    url: config/core2026/programmes/README.md
+    ledger: projection_assumption
+  ledger_schedule:
+    citation: 'M2 New Zealand ledger: DTwP/DTaP schedule, boosters and maternal programme
+      history.'
+    url: data/processed/m2_vaccination_history/new_zealand_sweden_thailand_uk.md
+    ledger: New Zealand event ledger
+  ledger_maternal:
+    citation: 'M2 New Zealand ledger: maternal funding and every-pregnancy recommendation.'
+    url: data/processed/m2_vaccination_history/new_zealand_sweden_thailand_uk.md
+    ledger: New Zealand maternal programme
+  timeliness_assumption:
+    citation: Shared whole-month timeliness prior used for the core2026 input bundle;
+      country-specific dose-date distributions are not yet available.
+    url: config/core2026/programmes/README.md
+    ledger: timeliness_open_item
+  national_policy:
+    url: https://www.healthnz.govt.nz/health-professionals/guidance-standards/topic/immunisation/immunisation-handbook/pertussis-whooping-cough
+    citation: 'Health NZ immunisation handbook: infant doses, age-4 and age-11 boosters,
+      maternal vaccination'
+    ledger: country_health_migration_20261027
+  migration_assumption:
+    url: analysis/country_health_migration_20261027.md
+    citation: Exploratory scenario assumption; uptake levels are not observed national
+      estimates; nominal monthly spacing for Japan doses 2–3
+    ledger: country_health_migration_20261027
+primary_product:
+- start: '1970-01-01'
+  product: wP
+  sources:
+  - ledger_schedule
+  evidence_grade: A
+- start: '2000-08-01'
+  product: aP
+  sources:
+  - ledger_schedule
+  evidence_grade: A
+coverage_series:
+  dtp1:
+  - from: 1970
+    to: 1989
+    interpolate: &id001
+      '1970': 0.65
+      '1984': 0.78
+      '1989': 0.82
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 2024
+    wuenic: DTPCV1
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 2025
+    to: 2050
+    value: 0.93
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  dtp3:
+  - from: 1970
+    to: 1989
+    interpolate: *id001
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 2024
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 2025
+    to: 2050
+    value: 0.93
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  dtp2:
+    derived_mean:
+    - dtp1
+    - dtp3
+  booster_15m:
+  - from: 1970
+    to: 1989
+    value: 0.7
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 2005
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: C
+  - from: 2006
+    to: 2024
+    value: 0.8
+    sources:
+    - wuenic_2025
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.85
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  preschool:
+  - from: 1970
+    to: 2001
+    value: 0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 2002
+    to: 2024
+    value: 0.8
+    sources:
+    - ledger_schedule
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.85
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  adolescent:
+  - from: 1970
+    to: 2005
+    value: 0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 2006
+    to: 2024
+    value: 0.75
+    sources:
+    - ledger_schedule
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.8
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  maternal:
+  - from: 1970
+    to: 2012
+    value: 0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 2013
+    to: 2018
+    value: 0.4
+    sources:
+    - ledger_maternal
+    evidence_grade: C
+  - from: 2019
+    to: 2024
+    value: 0.65
+    sources:
+    - ledger_maternal
+    evidence_grade: B
+  - from: 2025
+    to: 2050
+    value: 0.75
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+infant_doses:
+- name: primary_1_early
+  kind: dose1
+  age_months: 3
+  start: '1970-01-01'
+  end: '1984-01-01'
+  coverage: dtp1
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_1_6wk
+  kind: dose1
+  age_months: 2
+  start: '1984-01-01'
+  end: null
+  coverage: dtp1
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_2_legacy
+  kind: dose2
+  age_months: 4
+  start: '1970-01-01'
+  end: '1984-01-01'
+  coverage: dtp2
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_2
+  kind: dose2
+  age_months: 3
+  start: '1984-01-01'
+  end: null
+  coverage: dtp2
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_3
+  kind: dose3
+  age_months: 5
+  start: '1970-01-01'
+  end: null
+  coverage: dtp3
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: booster_15m
+  kind: toddler_booster
+  age_months: 15
+  start: '1970-01-01'
+  end: '2006-01-01'
+  coverage: booster_15m
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+cohort_doses:
+- name: preschool
+  kind: child_booster
+  age_years: 4.0
+  start: '2002-01-01'
+  end: null
+  coverage: preschool
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: adolescent
+  kind: tdap_booster
+  age_years: 11.0
+  start: '2006-01-01'
+  end: null
+  coverage: adolescent
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+maternal:
+- start: '2013-01-01'
+  end: null
+  coverage: maternal
+  effective_share: 0.9
+  sources:
+  - ledger_maternal
+  evidence_grade: D
+timeliness:
+  delay_pmf_months:
+  - 0.75
+  - 0.15
+  - 0.06
+  - 0.04
+  sources:
+  - timeliness_assumption
+  evidence_grade: D
+sensitivity_variants:
+  new_zealand_product_switch:
+    description: August 2000 national DTaP transition; exact cohort implementation
+      remains a sensitivity.
+    primary_product_start: '2000-08-01'
+    operations:
+    - kind: set_product_start
+      product: aP
+      start: '2000-08-01'
+  new_zealand_15m_cutover:
+    description: 15-month booster removed in 2006; grandfathering unresolved.
+    end: '2006-01-01'
+    operations:
+    - kind: set_dose_field
+      block: infant_doses
+      name: booster_15m
+      field: end
+      value: '2006-01-01'
+notes: 1958 versus 1960 early wording and 2000/2006/2008 cohort cutovers remain provisional.

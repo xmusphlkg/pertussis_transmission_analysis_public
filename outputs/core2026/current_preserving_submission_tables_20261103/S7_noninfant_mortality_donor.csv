@@ -1,0 +1,6 @@
+age_group,pertussis_deaths,recorded_outcomes,confirmed_cases,alpha,beta,observed_cfr,beta_mean,transfer_status
+1-4,4,2637,2816,4.5,2633.5,0.0015168752370117,0.0017058377558756,sensitivity_not_recipient_country_estimate
+5-9,1,1372,1442,1.5,1371.5,0.0007288629737609,0.0010924981791697,sensitivity_not_recipient_country_estimate
+10-19,2,3673,3812,2.5,3671.5,0.000544514021236,0.0006804572672836,sensitivity_not_recipient_country_estimate
+20-59,0,3091,3212,0.5,3091.5,0.0,0.0001617076326002,sensitivity_not_recipient_country_estimate
+60+,0,389,408,0.5,389.5,0.0,0.0012820512820512,sensitivity_not_recipient_country_estimate

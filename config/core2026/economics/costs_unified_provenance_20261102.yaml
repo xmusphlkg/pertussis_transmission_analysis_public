@@ -1,0 +1,1517 @@
+schema: core2026-costs-v1
+price_year: 2024
+reference_currency: intl_2024
+countries:
+  Australia:
+    local_currency: AUD
+    items:
+    - item: vaccine_price_maternal
+      value_local: 28.78
+      value_year: 2013
+      value_usd_2024: 25.45
+      value_intl_2024: 28.22
+      distribution: lognormal
+      params:
+        mean: 28.22
+        sd: 8.3
+        unit: intl_2024
+      source:
+        citation: AUD 28.78 and 2013 price year are unverified assumptions. Van Bellinghen
+          et al. 2018 reports a historical AUD 23 Boostrix price, without a clear
+          price year; it does not support this input.
+        url: https://doi.org/10.1080/21645515.2018.1474315
+        locator: Table 4; reference value only, not source for configured price
+        verification: fulltext_prior_claim_rejected
+      status: fallback
+      notes: Historical numeric input retained for reproducibility. The local value,
+        2013 currency-year anchor and converted values are assumptions, not verified
+        procurement price; see analysis/australia_vaccine_price_source_audit_20261102.md.
+      value_local_2024: 38.56
+      conversion_rule: value_local x CPI 2013->2024 (1.340)
+    - item: vaccine_price_adolescent
+      value_local: 28.78
+      value_year: 2013
+      value_usd_2024: 25.45
+      value_intl_2024: 28.22
+      distribution: lognormal
+      params:
+        mean: 28.22
+        sd: 8.3
+        unit: intl_2024
+      source:
+        citation: AUD 28.78 and 2013 price year are unverified assumptions. Van Bellinghen
+          et al. 2018 reports a historical AUD 23 Boostrix price, without a clear
+          price year; it does not support this input.
+        url: https://doi.org/10.1080/21645515.2018.1474315
+        locator: Table 4; reference value only, not source for configured price
+        verification: fulltext_prior_claim_rejected
+      status: fallback
+      value_local_2024: 38.56
+      conversion_rule: value_local x CPI 2013->2024 (1.340)
+      notes: Historical numeric input retained for reproducibility. The local value,
+        2013 currency-year anchor and converted values are assumptions, not verified
+        procurement price; see analysis/australia_vaccine_price_source_audit_20261102.md.
+    - item: delivery_maternal
+      value_local: 15.0
+      value_year: 2021
+      value_usd_2024: 11.49
+      value_intl_2024: 12.75
+      distribution: gamma
+      params:
+        mean: 12.75
+        sd: 5.9
+        unit: intl_2024
+      source:
+        citation: Giles ML et al. BMC Pregnancy Childbirth 2021;21:771. Reports platform-level
+          average savings and incremental costs, not the configured AUD 15 marginal
+          cost or a 2021 price year.
+        url: https://doi.org/10.1186/s12884-021-04248-9
+        locator: Economic evaluation; reference only, not direct source for configured
+          value
+        verification: fulltext_prior_claim_rejected
+      status: fallback
+      notes: AUD 15 and its 2021 currency-year anchor are unverified assumptions;
+        historical numeric inputs retained for reproducibility. See analysis/australia_vaccine_price_source_audit_20261102.md.
+      value_local_2024: 17.42
+      conversion_rule: value_local x CPI 2021->2024 (1.161)
+    - item: delivery_adolescent
+      value_local: 12.0
+      value_year: 2022
+      value_usd_2024: 8.63
+      value_intl_2024: 9.57
+      distribution: gamma
+      params:
+        mean: 9.57
+        sd: 4.5
+        unit: intl_2024
+      source:
+        citation: 'no_source: Australia school-based immunisation programme delivery
+          cost not published. Fallback: IDCC analogy for high-income school delivery;
+          midpoint of published range.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 13.07
+      conversion_rule: value_local x CPI 2022->2024 (1.089)
+    - item: outpatient_episode
+      value_local: null
+      value_year: 2010
+      value_usd_2024: 87.92
+      value_intl_2024: 97.5
+      distribution: gamma
+      params:
+        mean: 97.5
+        sd: 35.0
+        unit: intl_2024
+      source:
+        citation: 'WHO-CHOICE estimates of cost for inpatient and outpatient health
+          service delivery. WHO Economic Analysis and Evaluation Team, 2021 (data
+          year 2010). Australia primary hospital outpatient visit: 67.72 Int$ (2010
+          Int$); inflated to 2024: 67.72 x 1.44 = 97.5 Int$.
+
+          '
+        url: https://cdn.who.int/media/docs/default-source/health-economics/who-choice-estimates-of-cost-for-inpatient-and-outpatient-health-service-delivery.pdf
+        locator: 'Table: Cost per outpatient visit, primary hospital, Australia'
+        verification: fulltext
+      status: fallback
+      notes: 'WHO-CHOICE primary hospital visit without drugs. Actual GP consultation
+        (MBS bulk-bill ~AUD 38-80) + drugs would differ; no published pertussis cost-of-illness
+        study with AU-specific outpatient figure found.
+
+        '
+      value_local_2024: 133.24
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+    - item: inpatient_day
+      value_local: null
+      value_year: 2010
+      value_usd_2024: 1170.52
+      value_intl_2024: 1298.0
+      distribution: gamma
+      params:
+        mean: 1298.0
+        sd: 380.0
+        unit: intl_2024
+      source:
+        citation: 'WHO-CHOICE, Australia central hospital inpatient bed day (without
+          drugs): 901.75 Int$ (2010 Int$); inflated 2024: x 1.44 = 1298 Int$.
+
+          '
+        url: https://cdn.who.int/media/docs/default-source/health-economics/who-choice-estimates-of-cost-for-inpatient-and-outpatient-health-service-delivery.pdf
+        locator: 'Table: Cost per inpatient bed day (without drugs), central hospital,
+          Australia'
+        verification: fulltext
+      status: fallback
+      notes: 'Excludes drugs; add ~30% for antibiotics and supportive care. IHACPA
+        AR-DRG national efficient price not retrievable from public sources.
+
+        '
+      value_local_2024: 1773.75
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+    - item: inpatient_episode
+      age_start_years: 0
+      age_end_years: 0.5
+      value_local: null
+      value_year: 2010
+      value_usd_2024: 9108.03
+      value_intl_2024: 10100.0
+      distribution: lognormal
+      params:
+        mean: 10100.0
+        sd: 5000.0
+        unit: intl_2024
+      source:
+        citation: 'Unverified fallback: the previous stated derivation 1298 x 1.30
+          x 8.5 equals 14342.9, not the configured 10100 international dollars.'
+        url: no_source
+        locator: analysis/hospital_cost_age_scope_audit_20261102.md
+        verification: derivation_arithmetic_mismatch
+      status: fallback
+      value_local_2024: 13801.92
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+      notes: The configured 10100 international dollars is retained as an unsupported
+        historical assumption for infants under 6 months; it is not the result of
+        the previously stated multiplication. Further source verification required.
+    macro:
+      gdp_per_capita_usd_2024: 64610.0
+      ppp_factor_2024: 1.3665
+      deflator_index:
+        base_year: 2024
+        source: IMF WEO October 2026; World Bank WDI
+        url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+      thresholds:
+      - type: opportunity_cost
+        value_usd_2024: 32000
+        source:
+          citation: 'Fallback: Woods B et al. Value in Health 2016;19(8):929-935 methodology
+            scaled to Australia health expenditure per capita. No published Australian
+            opportunity-cost threshold; PBAC applies AUD 45,000-75,000/QALY in practice.
+            Conservative midpoint AUD 50,000 x 0.655 = USD 32,750.
+
+            '
+          url: https://pmc.ncbi.nlm.nih.gov/articles/PMC5193154/
+        value_intl_2024: 35485.0
+      - type: national
+        value_usd_2024: 49000
+        source:
+          citation: 'PBAC informal threshold ~AUD 75,000/QALY upper end. AUD 75,000
+            x 0.655 = USD 49,125.
+
+            '
+          url: no_source
+        value_intl_2024: 54337.0
+        outcome_unit: QALY
+        daly_application: sensitivity_proxy_not_validated_QALY_DALY_equivalence
+      - type: gdp_multiple
+        value_usd_2024: 64610.0
+        source:
+          citation: 1x GDP per capita 2024, IMF WEO
+          url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+        value_intl_2024: 71647.0
+      fx_lcu_per_usd_2024: 1.5154
+      gdp_per_capita_intl_2024: 71647.0
+  England:
+    local_currency: GBP
+    items:
+    - item: vaccine_price_maternal
+      value_local: 20.0
+      value_year: 2019
+      value_usd_2024: 31.5
+      value_intl_2024: 37.11
+      distribution: lognormal
+      params:
+        mean: 37.11
+        sd: 7.49
+        unit: intl_2024
+      source:
+        citation: 'Sandmann FG et al. Evaluating the impact of a continued maternal
+          pertussis immunisation programme in England: A modelling study and cost-effectiveness
+          analysis. Vaccine 2021;39(30):4500-4509. Vaccine price per dose GBP 20.00
+          (12.00; 22.74); base from British National Formulary list price (tariff)
+          2019. Note: from July 2024 ADACEL (Tdap) replaced Boostrix-IPV as the product
+          used.
+
+          '
+        url: https://lshtm-eprints-repo-prod.lshtm-eprints.cdl.cosector.com/4663160/1/Sandmann_Evaluating.pdf
+        locator: 'Table 1: Vaccine price per dose GBP 20.00'
+        verification: fulltext
+      status: national
+      notes: 'GBP 20 (2019) x UK CPI factor 2019->2024 1.27 = GBP 25.4; x GBP/USD
+        1.267 = USD 32.2; / PPP 0.695 = Int$ 36.5.
+
+        '
+      value_local_2024: 24.65
+      conversion_rule: value_local x CPI 2019->2024 (1.232)
+    - item: delivery_maternal
+      value_local: 10.06
+      value_year: 2019
+      value_usd_2024: 15.84
+      value_intl_2024: 18.67
+      distribution: lognormal
+      params:
+        mean: 18.67
+        sd: 4.61
+        unit: intl_2024
+      source:
+        citation: 'Sandmann FG et al. 2021. Vaccine administration costs GBP 10.06
+          (7.67; 15.00); base from NHS England Enhanced service specifications (2019).
+          2024 update: community pharmacy item of service fee GBP 9.58 per pertussis
+          vaccine administration (pharmaceutical-journal.com, 2024).
+
+          '
+        url: https://lshtm-eprints-repo-prod.lshtm-eprints.cdl.cosector.com/4663160/1/Sandmann_Evaluating.pdf
+        locator: 'Table 1: Vaccine administration costs GBP 10.06'
+        verification: fulltext
+      status: national
+      value_local_2024: 12.4
+      conversion_rule: value_local x CPI 2019->2024 (1.232)
+    - item: delivery_adolescent
+      value_local: 9.58
+      value_year: 2024
+      value_usd_2024: 12.24
+      value_intl_2024: 14.42
+      distribution: gamma
+      params:
+        mean: 14.42
+        sd: 4.77
+        unit: intl_2024
+      source:
+        citation: 'NHS England community pharmacy pertussis vaccination service: item
+          of service fee GBP 9.58 per administration for RSV and pertussis vaccine
+          (2024).
+
+          '
+        url: https://pharmaceutical-journal.com/article/news/nhs-england-to-commission-whooping-cough-vaccination-service-through-community-pharmacies
+        locator: 'News article: item of service fee GBP 9.58 per vaccine administered'
+        verification: fulltext
+      status: national
+      value_local_2024: 9.58
+      conversion_rule: value_local x CPI 2024->2024 (1.000)
+    - item: outpatient_episode
+      value_local: 60.44
+      value_year: 2017
+      value_usd_2024: 99.07
+      value_intl_2024: 116.71
+      distribution: gamma
+      params:
+        mean: 116.71
+        sd: 44.84
+        unit: intl_2024
+      source:
+        citation: 'Sandmann FG et al. 2021 Table 1: Costs of laboratory-confirmed
+          disease in mothers GBP 60.44 (2017 prices). Mild non-confirmed disease GBP
+          27.89. Source: Pebody R et al. costs of adults, inflated to 2017.
+
+          '
+        url: https://lshtm-eprints-repo-prod.lshtm-eprints.cdl.cosector.com/4663160/1/Sandmann_Evaluating.pdf
+        locator: 'Table 1: Costs of laboratory-confirmed disease GBP 60.44'
+        verification: fulltext
+      status: national
+      notes: 'GBP 60.44 (2017) x UK CPI 2017->2024 factor 1.36 = GBP 82.2; x 1.267
+        = USD 104.1; / 0.695 = Int$ 118.3. Mild disease: GBP 27.89 x 1.36 x 1.267
+        = USD 48.1; Int$ 54.7.
+
+        '
+      value_local_2024: 77.51
+      conversion_rule: value_local x CPI 2017->2024 (1.282)
+    - item: inpatient_episode
+      age_start_years: 0
+      age_end_years: 0.17
+      value_local: 3757.0
+      value_year: 2019
+      value_usd_2024: 5917.25
+      value_intl_2024: 6970.9
+      distribution: lognormal
+      params:
+        mean: 6970.9
+        sd: 2306.33
+        unit: intl_2024
+      source:
+        citation: 'Sandmann FG et al. 2021 Table 1: Infant hospitalisation costs (0-2
+          months), without maternal vaccination programme: GBP 3,757 (3,010; 4,510).
+          Estimated from HES (2006-2011), PICANet (2006-09/2012), and NHS Reference
+          Costs (2017-2018). With maternal programme: GBP 4,252.
+
+          '
+        url: https://lshtm-eprints-repo-prod.lshtm-eprints.cdl.cosector.com/4663160/1/Sandmann_Evaluating.pdf
+        locator: 'Table 1: Infant hospitalisation costs GBP 3,757 (without maternal
+          programme)'
+        verification: fulltext
+      status: national
+      notes: 'Comprehensive per-episode cost including ward + ICU components, weighted
+        by observed PICU admission proportion. GBP 3,757 (2019) x 1.27 = GBP 4,771;
+        x 1.267 = USD 6,045; / 0.695 = Int$ 6,866.
+
+        '
+      value_local_2024: 4629.74
+      conversion_rule: value_local x CPI 2019->2024 (1.232)
+    macro:
+      gdp_per_capita_usd_2024: 53341.0
+      ppp_factor_2024: 0.6642
+      deflator_index:
+        base_year: 2024
+        source: IMF WEO October 2026; World Bank WDI
+        url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+      thresholds:
+      - type: national
+        value_usd_2024: 31700
+        source:
+          citation: 'NICE technology appraisal threshold GBP 20,000-30,000/QALY. Midpoint
+            GBP 25,000 (2024) x 1.267 GBP/USD = USD 31,675.
+
+            '
+          url: https://www.nice.org.uk/process/pmg9/chapter/the-appraisal-of-the-evidence-and-structured-decision-making
+          locator: 'NICE process guide: GBP 20,000-30,000/QALY threshold'
+        value_intl_2024: 37345.0
+        outcome_unit: QALY
+        daly_application: sensitivity_proxy_not_validated_QALY_DALY_equivalence
+      - type: opportunity_cost
+        value_usd_2024: 20900
+        source:
+          citation: 'Woods B et al. Country-Level Cost-Effectiveness Thresholds. Value
+            in Health 2016;19(8):929-935. England NHS opportunity cost ~GBP 13,000/QALY
+            (Claxton et al. 2015); inflated to 2024: GBP 13,000 x 1.27 x 1.267 = USD
+            20,900.
+
+            '
+          url: https://pmc.ncbi.nlm.nih.gov/articles/PMC5193154/
+          locator: 'Table 1: England opportunity-cost CET'
+        value_intl_2024: 24622.0
+      - type: gdp_multiple
+        value_usd_2024: 53341.0
+        source:
+          citation: 1x GDP per capita 2024, IMF WEO
+          url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+        value_intl_2024: 62839.0
+      fx_lcu_per_usd_2024: 0.7824
+      gdp_per_capita_intl_2024: 62839.0
+  Sweden:
+    local_currency: SEK
+    items:
+    - item: vaccine_price_maternal
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 20.0
+      value_intl_2024: 24.89
+      distribution: lognormal
+      params:
+        mean: 24.89
+        sd: 9.96
+        unit: intl_2024
+      source:
+        citation: 'no_source: Sweden central procurement price for Boostrix (maternal
+          Tdap) not publicly available. Fallback: England BNF list price GBP 20 ~
+          USD 25.3 discounted ~20% for Nordic tender efficiency. Wide prior (CV~0.4).
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 211.35
+      conversion_rule: USD fallback x FX 2024
+    - item: vaccine_price_adolescent
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 20.0
+      value_intl_2024: 24.89
+      distribution: lognormal
+      params:
+        mean: 24.89
+        sd: 9.96
+        unit: intl_2024
+      source:
+        citation: 'no_source: Sweden age-15 Tdap booster; regional procurement price
+          not disclosed. Same England proxy as maternal.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 211.35
+      conversion_rule: USD fallback x FX 2024
+    - item: delivery_maternal
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 15.0
+      value_intl_2024: 18.67
+      distribution: gamma
+      params:
+        mean: 18.67
+        sd: 8.71
+        unit: intl_2024
+      source:
+        citation: 'no_source: No Sweden-specific maternal vaccination delivery cost
+          found. Fallback: midpoint of England (USD 16.2) and Australia (USD 10.8)
+          admin fees.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 158.51
+      conversion_rule: USD fallback x FX 2024
+    - item: delivery_adolescent
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 10.0
+      value_intl_2024: 12.45
+      distribution: gamma
+      params:
+        mean: 12.45
+        sd: 6.22
+        unit: intl_2024
+      source:
+        citation: 'no_source: Swedish school health service delivery; marginal cost
+          assumption based on comparable high-income school programme estimates.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 105.68
+      conversion_rule: USD fallback x FX 2024
+    - item: outpatient_episode
+      value_local: null
+      value_year: 2010
+      value_usd_2024: 74.48
+      value_intl_2024: 92.7
+      distribution: gamma
+      params:
+        mean: 92.7
+        sd: 35.0
+        unit: intl_2024
+      source:
+        citation: 'WHO-CHOICE, Sweden primary hospital outpatient visit: 64.37 Int$
+          (2010); inflated 2024: x 1.44 = 92.7 Int$.
+
+          '
+        url: https://cdn.who.int/media/docs/default-source/health-economics/who-choice-estimates-of-cost-for-inpatient-and-outpatient-health-service-delivery.pdf
+        locator: 'Table: Cost per outpatient visit, primary hospital, Sweden'
+        verification: fulltext
+      status: fallback
+      value_local_2024: 787.07
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+    - item: inpatient_day
+      value_local: null
+      value_year: 2010
+      value_usd_2024: 972.97
+      value_intl_2024: 1211.0
+      distribution: gamma
+      params:
+        mean: 1211.0
+        sd: 360.0
+        unit: intl_2024
+      source:
+        citation: 'WHO-CHOICE, Sweden central hospital inpatient bed day (without
+          drugs): 841.0 Int$ (2010); inflated 2024: x 1.44 = 1211 Int$.
+
+          '
+        url: https://cdn.who.int/media/docs/default-source/health-economics/who-choice-estimates-of-cost-for-inpatient-and-outpatient-health-service-delivery.pdf
+        locator: 'Table: Cost per inpatient bed day (without drugs), central hospital,
+          Sweden'
+        verification: fulltext
+      status: fallback
+      value_local_2024: 10281.98
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+    macro:
+      gdp_per_capita_usd_2024: 57223.0
+      ppp_factor_2024: 8.4905
+      deflator_index:
+        base_year: 2024
+        source: IMF WEO October 2026; World Bank WDI
+        url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+      thresholds:
+      - type: national
+        value_usd_2024: 59500
+        source:
+          citation: 'TLV (Tandvards- och lakemedelsformantsverket) WTP threshold for
+            moderate-severity conditions ~SEK 600,000-700,000/QALY; midpoint SEK 650,000
+            / 10.45 SEK/USD = USD 62,200; conservative anchor USD 59,500 (discount
+            for uncertainty about exact product category).
+
+            '
+          url: no_source
+          locator: no_source
+        value_intl_2024: 74056.0
+        outcome_unit: QALY
+        daly_application: sensitivity_proxy_not_validated_QALY_DALY_equivalence
+      - type: gdp_multiple
+        value_usd_2024: 57223.0
+        source:
+          citation: 1x GDP per capita 2024, IMF WEO
+          url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+        value_intl_2024: 71222.0
+      fx_lcu_per_usd_2024: 10.5676
+      gdp_per_capita_intl_2024: 71222.0
+  Japan:
+    local_currency: JPY
+    items:
+    - item: vaccine_price_maternal
+      value_local: 6300
+      value_year: 2024
+      value_usd_2024: 41.62
+      value_intl_2024: 66.69
+      distribution: lognormal
+      params:
+        mean: 66.69
+        sd: 23.65
+        unit: intl_2024
+      source:
+        citation: 'Hoshi SL et al. Cost-effectiveness analysis of pertussis vaccination
+          during pregnancy in Japan. MHLW Grants Research Report 201919023B (2019).
+          Costs per vaccination assumed at JPY 6,000 / USD 54.5 (combined vaccine
+          + administration). Note: Tdap not approved in Japan; product is DTaP on
+          voluntary basis. JPY 6,000 (2018) x CPI factor 1.05 (2018->2024) = JPY 6,300.
+
+          '
+        url: https://mhlw-grants.niph.go.jp/system/files/2019/192141/201919023B_upload/201919023B202005121345038100011.pdf
+        locator: 'Abstract: Costs per vaccination assumed at JPY 6000/US$54.5'
+        verification: fulltext
+      status: literature
+      notes: 'Combined vaccine + delivery in one figure; delivery_maternal set to
+        0. JPY 6,300 / 149 JPY/USD = USD 42.3; / 102 JPY/Int$ = Int$ 61.8.
+
+        '
+      value_local_2024: 6300.0
+      conversion_rule: value_local x CPI 2024->2024 (1.000)
+    - item: delivery_maternal
+      value_local: 0
+      value_year: 2024
+      value_usd_2024: 0.0
+      value_intl_2024: 0.0
+      distribution: fixed
+      params:
+        mean: 0.0
+        sd: 0.0
+        unit: intl_2024
+      source:
+        citation: 'Delivery cost embedded in the JPY 6,000 combined figure (Hoshi
+          2019). No separate delivery fee applicable.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 0.0
+      conversion_rule: value_local x CPI 2024->2024 (1.000)
+    - item: vaccine_price_adolescent
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 35.0
+      value_intl_2024: 56.08
+      distribution: lognormal
+      params:
+        mean: 56.08
+        sd: 19.23
+        unit: intl_2024
+      source:
+        citation: 'no_source: Japan has no routine adolescent pertussis booster; DTaP
+          voluntary only. Fallback: private clinic DTaP/Tdap JPY 4,000-7,000; midpoint
+          JPY 5,500 / 149 = USD 36.9; rounded to USD 35.0. Wide prior.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 5297.82
+      conversion_rule: USD fallback x FX 2024
+    - item: delivery_adolescent
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 10.0
+      value_intl_2024: 16.02
+      distribution: gamma
+      params:
+        mean: 16.02
+        sd: 8.01
+        unit: intl_2024
+      source:
+        citation: 'no_source: School health delivery in Japan; marginal cost for school-based
+          programme. Fallback based on comparable high-income country estimates.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 1513.66
+      conversion_rule: USD fallback x FX 2024
+    - item: outpatient_episode
+      value_local: null
+      value_year: 2010
+      value_usd_2024: 50.3
+      value_intl_2024: 80.6
+      distribution: gamma
+      params:
+        mean: 80.6
+        sd: 30.0
+        unit: intl_2024
+      source:
+        citation: 'WHO-CHOICE, Japan primary hospital outpatient visit: 55.95 Int$
+          (2010); inflated 2024: x 1.44 = 80.6 Int$.
+
+          '
+        url: https://cdn.who.int/media/docs/default-source/health-economics/who-choice-estimates-of-cost-for-inpatient-and-outpatient-health-service-delivery.pdf
+        locator: 'Table: Cost per outpatient visit, primary hospital, Japan'
+        verification: fulltext
+      status: fallback
+      value_local_2024: 7613.69
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+    - item: inpatient_day
+      value_local: null
+      value_year: 2010
+      value_usd_2024: 622.82
+      value_intl_2024: 998.0
+      distribution: gamma
+      params:
+        mean: 998.0
+        sd: 300.0
+        unit: intl_2024
+      source:
+        citation: 'WHO-CHOICE, Japan central hospital inpatient bed day (without drugs):
+          693.3 Int$ (2010); inflated 2024: x 1.44 = 998 Int$.
+
+          '
+        url: https://cdn.who.int/media/docs/default-source/health-economics/who-choice-estimates-of-cost-for-inpatient-and-outpatient-health-service-delivery.pdf
+        locator: 'Table: Cost per inpatient bed day (without drugs), central hospital,
+          Japan'
+        verification: fulltext
+      status: fallback
+      value_local_2024: 94273.67
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+    macro:
+      gdp_per_capita_usd_2024: 33797.0
+      ppp_factor_2024: 94.4626
+      deflator_index:
+        base_year: 2024
+        source: IMF WEO October 2026; World Bank WDI
+        url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+      thresholds:
+      - type: national
+        value_usd_2024: 33600
+        source:
+          citation: 'Japan MHLW de facto WTP threshold ~JPY 5,000,000/QALY cited in
+            CEA literature. JPY 5,000,000 / 149 = USD 33,557. Hoshi 2019 references
+            WHO 1-3x GDP as benchmark (1x GDP ~ USD 34,000).
+
+            '
+          url: https://mhlw-grants.niph.go.jp/system/files/2019/192141/201919023B_upload/201919023B202005121345038100011.pdf
+          locator: 'Methods: WHO-suggested cost-effective criteria 1-3x GDP'
+        value_intl_2024: 53840.0
+        outcome_unit: QALY
+        daly_application: sensitivity_proxy_not_validated_QALY_DALY_equivalence
+      - type: gdp_multiple
+        value_usd_2024: 33797.0
+        source:
+          citation: 1x GDP per capita 2024, IMF WEO
+          url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+        value_intl_2024: 54156.0
+      fx_lcu_per_usd_2024: 151.3663
+      gdp_per_capita_intl_2024: 54156.0
+  New_Zealand:
+    local_currency: NZD
+    items:
+    - item: vaccine_price_maternal
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 18.3
+      value_intl_2024: 20.66
+      distribution: lognormal
+      params:
+        mean: 20.66
+        sd: 9.03
+        unit: intl_2024
+      source:
+        citation: 'no_source: PHARMAC NIS-funded vaccine prices are confidential and
+          not publicly disclosed. Boostrix (dTpa) funded for every pregnancy from
+          16 weeks (Immunisation Advisory Centre, immune.org.nz, 2024). Fallback:
+          Australia NIP proxy (USD 25.5) adjusted downward ~30% for smaller volume.
+          Wide prior (CV~0.44).
+
+          '
+        url: https://immune.org.nz/vaccine/boostrix
+        locator: Boostrix funded from second trimester of every pregnancy (NIS 2024)
+        verification: fulltext
+      status: fallback
+      value_local_2024: 30.24
+      conversion_rule: USD fallback x FX 2024
+    - item: vaccine_price_adolescent
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 18.3
+      value_intl_2024: 20.66
+      distribution: lognormal
+      params:
+        mean: 20.66
+        sd: 9.03
+        unit: intl_2024
+      source:
+        citation: 'no_source: NIS-funded adolescent booster at age 11; PHARMAC price
+          not disclosed. Same Australia-proxy fallback as maternal.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 30.24
+      conversion_rule: USD fallback x FX 2024
+    - item: delivery_maternal
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 12.0
+      value_intl_2024: 13.54
+      distribution: gamma
+      params:
+        mean: 13.54
+        sd: 5.64
+        unit: intl_2024
+      source:
+        citation: 'no_source: Fallback; New Zealand GP or midwife administration fee
+          not retrieved. England admin fee proxy (USD 16.2) scaled to NZ fee context
+          (~0.75x).
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 19.83
+      conversion_rule: USD fallback x FX 2024
+    - item: delivery_adolescent
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 8.0
+      value_intl_2024: 9.03
+      distribution: gamma
+      params:
+        mean: 9.03
+        sd: 4.51
+        unit: intl_2024
+      source:
+        citation: 'no_source: School immunisation delivery fallback'
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 13.22
+      conversion_rule: USD fallback x FX 2024
+    - item: outpatient_episode
+      value_local: null
+      value_year: 2010
+      value_usd_2024: 64.32
+      value_intl_2024: 72.6
+      distribution: gamma
+      params:
+        mean: 72.6
+        sd: 30.0
+        unit: intl_2024
+      source:
+        citation: 'WHO-CHOICE, New Zealand primary hospital outpatient visit: 50.43
+          Int$ (2010); inflated 2024: x 1.44 = 72.6 Int$.
+
+          '
+        url: https://cdn.who.int/media/docs/default-source/health-economics/who-choice-estimates-of-cost-for-inpatient-and-outpatient-health-service-delivery.pdf
+        locator: 'Table: Cost per outpatient visit, primary hospital, New Zealand'
+        verification: fulltext
+      status: fallback
+      value_local_2024: 106.28
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+    - item: inpatient_day
+      value_local: null
+      value_year: 2010
+      value_usd_2024: 766.37
+      value_intl_2024: 865.0
+      distribution: gamma
+      params:
+        mean: 865.0
+        sd: 265.0
+        unit: intl_2024
+      source:
+        citation: 'WHO-CHOICE, New Zealand central hospital inpatient bed day (without
+          drugs): 600.95 Int$ (2010); inflated 2024: x 1.44 = 865 Int$.
+
+          '
+        url: https://cdn.who.int/media/docs/default-source/health-economics/who-choice-estimates-of-cost-for-inpatient-and-outpatient-health-service-delivery.pdf
+        locator: 'Table: Cost per inpatient bed day (without drugs), central hospital,
+          New Zealand'
+        verification: fulltext
+      status: fallback
+      value_local_2024: 1266.28
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+    macro:
+      gdp_per_capita_usd_2024: 49432.0
+      ppp_factor_2024: 1.4639
+      deflator_index:
+        base_year: 2024
+        source: IMF WEO October 2026; World Bank WDI
+        url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+      thresholds:
+      - type: national
+        value_usd_2024: 30500
+        source:
+          citation: 'PHARMAC does not publish an explicit threshold; NZD 50,000/QALY
+            commonly cited in NZ health economics literature as de facto reference.
+            NZD 50,000 x 0.609 = USD 30,450.
+
+            '
+          url: no_source
+          locator: no_source
+        value_intl_2024: 34425.0
+        outcome_unit: QALY
+        daly_application: sensitivity_proxy_not_validated_QALY_DALY_equivalence
+      - type: gdp_multiple
+        value_usd_2024: 49432.0
+        source:
+          citation: 1x GDP per capita 2024, IMF WEO
+          url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+        value_intl_2024: 55794.0
+      fx_lcu_per_usd_2024: 1.6523
+      gdp_per_capita_intl_2024: 55794.0
+  China:
+    local_currency: CNY
+    items:
+    - item: vaccine_price_maternal
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 14.0
+      value_intl_2024: 28.58
+      distribution: lognormal
+      params:
+        mean: 28.58
+        sd: 14.29
+        unit: intl_2024
+      source:
+        citation: 'no_source: China national maternal Tdap programme began 2024 using
+          existing DTaP. Hypothetical Tdap price. Fallback: PAHO Revolving Fund 2025
+          dTpa USD 19.10/dose as upper bound; provincial procurement in China typically
+          20-40% lower. USD 19.10 x 0.75 = USD 14.3; rounded to USD 14.0.
+
+          '
+        url: https://www.paho.org/sites/default/files/2025-02/prices-vac-2025-eng-27-feb-25.pdf
+        locator: 'PAHO RF Vaccine Prices 2025: dTpa/Tdap USD 19.10/dose (snippet)'
+        verification: abstract_only
+      status: fallback
+      value_local_2024: 100.76
+      conversion_rule: USD fallback x FX 2024
+    - item: vaccine_price_adolescent
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 14.0
+      value_intl_2024: 28.58
+      distribution: lognormal
+      params:
+        mean: 28.58
+        sd: 14.29
+        unit: intl_2024
+      source:
+        citation: 'no_source: China has no routine adolescent pertussis booster. Same
+          PAHO-proxy fallback as maternal.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 100.76
+      conversion_rule: USD fallback x FX 2024
+    - item: delivery_maternal
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 5.0
+      value_intl_2024: 10.21
+      distribution: gamma
+      params:
+        mean: 10.21
+        sd: 6.12
+        unit: intl_2024
+      source:
+        citation: 'no_source: Marginal antenatal delivery cost in Chinese community
+          health center; typical CNY registration fee CNY 10-30 (USD 1.4-4.2) plus
+          vaccine administration. Central fallback: USD 5.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 35.99
+      conversion_rule: USD fallback x FX 2024
+    - item: delivery_adolescent
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 3.0
+      value_intl_2024: 6.12
+      distribution: gamma
+      params:
+        mean: 6.12
+        sd: 4.08
+        unit: intl_2024
+      source:
+        citation: 'no_source: EPI school delivery cost fallback for China'
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 21.59
+      conversion_rule: USD fallback x FX 2024
+    - item: outpatient_episode
+      value_local: 728.36
+      value_year: 2024
+      value_usd_2024: 101.2
+      value_intl_2024: 206.6
+      distribution: gamma
+      params:
+        mean: 206.6
+        sd: 80.94
+        unit: intl_2024
+      source:
+        citation: 'Li Z et al. Economic burden of pertussis and its determinants in
+          Zhejiang Province, China: A cross-sectional study. Scientific Reports 2025.
+          Average direct cost per outpatient episode: CNY 728.36; indirect cost CNY
+          1,163.86; total outpatient CNY 1,892.22. Direct medical costs used (health-system
+          perspective).
+
+          '
+        url: https://www.nature.com/articles/s41598-025-06383-1
+        locator: 'Abstract: outpatient average direct cost CNY 728.36'
+        verification: abstract_only
+      status: literature
+      notes: 'CNY 728.36 x 0.1401 = USD 102.1; / 4.18 = Int$ 174.3.
+
+        '
+      value_local_2024: 728.36
+      conversion_rule: value_local x CPI 2024->2024 (1.000)
+    - item: inpatient_episode
+      age_start_years: 0
+      age_end_years: 15
+      value_local: 8814.32
+      value_year: 2024
+      value_usd_2024: 1224.64
+      value_intl_2024: 2500.25
+      distribution: lognormal
+      params:
+        mean: 2500.25
+        sd: 1012.25
+        unit: intl_2024
+      source:
+        citation: 'Li Z et al. 2025 Scientific Reports. Average direct cost per inpatient
+          episode: CNY 8,814.32; indirect cost CNY 1,483.53. Consistent with Yao X
+          et al. Economic burden of pertussis in children, Hangzhou: average inpatient
+          cost CNY 7,104 (USD 1,056), mean stay 7.96 days (Hum Vaccin Immunother 2024).
+
+          '
+        url: https://www.nature.com/articles/s41598-025-06383-1
+        locator: 'Abstract: inpatient average direct cost CNY 8,814.32'
+        verification: abstract_only
+      status: literature
+      notes: 'CNY 8,814 x 0.1401 = USD 1,235; / 4.18 = Int$ 2,109. Predominantly pediatric
+        cases; no separate infant vs older-child breakdown available.
+
+        '
+      value_local_2024: 8814.32
+      conversion_rule: value_local x CPI 2024->2024 (1.000)
+    macro:
+      gdp_per_capita_usd_2024: 13293.0
+      ppp_factor_2024: 3.5254
+      deflator_index:
+        base_year: 2024
+        source: IMF WEO October 2026; World Bank WDI
+        url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+      thresholds:
+      - type: opportunity_cost
+        value_usd_2024: 4700
+        source:
+          citation: 'Ochalek J et al. Estimating health opportunity costs in low-income
+            and middle-income countries. BMJ Global Health 2018;3(6):e000964. For
+            upper-middle income countries, opportunity cost threshold estimated below
+            1x GDP per capita; ~0.3-0.5x GDP. Using 0.35x: 0.35 x USD 13,441 = USD
+            4,704. Wide prior (2x factor for structural uncertainty).
+
+            '
+          url: https://pmc.ncbi.nlm.nih.gov/articles/PMC6231096/
+          locator: 'Main text: LMIC thresholds tend to fall below 1x GDP per capita'
+        value_intl_2024: 9596.0
+      - type: gdp_multiple
+        value_usd_2024: 13293.0
+        source:
+          citation: 1x GDP per capita 2024, IMF WEO
+          url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+        value_intl_2024: 27139.0
+      fx_lcu_per_usd_2024: 7.1975
+      gdp_per_capita_intl_2024: 27140.0
+  Brazil:
+    local_currency: BRL
+    items:
+    - item: vaccine_price_maternal
+      value_local: 99.5
+      value_year: 2025
+      value_usd_2024: 18.46
+      value_intl_2024: 40.06
+      distribution: lognormal
+      params:
+        mean: 40.06
+        sd: 10.49
+        unit: intl_2024
+      source:
+        citation: 'PAHO Revolving Fund Vaccine Prices 2025 (published 27 February
+          2025). dTpa (Tdap) vaccine: USD 19.10 per dose. Brazil procures dTpa through
+          PAHO Revolving Fund for national maternal programme (introduced 2014).
+
+          '
+        url: https://www.paho.org/sites/default/files/2025-02/prices-vac-2025-eng-27-feb-25.pdf
+        locator: 'PAHO RF Prices 2025: dTpa price USD 19.10/dose'
+        verification: abstract_only
+      status: national
+      notes: 'BRL = 19.10 / 0.1924 = BRL 99.3. Int$ = BRL 99.3 / 2.68 = Int$ 37.1.
+
+        '
+      value_local_2024: 99.5
+      conversion_rule: value_local x CPI 2025->2024 (1.000)
+    - item: vaccine_price_adolescent
+      value_local: 99.5
+      value_year: 2025
+      value_usd_2024: 18.46
+      value_intl_2024: 40.06
+      distribution: lognormal
+      params:
+        mean: 40.06
+        sd: 10.49
+        unit: intl_2024
+      source:
+        citation: 'PAHO Revolving Fund 2025: same dTpa product used for adolescent
+          booster strategy.
+
+          '
+        url: https://www.paho.org/sites/default/files/2025-02/prices-vac-2025-eng-27-feb-25.pdf
+        locator: 'PAHO RF Prices 2025: dTpa USD 19.10'
+        verification: abstract_only
+      status: national
+      value_local_2024: 99.5
+      conversion_rule: value_local x CPI 2025->2024 (1.000)
+    - item: delivery_maternal
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 3.5
+      value_intl_2024: 7.59
+      distribution: gamma
+      params:
+        mean: 7.59
+        sd: 4.34
+        unit: intl_2024
+      source:
+        citation: 'no_source: Brazilian SUS antenatal care delivery is free at point
+          of delivery; marginal vaccine delivery ~BRL 15-20. IDCC Tropical Latin America
+          outreach cost range USD 1-5/dose used as anchor.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 18.86
+      conversion_rule: USD fallback x FX 2024
+    - item: delivery_adolescent
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 2.5
+      value_intl_2024: 5.42
+      distribution: gamma
+      params:
+        mean: 5.42
+        sd: 3.25
+        unit: intl_2024
+      source:
+        citation: 'no_source: School/EPI delivery in Brazil SUS; fallback'
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 13.47
+      conversion_rule: USD fallback x FX 2024
+    - item: outpatient_episode
+      value_local: 10.0
+      value_year: 2024
+      value_usd_2024: 1.86
+      value_intl_2024: 4.03
+      distribution: gamma
+      params:
+        mean: 4.03
+        sd: 1.97
+        unit: intl_2024
+      source:
+        citation: Brazil Ministry of Health. Relatorio de Monitoramento Nacional das
+          Praticas Integrativas e Complementares em Saude nos Sistemas de Informacao
+          em Saude do SUS (2017-2023), Brasilia 2024.
+        url: https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/relatorios/2024/relatorio-de-monitoramento-nacional-das-praticas-integrativas-e-complementares-em-saude.pdf/@@download/file
+        locator: 'Quadro 2, printed p.33 (PDF page 33): SIGTAP 03.01.01.007-2, R$10.00;
+          table accessed 2 April 2024.'
+        verification: fulltext_table
+      status: national
+      value_local_2024: 10.0
+      conversion_rule: value_local x CPI 2024->2024 (1.000)
+      notes: One specialised medical consultation per non-hospitalised confirmed case.
+        SUS reimbursement tariff proxy, not a complete pertussis treatment episode
+        or economic resource cost. Prior CV retained as a modelling assumption; tariff
+        source does not estimate its uncertainty.
+    - item: inpatient_episode
+      age_start_years: 0
+      age_end_years: 15
+      value_local: 3441.0
+      value_year: 2024
+      value_usd_2024: 638.53
+      value_intl_2024: 1385.43
+      distribution: lognormal
+      params:
+        mean: 1385.43
+        sd: 733.58
+        unit: intl_2024
+      source:
+        citation: 'Pieri PC et al. Pertussis in Brazilian Children: Mortality, Length
+          of Stay, and Costs in Hospitalized Patients. Value in Health 2013 (ISPOR
+          poster, JVAL S2057). Mean cost per patient BRL 1,229 (2012-2013 SUS SIH/AIH
+          tariffs). Updated to 2024 using Brazil IPCA cumulative 2013->2024 ~2.8x:
+          BRL 3,441.
+
+          '
+        url: https://www.valueinhealthjournal.com/article/S1098-3015(13)02057-3/fulltext
+        locator: 'Abstract: mean cost per patient BRL 1,229 for hospitalized children'
+        verification: abstract_only
+      status: literature
+      notes: 'SUS tariffs are notoriously low vs real economic cost; BRL 3,441 likely
+        underestimates total economic burden. Wide prior (CV~0.53) applied. BRL 3,441
+        x 0.1924 = USD 661; / 2.68 = Int$ 1,284.
+
+        '
+      value_local_2024: 3441.0
+      conversion_rule: value_local x CPI 2024->2024 (1.000)
+    macro:
+      gdp_per_capita_usd_2024: 10311.0
+      ppp_factor_2024: 2.4837
+      deflator_index:
+        base_year: 2024
+        source: IMF WEO October 2026; World Bank WDI; Brazil World Bank overview
+        url: https://www.worldbank.org/en/Country/brazil/overview
+      thresholds:
+      - type: opportunity_cost
+        value_usd_2024: 3600
+        source:
+          citation: 'Ochalek J et al. BMJ Global Health 2018;3:e000964. Brazil (upper-middle
+            income): opportunity cost threshold ~0.3-0.4x GDP per capita. 0.35 x USD
+            10,282 = USD 3,599. Wide prior (2x). Cross-reference: Pichon-Riviere A
+            et al. Lancet Glob Health 2023 - Brazil.
+
+            '
+          url: https://pmc.ncbi.nlm.nih.gov/articles/PMC6231096/
+          locator: LMIC threshold supplementary; Brazil value range
+        value_intl_2024: 7811.0
+      - type: gdp_multiple
+        value_usd_2024: 10311.0
+        source:
+          citation: 1x GDP per capita 2024, World Bank/IMF
+          url: https://www.worldbank.org/en/Country/brazil/overview
+        value_intl_2024: 22372.0
+      - type: national
+        value_local: 40000.0
+        value_year: 2022
+        indexation: gdp_per_capita
+        outcome_unit: QALY
+        status: national_reference
+        source:
+          citation: 'CONITEC 2022 final recommendations: BRL 40,000 per QALY in 2022;
+            annual update by GDP per capita.'
+          url: https://www.gov.br/conitec/pt-br/midias/pdf/2022/20221106_relatorio-uso-de-limiares-de-custo-efetividade-nas-decisoes-em-saude.pdf/@@display-file/file
+          locator: Final recommendations, printed p.46; confirmed by CONITEC September
+            2022 announcement.
+          verification: fulltext
+        notes: 2024 value calculated from WDI nominal local-currency GDP per capita
+          growth; not asserted to be a separately published 2024 official tariff.
+          QALY threshold applied to DALYs only as an explicit sensitivity proxy.
+        daly_application: sensitivity_proxy_not_validated_QALY_DALY_equivalence
+        value_local_2024: 46371.44
+        value_usd_2024: 8604.94
+        conversion_rule: local 2022->2024 via gdp_per_capita; divide by WDI PPP
+        value_intl_2024: 18670.0
+      fx_lcu_per_usd_2024: 5.3889
+      gdp_per_capita_intl_2024: 22371.0
+  Thailand:
+    local_currency: THB
+    items:
+    - item: vaccine_price_maternal
+      value_local: 660.0
+      value_year: 2024
+      value_usd_2024: 18.7
+      value_intl_2024: 63.06
+      distribution: lognormal
+      params:
+        mean: 63.06
+        sd: 34.27
+        unit: intl_2024
+      source:
+        citation: 'Botwright S et al. Cost-Utility Analysis of Universal Maternal
+          Pertussis Immunisation in Thailand: A Comparison of Two Model Structures.
+          PharmacoEconomics 2023;41:77-91. Costs in 2021 THB. Monovalent aP (Pertagen,
+          Thai GPO) used for programme. Approximate price THB 600/dose (2021 proxy);
+          exact GPO tender price not published.
+
+          '
+        url: https://doi.org/10.1007/s40273-022-01207-w
+        locator: 'Methods: costs 2021 THB; HITAP threshold 160,000 THB/QALY'
+        verification: abstract_only
+      status: fallback
+      notes: 'THB 600 (2021) x CPI factor 1.10 (2021->2024) = THB 660. THB 660 / 35.9
+        = USD 18.4; / 16.3 = Int$ 40.5. Wide prior (CV~0.54): GPO prices are not publicly
+        disclosed.
+
+        '
+      value_local_2024: 660.0
+      conversion_rule: value_local x CPI 2024->2024 (1.000)
+    - item: vaccine_price_adolescent
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 18.4
+      value_intl_2024: 62.05
+      distribution: lognormal
+      params:
+        mean: 62.05
+        sd: 33.72
+        unit: intl_2024
+      source:
+        citation: 'no_source: Thailand has no national adolescent pertussis booster.
+          Hypothetical cost; same Pertagen/TdaP proxy as maternal.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 649.4
+      conversion_rule: USD fallback x FX 2024
+    - item: delivery_maternal
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 1.96
+      value_intl_2024: 6.6
+      distribution: gamma
+      params:
+        mean: 6.6
+        sd: 4.4
+        unit: intl_2024
+      source:
+        citation: 'no_source: Marginal antenatal delivery cost under Thailand UCS;
+          antenatal visits are UCS-covered. Fallback: WHO-CHOICE SEARO B outreach
+          fraction.
+
+          '
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 69.08
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+    - item: delivery_adolescent
+      value_local: null
+      value_year: 2024
+      value_usd_2024: 2.0
+      value_intl_2024: 6.74
+      distribution: gamma
+      params:
+        mean: 6.74
+        sd: 5.06
+        unit: intl_2024
+      source:
+        citation: 'no_source: School-based delivery in Thailand EPI context; fallback'
+        url: no_source
+        locator: no_source
+        verification: no_source
+      status: fallback
+      value_local_2024: 70.59
+      conversion_rule: USD fallback x FX 2024
+    - item: outpatient_episode
+      value_local: null
+      value_year: 2010
+      value_usd_2024: 7.56
+      value_intl_2024: 25.5
+      distribution: gamma
+      params:
+        mean: 25.5
+        sd: 12.0
+        unit: intl_2024
+      source:
+        citation: 'WHO-CHOICE, Thailand primary hospital outpatient visit: 17.7 Int$
+          (2010); inflated 2024: x 1.44 = 25.5 Int$.
+
+          '
+        url: https://cdn.who.int/media/docs/default-source/health-economics/who-choice-estimates-of-cost-for-inpatient-and-outpatient-health-service-delivery.pdf
+        locator: 'Table: Cost per outpatient visit, primary hospital, Thailand'
+        verification: fulltext
+      status: fallback
+      value_local_2024: 266.88
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+    - item: inpatient_day
+      value_local: null
+      value_year: 2010
+      value_usd_2024: 60.7
+      value_intl_2024: 204.7
+      distribution: gamma
+      params:
+        mean: 204.7
+        sd: 70.0
+        unit: intl_2024
+      source:
+        citation: 'WHO-CHOICE, Thailand central hospital inpatient bed day (without
+          drugs): 142.12 Int$ (2010); inflated 2024: x 1.44 = 204.7 Int$.
+
+          '
+        url: https://cdn.who.int/media/docs/default-source/health-economics/who-choice-estimates-of-cost-for-inpatient-and-outpatient-health-service-delivery.pdf
+        locator: 'Table: Cost per inpatient bed day (without drugs), central hospital,
+          Thailand'
+        verification: fulltext
+      status: fallback
+      value_local_2024: 2142.39
+      conversion_rule: WHO-CHOICE Int$ kept (US CPI 2010->2024 1.439)
+    macro:
+      gdp_per_capita_usd_2024: 7387.0
+      ppp_factor_2024: 10.466
+      deflator_index:
+        base_year: 2024
+        source: IMF WEO October 2026; World Bank WDI
+        url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+      thresholds:
+      - type: national
+        value_usd_2024: 4458
+        source:
+          citation: 'Botwright S et al. Cost-Utility Analysis of Universal Maternal
+            Pertussis Immunisation in Thailand: A Comparison of Two Model Structures.
+            PharmacoEconomics 41,77-91 (2023); online 9 November 2022. DOI:10.1007/s40273-022-01207-w.
+            Thai reference threshold 160,000 THB/QALY. The 6,000,000 THB/QALY figure
+            is a PSA crossover in that study, not the national threshold.'
+          url: https://doi.org/10.1007/s40273-022-01207-w
+          locator: Abstract Results and section 3.2
+          verification: fulltext
+        value_intl_2024: 15033.0
+        outcome_unit: QALY
+        daly_application: sensitivity_proxy_not_validated_QALY_DALY_equivalence
+      - type: gdp_multiple
+        value_usd_2024: 7387.0
+        source:
+          citation: 1x GDP per capita 2024, IMF WEO
+          url: https://www.imf.org/external/datamapper/NGDPDPC@WEO
+        value_intl_2024: 24910.0
+      fx_lcu_per_usd_2024: 35.2935
+      gdp_per_capita_intl_2024: 24909.0
+global:
+  disability_weights:
+    pertussis_acute_moderate:
+      value: 0.051
+      uncertainty_95ci:
+      - 0.032
+      - 0.074
+      sequela: Infectious disease, acute episode, moderate; proxy for reported pertussis
+      duration_days: 21
+      source: &id001
+        citation: Salomon JA et al. Disability weights for the Global Burden of Disease
+          2013 study. Lancet Glob Health 2015;3:e712-e723.
+        doi: 10.1016/S2214-109X(15)00069-8
+        url: https://www.ecdc.europa.eu/sites/default/files/media/en/healthtopics/burden_of_communicable_diseases/Documents/External%20articles/Salomon%20et%20al%20Lancet%20Global%20Health%202015_DWs.pdf
+        locator: Table 2, page e717 (PDF page 6), infectious disease acute episode
+        verification: primary_table_verified_20261101
+      notes: The generic disability weight is verified; mapping to pertussis and 21-day
+        duration are model assumptions. Weight and duration held fixed within each
+        PSA; sensitivity uses 0.133.
+    pertussis_acute_severe:
+      value: 0.279
+      uncertainty_95ci:
+      - 0.189
+      - 0.383
+      sequela: Acute lower respiratory infection, severe (GBD proxy for ICU pertussis)
+      duration_days: null
+      notes: 'Applied to ICU LOS. GBD does not provide a pertussis-specific ICU DW;
+        0.279 is the GBD 2019 value for severe acute lower respiratory infection,
+        used as a proxy for critically ill infant pertussis.
+
+        '
+      source:
+        citation: 'GBD 2019 Disease and Injury Incidence and Prevalence Collaborators.
+          Global burden of 369 diseases and injuries. Lancet 2020;396:1204-1222. DW
+          for severe acute lower respiratory infection: 0.279 (0.189-0.383).
+
+          '
+        url: https://www.healthdata.org/research-analysis/gbd
+        locator: GBD 2019 disability weights supplementary
+    pertussis_infant_surviving:
+      value: 0.097
+      uncertainty_95ci:
+      - 0.089
+      - 0.106
+      sequela: Pertussis, surviving infant (QALY loss per episode, 0-2 months)
+      duration_days: null
+      source:
+        citation: 'Sandmann FG et al. Vaccine 2021;39:4500-4509, Table 1. QALY loss
+          in surviving infants from disease: 0.097 (0.089; 0.106). Source cited as
+          Thomas SL et al. (reference [19] in Sandmann paper) - utility of pertussis
+          in infants and adults.
+
+          '
+        url: https://lshtm-eprints-repo-prod.lshtm-eprints.cdl.cosector.com/4663160/1/Sandmann_Evaluating.pdf
+        locator: 'Table 1: QALY loss in surviving infants 0.097'
+    pertussis_acute_mild:
+      value: 0.006
+      uncertainty_95ci:
+      - 0.002
+      - 0.012
+      sequela: Infectious disease, acute episode, mild; proxy for model mild courses
+      duration_days: 21
+      source: *id001
+      notes: Used only in all-symptomatic sensitivity. Equal 21-day episode length
+        is an assumption to isolate incidence and severity; mild incidence is uncalibrated.
+    pertussis_acute_severe_proxy:
+      value: 0.133
+      uncertainty_95ci:
+      - 0.088
+      - 0.19
+      sequela: Infectious disease, acute episode, severe
+      duration_days: 21
+      source: *id001
+  life_table:
+    csv: data/processed/economics_20261029/wpp2024_life_tables_2024_8countries.csv
+    source: UN WPP 2024 abridged life tables, medium variant, 2024, both sexes (ex
+      by age group)
+    country_iso3:
+      Australia: AUS
+      England: GBR
+      Sweden: SWE
+      Japan: JPN
+      New_Zealand: NZL
+      China: CHN
+      Brazil: BRA
+      Thailand: THA
+    note: England uses the United Kingdom table.
+conversion:
+  unit: 2024 international dollars (WDI PA.NUS.PPP, LCU per Int$); USD via WDI PA.NUS.FCRF
+    2024
+  inflation: national CPI (WDI FP.CPI.TOTL) from value_year to 2024; values dated
+    after 2024 are not deflated
+  who_choice: 2010 Int$ x US CPI 2024/2010 (WDI) kept on the Int$ scale
+  sources:
+  - data/raw/economics_20261029/wb_PA.NUS.PPP.json
+  - data/raw/economics_20261029/wb_PA.NUS.FCRF.json
+  - data/raw/economics_20261029/wb_FP.CPI.TOTL.json
+  - data/raw/economics_20261029/wb_NY.GDP.PCAP.CD.json
+valuation_revision:
+  date: '2026-11-01'
+  parent: config/core2026/economics/costs.yaml
+  parent_sha256: 7f104499035bd9c5b897a70622a893cad875ada112d45c829c9cb2bbbc81045d
+  changes:
+  - Correct moderate disability weight from mislabeled 0.133 (severe) to 0.051.
+  - Add 0.006 mild weight for all-symptomatic sensitivity.
+  - Retain 0.133 as an explicit severe-weight sensitivity; all other costs and thresholds
+    unchanged.

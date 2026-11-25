@@ -1,0 +1,33 @@
+Setting,Fitted history,Years,Status,Matched adolescent cases,Onward strength,Acquisition strength,Onward infant cases averted,Acquisition infant cases averted,DALY difference,Lower 95% UI,Upper 95% UI
+Australia,baseline,20,matched,472.974,0.0609841,0.0490087,55.8141,19.569,2.9779,2.2527,4.08864
+Australia,baseline,30,matched,4496.68,0.326107,0.251064,611.417,320.755,18.9761,14.2603,26.2144
+Australia,recovery 365,20,matched,472.974,0.0609841,0.0490087,55.8141,19.569,2.9779,2.2527,4.08864
+Australia,recovery 365,30,matched,4496.68,0.326107,0.251064,611.417,320.755,18.9761,14.2603,26.2144
+Brazil,baseline,20,matched,389.802,0.645367,0.423781,1855.32,902.674,265.37,216.197,324.635
+Brazil,baseline,30,no positive endpoint overlap,—,—,—,—,—,—,—,—
+Brazil,recovery 365,20,matched,555.864,0.340837,0.241177,2130.57,1627.99,145.217,118.335,177.808
+Brazil,recovery 365,30,no positive endpoint overlap,—,—,—,—,—,—,—,—
+China,baseline,20,matched,797.188,0.37281,0.0763454,4389.91,605.556,937.368,384.043,1745.36
+China,baseline,30,matched,916.11,0.383545,0.0657882,5357.97,471.55,1110.75,454.718,2068.32
+China,recovery 365,20,matched,196.597,0.479943,0.0276511,3992.26,139.142,1083.31,434.626,1997.13
+China,recovery 365,30,matched,108.834,0.665601,0.0117481,6058.08,56.2951,1555.64,623.282,2870.67
+England,baseline,20,matched,695.311,0.436701,0.352285,225.526,98.6955,39.4799,29.6699,54.6035
+England,baseline,30,matched,135.196,0.803108,0.0601768,104.468,4.64105,51.3331,38.078,71.5622
+England,recovery 365,20,matched,470.399,0.466968,0.335578,191.45,56.9137,44.8256,33.665,61.9489
+England,recovery 365,30,matched,225.245,0.6686,0.0886882,117.962,10.2708,48.9841,35.9414,69.2366
+Japan,baseline,20,no positive endpoint overlap,—,—,—,—,—,—,—,—
+Japan,baseline,30,no positive endpoint overlap,—,—,—,—,—,—,—,—
+Japan,recovery 365,20,no positive endpoint overlap,—,—,—,—,—,—,—,—
+Japan,recovery 365,30,matched,192.403,0.0162203,0.0118421,63.5148,54.5845,7.6418,6.05929,9.35536
+New Zealand,baseline,20,matched,73.4349,0.377962,0.127741,-0.129183,-5.89678,1.04213,0.790735,1.55029
+New Zealand,baseline,30,matched,109.428,0.353535,0.116668,4.13917,-3.41699,1.46367,1.11614,2.17812
+New Zealand,recovery 365,20,matched,71.0443,0.399011,0.124363,-1.26542,-5.1347,0.954645,0.712526,1.44624
+New Zealand,recovery 365,30,matched,119.941,0.321111,0.11169,8.79292,0.166535,1.37016,1.02105,2.1157
+Sweden,baseline,20,matched,143.958,0.31504,0.191592,25.8986,12.7968,4.7595,3.334,7.84872
+Sweden,baseline,30,matched,163.738,0.319616,0.178285,15.289,-0.317198,5.38665,3.75512,8.92355
+Sweden,recovery 365,20,matched,142.169,0.307056,0.188611,24.4761,12.3458,4.21414,2.96345,6.90156
+Sweden,recovery 365,30,matched,175.929,0.319346,0.183714,18.5107,2.4001,5.1262,3.58911,8.43077
+Thailand,baseline,20,no positive endpoint overlap,—,—,—,—,—,—,—,—
+Thailand,baseline,30,matched,13.5217,0.67063,0.279777,67.8967,2.27123,14.7245,4.03295,32.7315
+Thailand,recovery 365,20,no positive endpoint overlap,—,—,—,—,—,—,—,—
+Thailand,recovery 365,30,matched,0.972743,0.941348,0.023618,33.0943,-1.40882,5.53431,-8.87399,21.3813

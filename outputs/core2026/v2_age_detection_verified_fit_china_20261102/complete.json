@@ -1,0 +1,18 @@
+{
+  "best_start": 0,
+  "all_starts_finished": true,
+  "fit_converged": true,
+  "gradient_checks": [
+    {
+      "step": 0.001,
+      "objective": 1813.5451466681568,
+      "max_projected_gradient": 0.0031914405553834513
+    },
+    {
+      "step": 0.0005,
+      "objective": 1813.5451466681568,
+      "max_projected_gradient": 0.003279883458162658
+    }
+  ],
+  "selection": "one corrected-objective local start; no model, holdout or policy selection"
+}

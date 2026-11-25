@@ -1,0 +1,15 @@
+{
+  "country": "Japan",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/Japan/recovery_365",
+  "draw_id": 0,
+  "scenario_id": "recovery_365",
+  "reporting": {
+    "reporting_logit_<1": -4.497679760679549,
+    "reporting_logit_1-4": -4.359653129733505,
+    "reporting_logit_5-9": -4.061418896218813,
+    "reporting_logit_10-19": -4.717870364209354,
+    "reporting_logit_20-59": -5.791526935821916,
+    "reporting_logit_60+": -6.1449110797719255,
+    "breakthrough_reporting_ratio": 0.04968834479215
+  }
+}

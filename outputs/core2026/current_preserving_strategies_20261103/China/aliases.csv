@@ -1,0 +1,5 @@
+country,alias,requested_expansion_target,strategy_id,actual_maternal_coverage,actual_adolescent_coverage
+China,current,0.7,current,0.0,0.0
+China,current+M,0.7,current_M0.7_Akeep,0.7,0.0
+China,current+A,0.7,current_Mkeep_A0.7,0.0,0.7
+China,current+MA,0.7,current_M0.7_A0.7,0.7,0.7

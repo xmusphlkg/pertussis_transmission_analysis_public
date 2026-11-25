@@ -1,0 +1,10 @@
+{
+  "Brazil": "outputs/core2026/v2_migrated_point_fits_20261102/Brazil",
+  "Australia": "outputs/core2026/v2_refit_20261102/Australia",
+  "Sweden": "outputs/core2026/v2_refit_continued_20261102/Sweden",
+  "England": "outputs/core2026/v2_migrated_point_fits_20261102/England",
+  "China": "outputs/core2026/v2_age_detection_verified_fit_china_20261102",
+  "New_Zealand": "outputs/core2026/v2_refit_coordinate_polish_20261102/New_Zealand",
+  "Japan": "outputs/core2026/v2_japan_official_age_diagonal_continuation_20261102/baseline",
+  "Thailand": "outputs/core2026/v2_age_detection_verified_fit_thailand_national_reference_20261102"
+}

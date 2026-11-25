@@ -1,0 +1,17 @@
+Setting,Years,Positive DALY gains / 24,Positive infant-survival gains / 24,"DALYs, minimum","DALYs, maximum"
+Australia,20,24,18,6.258,17.93
+Australia,30,24,24,27.32,87.19
+England,20,24,24,22.66,126.9
+England,30,24,23,8.767,71.63
+Sweden,20,24,24,6.177,19.19
+Sweden,30,24,23,2.402,14.14
+Japan,20,17,13,-100.1,229.3
+Japan,30,20,5,-5.663,125.6
+New Zealand,20,24,20,0.3464,3.269
+New Zealand,30,24,23,1.15,5.707
+China,20,24,24,475.2,2001
+China,30,24,24,449.9,2207
+Brazil,20,24,24,62.54,885.2
+Brazil,30,9,0,-150.8,52.84
+Thailand,20,0,0,-4.069,-0.4621
+Thailand,30,24,23,0.1915,26.48

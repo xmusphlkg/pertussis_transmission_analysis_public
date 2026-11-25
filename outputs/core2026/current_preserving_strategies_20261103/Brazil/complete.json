@@ -1,0 +1,90 @@
+{
+  "status": "completed_current_preserving_fixed_candidate_projection",
+  "country": "Brazil",
+  "profile": "Brazil",
+  "design": "current_preserving_independent_coverage_grid",
+  "model_version": "overlapping_tdap_v2_39",
+  "start_year": 2027,
+  "end_year_exclusive": 2057,
+  "horizon": 30,
+  "main_horizon": 20,
+  "strategies": [
+    "current",
+    "current_Mkeep_A0.5",
+    "current_Mkeep_A0.7",
+    "current_Mkeep_A0.9",
+    "current_M0.9_Akeep",
+    "current_M0.9_A0.5",
+    "current_M0.9_A0.7",
+    "current_M0.9_A0.9"
+  ],
+  "coverage_grid": [
+    0.5,
+    0.7,
+    0.9
+  ],
+  "alias_target": 0.7,
+  "adolescent_age": 12.0,
+  "maternal_effective_share": 0.9,
+  "fit_directory": "outputs/core2026/v2_migrated_point_fits_20261102/Brazil",
+  "draw_id": 0,
+  "parameters": {
+    "R0": 4.833460474507709,
+    "seasonal_amplitude": 0.1263150909915482,
+    "seasonal_peak": 0.8380415500502068,
+    "npi_scale": 0.9773529767876123,
+    "importation_per_million_per_year": 4.981494446069955,
+    "rho_mild": 0.5,
+    "latent_days": 8.0,
+    "infectious_days_typical": 21.0,
+    "infectious_days_mild": 14.0,
+    "natural_immunity_years": 14.283880584967967,
+    "boosting_kappa": 4.058280955623909,
+    "wP_years": 2.0,
+    "aP_years": 6.0,
+    "tdap_years": 3.0000000000000004,
+    "maternal_days": 120.0,
+    "maternal_waning_stages": 4,
+    "d1_protection_years": 1.0,
+    "d2_protection_years": 2.0,
+    "vaccine_waning_shape": "erlang2",
+    "sigma_maternal": 1.0,
+    "pi_maternal": 0.01572706908584722,
+    "sigma_d1": 1.0,
+    "pi_d1": 0.5,
+    "sigma_d2": 1.0,
+    "pi_d2": 0.2,
+    "sigma_wP": 0.17,
+    "sigma_aP": 0.303999986667769,
+    "sigma_tdap": 0.303999986667769,
+    "pi_protected": 0.15,
+    "pi_wP_waned": 0.3,
+    "pi_aP_waned": 0.4019999927664568,
+    "nudge_years": 0.25
+  },
+  "reporting": {
+    "reporting_logit_<1": -3.4285829219411075,
+    "reporting_logit_1-4": -5.6605962376694485,
+    "reporting_logit_5-9": -7.527462371453661,
+    "reporting_logit_10-19": -7.458577928685353,
+    "reporting_logit_20-59": -7.843034282444061,
+    "reporting_logit_60+": -8.0,
+    "breakthrough_reporting_ratio": 0.0384343128633628
+  },
+  "original_projection_directory": "outputs/core2026/v2_common_strategies_eight_candidate_20261102/horizon30/Brazil/coverage_70",
+  "npz_axes": {
+    "onsets": [
+      "strategy",
+      "month",
+      "model_bin",
+      "typical_mild_infections"
+    ],
+    "annual_doses": [
+      "strategy",
+      "maternal_adolescent",
+      "year_2027_2056"
+    ]
+  },
+  "receipt_definition": "Total vaccinated pregnancies and kernel scheduled target-age Tdap receipts for each scenario. Incremental doses require subtraction of current. Existing infant/child events preserved; raw receipt ledger retained for all dose kinds.",
+  "projection_definition": "Joint nonlinear transmission simulation for every unique grid point, shared pre-2027 history; no event deletion and no existing coverage reduction."
+}

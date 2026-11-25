@@ -1,0 +1,29 @@
+Setting,Years,Mortality scope,Maternal minus adolescent per1000,Maternal minus adolescent per1000 q025,Maternal minus adolescent per1000 q975
+Australia,20,included,0.03225,0.01123,0.06727
+Australia,20,infant only,0.03225,0.01123,0.06727
+Australia,30,included,0.02382,0.00468,0.056
+Australia,30,infant only,0.02382,0.00468,0.056
+England,20,included,0.0843,0.03686,0.1197
+England,20,infant only,0.0843,0.03686,0.1197
+England,30,included,0.07336,0.03486,0.1028
+England,30,infant only,0.07336,0.03486,0.1028
+Japan,20,included,0.2319,0.1114,0.3244
+Japan,20,infant only,0.2319,0.1114,0.3244
+Japan,30,included,0.1877,0.08657,0.2643
+Japan,30,infant only,0.1877,0.08657,0.2643
+New Zealand,20,included,0.1014,0.0516,0.1376
+New Zealand,20,infant only,0.1014,0.0516,0.1376
+New Zealand,30,included,0.08691,0.04184,0.1191
+New Zealand,30,infant only,0.08691,0.04184,0.1191
+China,20,included,0.2728,0.1022,0.5456
+China,20,infant only,0.2728,0.1022,0.5456
+China,30,included,0.2463,0.09219,0.4926
+China,30,infant only,0.2463,0.09219,0.4926
+Brazil,20,included,0.1212,0.09456,0.1516
+Brazil,20,infant only,0.1223,0.09563,0.1529
+Brazil,30,included,0.1169,0.09245,0.1447
+Brazil,30,infant only,0.1164,0.09217,0.1442
+Thailand,20,included,0.02465,0.003448,0.07779
+Thailand,20,infant only,0.02345,0.002652,0.07763
+Thailand,30,included,0.02201,0.002743,0.07062
+Thailand,30,infant only,0.02124,0.00239,0.07046

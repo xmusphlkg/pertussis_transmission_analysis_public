@@ -1,0 +1,15 @@
+{
+  "country": "China",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/China/recovery_365",
+  "draw_id": 0,
+  "scenario_id": "recovery_365",
+  "reporting": {
+    "reporting_logit_<1": -3.8343967976271776,
+    "reporting_logit_1-4": -4.217144857396781,
+    "reporting_logit_5-9": -4.449474295349056,
+    "reporting_logit_10-19": -4.938938362340137,
+    "reporting_logit_20-59": -5.348789630450579,
+    "reporting_logit_60+": -5.403388370389233,
+    "breakthrough_reporting_ratio": 0.0349309075773367
+  }
+}

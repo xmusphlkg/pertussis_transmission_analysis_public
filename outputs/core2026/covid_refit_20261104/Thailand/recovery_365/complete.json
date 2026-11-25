@@ -1,0 +1,21 @@
+{
+  "best_start": 0,
+  "all_starts_finished": true,
+  "fit_converged": true,
+  "status": "completed_local_fit",
+  "gradient_checks": [
+    {
+      "step": 5e-05,
+      "objective": 502.95419932777577,
+      "max_active_projected_gradient": 3.922252744814614e-05
+    },
+    {
+      "step": 1e-05,
+      "objective": 502.95419932777577,
+      "max_active_projected_gradient": 3.921343250112841e-05
+    }
+  ],
+  "gradient_scope": "restricted",
+  "optimizer_success": true,
+  "selection": "training posterior objective; held-out outcomes not used for selection"
+}

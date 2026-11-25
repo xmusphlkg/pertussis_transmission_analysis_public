@@ -1,0 +1,25 @@
+Burden,Yll scale,Comparisons,Maternal greater
+reported differentiated,0,14,9
+reported differentiated,0.1,14,13
+reported differentiated,0.25,14,14
+reported differentiated,0.5,14,14
+reported differentiated,1,14,14
+reported differentiated,2,14,14
+reported uniform,0,14,9
+reported uniform,0.1,14,13
+reported uniform,0.25,14,14
+reported uniform,0.5,14,14
+reported uniform,1,14,14
+reported uniform,2,14,14
+symptomatic differentiated,0,14,7
+symptomatic differentiated,0.1,14,7
+symptomatic differentiated,0.25,14,7
+symptomatic differentiated,0.5,14,8
+symptomatic differentiated,1,14,9
+symptomatic differentiated,2,14,12
+symptomatic uniform,0,14,6
+symptomatic uniform,0.1,14,6
+symptomatic uniform,0.25,14,6
+symptomatic uniform,0.5,14,7
+symptomatic uniform,1,14,7
+symptomatic uniform,2,14,7

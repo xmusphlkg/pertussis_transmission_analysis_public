@@ -1,0 +1,90 @@
+{
+  "status": "completed_current_preserving_fixed_candidate_projection",
+  "country": "England",
+  "profile": "England",
+  "design": "current_preserving_independent_coverage_grid",
+  "model_version": "overlapping_tdap_v2_39",
+  "start_year": 2027,
+  "end_year_exclusive": 2057,
+  "horizon": 30,
+  "main_horizon": 20,
+  "strategies": [
+    "current",
+    "current_Mkeep_A0.5",
+    "current_Mkeep_A0.7",
+    "current_Mkeep_A0.9",
+    "current_M0.9_Akeep",
+    "current_M0.9_A0.5",
+    "current_M0.9_A0.7",
+    "current_M0.9_A0.9"
+  ],
+  "coverage_grid": [
+    0.5,
+    0.7,
+    0.9
+  ],
+  "alias_target": 0.7,
+  "adolescent_age": 12.0,
+  "maternal_effective_share": 0.9,
+  "fit_directory": "outputs/core2026/v2_migrated_point_fits_20261102/England",
+  "draw_id": 0,
+  "parameters": {
+    "R0": 6.122312993113567,
+    "seasonal_amplitude": 0.2324739883607137,
+    "seasonal_peak": -0.8156126001861026,
+    "npi_scale": 1.055051760254661,
+    "importation_per_million_per_year": 4.416676937577,
+    "rho_mild": 0.5,
+    "latent_days": 8.0,
+    "infectious_days_typical": 21.0,
+    "infectious_days_mild": 14.0,
+    "natural_immunity_years": 39.973878662501775,
+    "boosting_kappa": 1.5701245191990512,
+    "wP_years": 13.831963298706505,
+    "aP_years": 3.951096158291976,
+    "tdap_years": 3.000000000198791,
+    "maternal_days": 120.0,
+    "maternal_waning_stages": 4,
+    "d1_protection_years": 1.0,
+    "d2_protection_years": 2.0,
+    "vaccine_waning_shape": "erlang2",
+    "sigma_maternal": 1.0,
+    "pi_maternal": 0.01572706908584722,
+    "sigma_d1": 1.0,
+    "pi_d1": 0.5,
+    "sigma_d2": 1.0,
+    "pi_d2": 0.2,
+    "sigma_wP": 0.17,
+    "sigma_aP": 0.1612471206458713,
+    "sigma_tdap": 0.1612471206458713,
+    "pi_protected": 0.15,
+    "pi_wP_waned": 0.3,
+    "pi_aP_waned": 0.1139804557110598,
+    "nudge_years": 0.25
+  },
+  "reporting": {
+    "reporting_logit_<1": -3.307091586647582,
+    "reporting_logit_1-4": -4.562978250375891,
+    "reporting_logit_5-9": -5.410141924525752,
+    "reporting_logit_10-19": -4.569406464917149,
+    "reporting_logit_20-59": -4.225723323585659,
+    "reporting_logit_60+": -4.161591722114236,
+    "breakthrough_reporting_ratio": 0.0351905723297895
+  },
+  "original_projection_directory": "outputs/core2026/v2_common_strategies_eight_candidate_20261102/horizon30/England/coverage_70",
+  "npz_axes": {
+    "onsets": [
+      "strategy",
+      "month",
+      "model_bin",
+      "typical_mild_infections"
+    ],
+    "annual_doses": [
+      "strategy",
+      "maternal_adolescent",
+      "year_2027_2056"
+    ]
+  },
+  "receipt_definition": "Total vaccinated pregnancies and kernel scheduled target-age Tdap receipts for each scenario. Incremental doses require subtraction of current. Existing infant/child events preserved; raw receipt ledger retained for all dose kinds.",
+  "projection_definition": "Joint nonlinear transmission simulation for every unique grid point, shared pre-2027 history; no event deletion and no existing coverage reduction."
+}

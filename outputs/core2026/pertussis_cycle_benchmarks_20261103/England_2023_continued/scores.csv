@@ -1,0 +1,11 @@
+country,cutoff,year,resolution,method,total_test_intervals,matched_intervals,missing_intervals,observed_total_matched,model_wape_matched,benchmark_wape_matched,model_wape_all_test_intervals,source_years,fit_stationary
+England,2023,2024,quarterly,four_year_lag,4,0,4,0.0,,,0.9765398845933929,,True
+England,2023,2024,quarterly,last_training_year,4,4,0,14879.0,0.9765398845933929,0.942469251965858,0.9765398845933929,2023,True
+England,2023,2024,quarterly,pre_pandemic_mean_2017_2019_available_years,4,0,4,0.0,,,0.9765398845933929,,True
+England,2023,2024,quarterly,three_training_year_mean,4,0,4,0.0,,,0.9765398845933929,,True
+England,2023,2024,quarterly,three_training_year_median,4,0,4,0.0,,,0.9765398845933929,,True
+England,2023,2025,quarterly,four_year_lag,4,0,4,0.0,,,29.805214320604602,,True
+England,2023,2025,quarterly,last_training_year,4,4,0,674.0,29.805214320604602,1.3412462908011868,29.805214320604602,2023,True
+England,2023,2025,quarterly,pre_pandemic_mean_2017_2019_available_years,4,0,4,0.0,,,29.805214320604602,,True
+England,2023,2025,quarterly,three_training_year_mean,4,0,4,0.0,,,29.805214320604602,,True
+England,2023,2025,quarterly,three_training_year_median,4,0,4,0.0,,,29.805214320604602,,True

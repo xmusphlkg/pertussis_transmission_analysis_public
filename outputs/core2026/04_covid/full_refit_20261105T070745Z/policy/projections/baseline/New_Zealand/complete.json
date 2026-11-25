@@ -1,0 +1,15 @@
+{
+  "country": "New_Zealand",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/New_Zealand/baseline",
+  "draw_id": 0,
+  "scenario_id": "baseline",
+  "reporting": {
+    "reporting_logit_<1": -1.7269854360788897,
+    "reporting_logit_1-4": -2.4712065012413515,
+    "reporting_logit_5-9": -3.415834402179338,
+    "reporting_logit_10-19": -3.551123424501464,
+    "reporting_logit_20-59": -3.824174336151068,
+    "reporting_logit_60+": -3.833189950073765,
+    "breakthrough_reporting_ratio": 0.0596570168363423
+  }
+}

@@ -1,0 +1,15 @@
+strategies,dalys_averted,incremental_cost,lambda_lower,lambda_upper,sequence,previous_strategies,incremental_cost_per_daly_from_previous,all_ties_at_lower_boundary,country,horizon,burden,mortality,price_scope
+current,0.0,0.0,0.0,205364.3647884304,0,NA,NA,current,New_Zealand,20,reported_uniform,included_base,modelled_vaccine_price_items
+current_M0.7_Akeep,7.354658474366811,1510384.7658241866,205364.3647884304,207536.46997961708,1,current,205364.3647884304,current|current_M0.7_Akeep,New_Zealand,20,reported_uniform,included_base,modelled_vaccine_price_items
+current_M0.9_Akeep,32.05869326289269,6637372.940088503,207536.46997961708,3398789.544165472,2,current_M0.7_Akeep,207536.46997961708,current_M0.7_Akeep|current_M0.9_Akeep,New_Zealand,20,reported_uniform,included_base,modelled_vaccine_price_items
+current_M0.9_A0.9,32.79632687989323,9144434.364974895,3398789.544165472,inf,3,current_M0.9_Akeep,3398789.544165472,current_M0.9_Akeep|current_M0.9_A0.9,New_Zealand,20,reported_uniform,included_base,modelled_vaccine_price_items
+current,0.0,0.0,0.0,201825.98886383107,0,NA,NA,current,New_Zealand,30,reported_uniform,included_base,modelled_vaccine_price_items
+current_M0.7_Akeep,9.813366503068403,1980592.3985649764,201825.98886383107,204128.29208326907,1,current,201825.98886383107,current|current_M0.7_Akeep,New_Zealand,30,reported_uniform,included_base,modelled_vaccine_price_items
+current_M0.9_Akeep,42.75542849165426,8704999.249996187,204128.29208326907,2240094.5873710546,2,current_M0.7_Akeep,204128.29208326907,current_M0.7_Akeep|current_M0.9_Akeep,New_Zealand,30,reported_uniform,included_base,modelled_vaccine_price_items
+current_M0.9_A0.9,44.18738033549319,11912706.824755762,2240094.5873710546,inf,3,current_M0.9_Akeep,2240094.5873710546,current_M0.9_Akeep|current_M0.9_A0.9,New_Zealand,30,reported_uniform,included_base,modelled_vaccine_price_items
+current,0.0,0.0,0.0,254476.46921000796,0,NA,NA,current,Sweden,20,reported_uniform,included_base,modelled_vaccine_price_items
+current_M0.7_Akeep,4.92067620302814,1252196.3062723093,254476.46921000796,259922.27592685283,1,current,254476.46921000796,current|current_M0.7_Akeep,Sweden,20,reported_uniform,included_base,modelled_vaccine_price_items
+current_M0.9_Akeep,53.14296974149415,13786244.593203165,259922.27592685283,inf,2,current_M0.7_Akeep,259922.27592685283,current_M0.7_Akeep|current_M0.9_Akeep,Sweden,20,reported_uniform,included_base,modelled_vaccine_price_items
+current,0.0,0.0,0.0,247186.1793372193,0,NA,NA,current,Sweden,30,reported_uniform,included_base,modelled_vaccine_price_items
+current_M0.7_Akeep,6.778924488119508,1675656.4442337763,247186.1793372193,252017.4824427276,1,current,247186.1793372193,current|current_M0.7_Akeep,Sweden,30,reported_uniform,included_base,modelled_vaccine_price_items
+current_M0.9_Akeep,73.33064124307035,18447852.553057976,252017.4824427276,inf,2,current_M0.7_Akeep,252017.4824427276,current_M0.7_Akeep|current_M0.9_Akeep,Sweden,30,reported_uniform,included_base,modelled_vaccine_price_items

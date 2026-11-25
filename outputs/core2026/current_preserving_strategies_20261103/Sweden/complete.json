@@ -1,0 +1,85 @@
+{
+  "status": "completed_current_preserving_fixed_candidate_projection",
+  "country": "Sweden",
+  "profile": "Sweden",
+  "design": "current_preserving_independent_coverage_grid",
+  "model_version": "overlapping_tdap_v2_39",
+  "start_year": 2027,
+  "end_year_exclusive": 2057,
+  "horizon": 30,
+  "main_horizon": 20,
+  "strategies": [
+    "current",
+    "current_M0.7_Akeep",
+    "current_M0.9_Akeep"
+  ],
+  "coverage_grid": [
+    0.5,
+    0.7,
+    0.9
+  ],
+  "alias_target": 0.7,
+  "adolescent_age": 15.0,
+  "maternal_effective_share": 0.9,
+  "fit_directory": "outputs/core2026/v2_refit_continued_20261102/Sweden",
+  "draw_id": 0,
+  "parameters": {
+    "R0": 6.615904727768824,
+    "seasonal_amplitude": 0.1577807065656528,
+    "seasonal_peak": 0.5662065877579118,
+    "npi_scale": 2.0300257967622977,
+    "importation_per_million_per_year": 22.77025838653578,
+    "rho_mild": 0.5,
+    "latent_days": 8.0,
+    "infectious_days_typical": 21.0,
+    "infectious_days_mild": 14.0,
+    "natural_immunity_years": 43.96401925890244,
+    "boosting_kappa": 0.7144620012018885,
+    "wP_years": 11.66650457297566,
+    "aP_years": 9.256571426641168,
+    "tdap_years": 2.533489416530146,
+    "maternal_days": 120.0,
+    "maternal_waning_stages": 4,
+    "d1_protection_years": 1.0,
+    "d2_protection_years": 2.0,
+    "vaccine_waning_shape": "erlang2",
+    "sigma_maternal": 1.0,
+    "pi_maternal": 0.01572706908584722,
+    "sigma_d1": 1.0,
+    "pi_d1": 0.5,
+    "sigma_d2": 1.0,
+    "pi_d2": 0.2,
+    "sigma_wP": 0.17,
+    "sigma_aP": 0.0801281503686359,
+    "sigma_tdap": 0.0801281503686359,
+    "pi_protected": 0.15,
+    "pi_wP_waned": 0.3,
+    "pi_aP_waned": 0.221781783813512,
+    "nudge_years": 0.25
+  },
+  "reporting": {
+    "reporting_logit_<1": -3.435978881636734,
+    "reporting_logit_1-4": -3.4454333897860585,
+    "reporting_logit_5-9": -4.278656973276151,
+    "reporting_logit_10-19": -4.3457087668339645,
+    "reporting_logit_20-59": -4.003925650348545,
+    "reporting_logit_60+": -4.171483664348691,
+    "breakthrough_reporting_ratio": 0.0520202759043171
+  },
+  "original_projection_directory": "outputs/core2026/v2_common_strategies_eight_candidate_20261102/horizon30/Sweden/coverage_70",
+  "npz_axes": {
+    "onsets": [
+      "strategy",
+      "month",
+      "model_bin",
+      "typical_mild_infections"
+    ],
+    "annual_doses": [
+      "strategy",
+      "maternal_adolescent",
+      "year_2027_2056"
+    ]
+  },
+  "receipt_definition": "Total vaccinated pregnancies and kernel scheduled target-age Tdap receipts for each scenario. Incremental doses require subtraction of current. Existing infant/child events preserved; raw receipt ledger retained for all dose kinds.",
+  "projection_definition": "Joint nonlinear transmission simulation for every unique grid point, shared pre-2027 history; no event deletion and no existing coverage reduction."
+}

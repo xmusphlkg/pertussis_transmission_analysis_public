@@ -1,0 +1,5 @@
+"country","horizon","route","profile_id","maternal_baseline","maternal_coverage","nasal_coverage","tdap_coverage","strategy_id","comparator","infant_yll_averted","yll_q025","yll_q975"
+"New_Zealand",20,"standalone","b050_a050_d03_point",0.75,0.75,0.9,0.8,"bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","current",1.70370266349966,1.20424489073623,2.68030105318876
+"New_Zealand",30,"standalone","b050_a050_d03_point",0.75,0.75,0.9,0.8,"bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","current",2.86596695088236,2.007666891202,4.58142902971949
+"New_Zealand",20,"standalone","b050_a050_d03_point",0.75,0.9,0.9,0.8,"bpze1_b050_a050_d03_point_standalone__current_M0.9_A0.9","current_M0.9_Akeep",1.29755708725311,0.810489093973107,2.46123140238058
+"New_Zealand",30,"standalone","b050_a050_d03_point",0.75,0.9,0.9,0.8,"bpze1_b050_a050_d03_point_standalone__current_M0.9_A0.9","current_M0.9_Akeep",2.18358880533383,1.34462418765219,4.20845157759583

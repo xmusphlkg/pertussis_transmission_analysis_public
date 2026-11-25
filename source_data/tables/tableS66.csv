@@ -1,0 +1,17 @@
+Setting,Route,Valued health gains,Treatment savings,Standard vaccine savings,Standard delivery savings,Total cost boundary
+Australia,With Tdap,0.641,1.431,0.0733,0.0247,2.170
+Australia,Standalone,0.505,1.058,0.0897,0.0302,1.684
+England,With Tdap,2.224,0.914,−37.095,−14.224,−48.180
+England,Standalone,1.546,0.611,−0.0000,−0.0000,2.158
+Sweden,With Tdap,1.620,0.540,0.0204,0.0100,2.190
+Sweden,Standalone,1.823,0.607,0.0226,0.0111,2.464
+Japan,With Tdap,5.230,0.754,−56.419,−15.807,−66.243
+Japan,Standalone,3.500,0.457,−0.0000,−0.0000,3.957
+New Zealand,With Tdap,0.453,0.424,0.0277,0.0119,0.917
+New Zealand,Standalone,0.491,0.452,0.0343,0.0148,0.991
+China,With Tdap,0.241,0.158,−28.748,−6.169,−34.518
+China,Standalone,0.210,0.131,−0.0000,−0.0000,0.341
+Brazil,With Tdap,0.732,0.109,−39.914,−5.389,−44.463
+Brazil,Standalone,0.585,0.0875,−0.0000,−0.0000,0.672
+Thailand,With Tdap,0.0060,0.0029,−61.776,−6.746,−68.514
+Thailand,Standalone,−0.0092,0.0012,−0.0000,−0.0000,−0.0080

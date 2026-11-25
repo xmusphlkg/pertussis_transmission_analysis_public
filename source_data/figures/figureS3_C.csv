@@ -1,0 +1,7 @@
+"country","horizon","route","profile_id","maternal_baseline","maternal_coverage","nasal_coverage","tdap_coverage","strategy_id","comparator","infant_yll_averted","yll_q025","yll_q975"
+"Sweden",20,"coadmin","b050_a050_d03_point",0.5,0.5,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current","current",12.3476609946624,8.28135462424588,21.1608483993932
+"Sweden",30,"coadmin","b050_a050_d03_point",0.5,0.5,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current","current",7.51615584082369,5.05085663881538,12.8447046732969
+"Sweden",20,"coadmin","b050_a050_d03_point",0.5,0.7,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.7_Akeep","current_M0.7_Akeep",9.94598549887949,5.9961651618962,19.5634893322176
+"Sweden",30,"coadmin","b050_a050_d03_point",0.5,0.7,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.7_Akeep","current_M0.7_Akeep",6.08148804739059,3.67507681096991,11.9320938921273
+"Sweden",20,"coadmin","b050_a050_d03_point",0.5,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_Akeep","current_M0.9_Akeep",7.53095875237051,3.67500992487768,17.823223015137
+"Sweden",30,"coadmin","b050_a050_d03_point",0.5,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_Akeep","current_M0.9_Akeep",4.63097575856312,2.26630789637416,10.9386243677447

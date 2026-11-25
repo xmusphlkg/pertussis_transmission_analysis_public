@@ -1,0 +1,17 @@
+Setting,Years,Expected nmb,Optimality frequency,Conditional EVPI
+Australia,20,7.672e+06,0.999,4664
+Australia,30,3.862e+07,0.999,8931
+Brazil,20,2.24e+07,1,3.725e-08
+Brazil,30,2.046e+05,0.936,4778
+China,20,5.284e+07,0.997,1.172e+05
+China,30,5.417e+07,0.997,1.982e+05
+England,20,1.706e+07,1,0
+England,30,1.093e+07,1,0
+Japan,20,4.503e+07,0.944,2.355e+06
+Japan,30,1.031e+07,0.947,3.173e+06
+New Zealand,20,7.558e+05,0.834,9.377e+04
+New Zealand,30,1.322e+06,0.831,1.294e+05
+Sweden,20,3.879e+06,0.837,4.983e+05
+Sweden,30,2.311e+06,0.782,9.482e+05
+Thailand,20,0,0.619,5.015e+04
+Thailand,30,7.586e+05,0.999,112.7

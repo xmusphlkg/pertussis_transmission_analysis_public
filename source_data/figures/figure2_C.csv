@@ -1,0 +1,5 @@
+"country","horizon","target","mechanism","strength","age","cases","label"
+"Sweden",30,163.736841903285,"Onward",0.319615899225964,"Adolescent",163.736841903346,"164"
+"Sweden",30,163.736841903285,"Acquisition",0.178282653416775,"Adolescent",163.736841903336,"164"
+"Sweden",30,163.736841903285,"Onward",0.319615899225964,"Infant",15.2882240938553,"15.29"
+"Sweden",30,163.736841903285,"Acquisition",0.178282653416775,"Infant",-0.317104280468794,"-0.32"

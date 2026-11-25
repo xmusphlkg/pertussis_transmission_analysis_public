@@ -1,0 +1,177 @@
+ISO3_code,Location,Time,Sex,AgeGrp,AgeGrpStart,AgeGrpSpan,ex,source_file,source_sha256
+CHN,China,2024,Total,0,0,1,78.0171,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,1-4,1,4,77.5171,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,5-9,5,5,73.6391,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,10-14,10,5,68.7416,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,15-19,15,5,63.8509,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,20-24,20,5,58.972,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,25-29,25,5,54.1433,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,30-34,30,5,49.3357,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,35-39,35,5,44.5289,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,40-44,40,5,39.7376,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,45-49,45,5,35.0315,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,50-54,50,5,30.4289,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,55-59,55,5,26.0071,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,60-64,60,5,21.7063,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,65-69,65,5,17.7353,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,70-74,70,5,14.045,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,75-79,75,5,10.7405,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,80-84,80,5,7.835,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,85-89,85,5,5.5479,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,90-94,90,5,3.7769,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,95-99,95,5,2.5261,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+CHN,China,2024,Total,100+,100,-1,1.9426,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,0,0,1,84.852,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,1-4,1,4,83.9933,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,5-9,5,5,80.0478,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,10-14,10,5,75.0727,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,15-19,15,5,70.0994,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,20-24,20,5,65.16,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,25-29,25,5,60.2586,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,30-34,30,5,55.3587,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,35-39,35,5,50.4715,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,40-44,40,5,45.6085,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,45-49,45,5,40.795,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,50-54,50,5,36.0638,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,55-59,55,5,31.4408,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,60-64,60,5,26.9421,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,65-69,65,5,22.6032,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,70-74,70,5,18.4701,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,75-79,75,5,14.5604,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,80-84,80,5,10.9436,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,85-89,85,5,7.8299,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,90-94,90,5,5.3785,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,95-99,95,5,3.5933,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+JPN,Japan,2024,Total,100+,100,-1,2.4089,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,0,0,1,76.5636,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,1-4,1,4,76.1708,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,5-9,5,5,72.3287,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,10-14,10,5,67.4448,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,15-19,15,5,62.605,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,20-24,20,5,57.9505,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,25-29,25,5,53.3074,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,30-34,30,5,48.6793,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,35-39,35,5,44.1175,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,40-44,40,5,39.7141,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,45-49,45,5,35.4856,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,50-54,50,5,31.351,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,55-59,55,5,27.3058,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,60-64,60,5,23.3539,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,65-69,65,5,19.5114,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,70-74,70,5,15.856,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,75-79,75,5,12.529,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,80-84,80,5,9.612,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,85-89,85,5,7.1888,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,90-94,90,5,5.2758,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,95-99,95,5,3.8193,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+THA,Thailand,2024,Total,100+,100,-1,2.8735,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,0,0,1,83.4236,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,1-4,1,4,82.5777,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,5-9,5,5,78.6252,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,10-14,10,5,73.6415,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,15-19,15,5,68.6634,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,20-24,20,5,63.7268,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,25-29,25,5,58.8493,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,30-34,30,5,53.9807,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,35-39,35,5,49.1065,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,40-44,40,5,44.2371,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,45-49,45,5,39.3949,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,50-54,50,5,34.607,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,55-59,55,5,29.922,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,60-64,60,5,25.3822,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,65-69,65,5,21.0455,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,70-74,70,5,16.9319,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,75-79,75,5,13.0768,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,80-84,80,5,9.5805,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,85-89,85,5,6.6389,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,90-94,90,5,4.4031,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,95-99,95,5,2.9038,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+SWE,Sweden,2024,Total,100+,100,-1,1.9849,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,0,0,1,81.4484,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,1-4,1,4,80.7451,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,5-9,5,5,76.7927,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,10-14,10,5,71.8175,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,15-19,15,5,66.8464,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,20-24,20,5,61.9204,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,25-29,25,5,57.0275,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,30-34,30,5,52.1528,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,35-39,35,5,47.3136,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,40-44,40,5,42.5252,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,45-49,45,5,37.8087,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,50-54,50,5,33.1844,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,55-59,55,5,28.6617,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,60-64,60,5,24.2825,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,65-69,65,5,20.1075,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,70-74,70,5,16.1485,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,75-79,75,5,12.4779,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,80-84,80,5,9.23,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,85-89,85,5,6.4921,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,90-94,90,5,4.3989,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,95-99,95,5,2.9768,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+GBR,United Kingdom,2024,Total,100+,100,-1,2.085,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,0,0,1,76.023,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,1-4,1,4,75.9416,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,5-9,5,5,72.0749,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,10-14,10,5,67.1451,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,15-19,15,5,62.2345,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,20-24,20,5,57.5756,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,25-29,25,5,53.003,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,30-34,30,5,48.3738,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,35-39,35,5,43.7419,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,40-44,40,5,39.155,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,45-49,45,5,34.6351,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,50-54,50,5,30.2303,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,55-59,55,5,25.9784,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,60-64,60,5,21.9038,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,65-69,65,5,18.0665,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,70-74,70,5,14.4751,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,75-79,75,5,11.1637,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,80-84,80,5,8.3529,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,85-89,85,5,6.0895,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,90-94,90,5,4.4345,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,95-99,95,5,3.2311,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+BRA,Brazil,2024,Total,100+,100,-1,2.3904,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,0,0,1,84.073,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,1-4,1,4,83.2943,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,5-9,5,5,79.3376,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,10-14,10,5,74.3583,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,15-19,15,5,69.3848,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,20-24,20,5,64.4693,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,25-29,25,5,59.5794,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,30-34,30,5,54.6957,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,35-39,35,5,49.8318,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,40-44,40,5,45.0085,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,45-49,45,5,40.2369,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,50-54,50,5,35.5378,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,55-59,55,5,30.9241,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,60-64,60,5,26.4255,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,65-69,65,5,22.0572,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,70-74,70,5,17.8335,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,75-79,75,5,13.8623,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,80-84,80,5,10.2494,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,85-89,85,5,7.1618,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,90-94,90,5,4.7487,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,95-99,95,5,3.1037,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+AUS,Australia,2024,Total,100+,100,-1,2.0906,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,0,0,1,82.2449,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,1-4,1,4,81.5453,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,5-9,5,5,77.6271,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,10-14,10,5,72.6538,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,15-19,15,5,67.6899,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,20-24,20,5,62.806,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,25-29,25,5,57.9647,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,30-34,30,5,53.1153,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,35-39,35,5,48.2744,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,40-44,40,5,43.4532,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,45-49,45,5,38.6834,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,50-54,50,5,34.0067,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,55-59,55,5,29.4493,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,60-64,60,5,25.0222,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,65-69,65,5,20.7385,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,70-74,70,5,16.6467,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,75-79,75,5,12.8371,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,80-84,80,5,9.4312,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,85-89,85,5,6.5693,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,90-94,90,5,4.3845,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,95-99,95,5,2.9083,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159
+NZL,New Zealand,2024,Total,100+,100,-1,2.0071,data/raw/economics_20261029/wpp2024_lt_abridged_medium.csv.gz,3aa9b324ba654ae61e292889be0677d30d97061a30c2c05a0ecc86cc2c5c8159

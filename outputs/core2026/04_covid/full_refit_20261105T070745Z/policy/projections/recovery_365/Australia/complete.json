@@ -1,0 +1,15 @@
+{
+  "country": "Australia",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/Australia/recovery_365",
+  "draw_id": 0,
+  "scenario_id": "recovery_365",
+  "reporting": {
+    "reporting_logit_<1": -1.871399024733219,
+    "reporting_logit_1-4": -2.116472776805133,
+    "reporting_logit_5-9": -2.6284645920279,
+    "reporting_logit_10-19": -2.772370037457785,
+    "reporting_logit_20-59": -2.65234263449756,
+    "reporting_logit_60+": -2.071197113950146,
+    "breakthrough_reporting_ratio": 0.0471115425225168
+  }
+}

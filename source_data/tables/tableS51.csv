@@ -1,0 +1,25 @@
+Setting,Fit history,Onward DALYs,Equal-allocation DALYs,Acquisition DALYs,Onward minus acquisition
+Australia,adopted,87.19,71.1,61.65,25.53
+Australia,baseline,87.19,71.1,61.66,25.53
+Australia,recovery_365,87.19,71.1,61.66,25.53
+Brazil,adopted,14.25,-28.46,-46.81,61.06
+Brazil,baseline,14.25,-28.47,-46.81,61.06
+Brazil,recovery_365,155.9,136,126,29.85
+China,adopted,2207,1580,1214,993.3
+China,baseline,2207,1580,1214,993.3
+China,recovery_365,1939,1325,958.5,980.6
+England,adopted,66.24,55.87,44.88,21.36
+England,baseline,66.24,55.88,44.88,21.36
+England,recovery_365,75.11,60.6,45.83,29.29
+Japan,adopted,2.706,-2.793,12.87,-10.16
+Japan,baseline,2.706,-2.793,12.87,-10.16
+Japan,recovery_365,145.8,152.2,161.6,-15.82
+New_Zealand,adopted,3.632,4.278,4.722,-1.09
+New_Zealand,baseline,3.632,4.278,4.722,-1.09
+New_Zealand,recovery_365,4.115,5.031,5.517,-1.402
+Sweden,adopted,14.14,9.431,6.92,7.216
+Sweden,baseline,14.14,9.431,6.92,7.216
+Sweden,recovery_365,14.89,10.68,8.444,6.447
+Thailand,adopted,26.48,15.26,10.43,16.05
+Thailand,baseline,26.48,15.26,10.43,16.05
+Thailand,recovery_365,6.263,2.008,0.5837,5.679

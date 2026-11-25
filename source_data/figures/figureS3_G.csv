@@ -1,0 +1,5 @@
+"country","horizon","route","profile_id","maternal_baseline","maternal_coverage","nasal_coverage","tdap_coverage","strategy_id","comparator","infant_yll_averted","yll_q025","yll_q975"
+"Brazil",20,"coadmin","b050_a050_d03_point",0.75,0.75,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",185.532164530494,150.005162204515,229.392051088585
+"Brazil",30,"coadmin","b050_a050_d03_point",0.75,0.75,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",185.667632689502,150.22311659813,229.590927910171
+"Brazil",20,"coadmin","b050_a050_d03_point",0.75,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",140.863961662135,113.734661011782,174.331262081937
+"Brazil",30,"coadmin","b050_a050_d03_point",0.75,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",149.947777725961,121.057475691808,185.504605619149

@@ -1,0 +1,5 @@
+"country","horizon","route","profile_id","maternal_baseline","maternal_coverage","nasal_coverage","tdap_coverage","strategy_id","comparator","infant_yll_averted","yll_q025","yll_q975"
+"England",20,"coadmin","b050_a050_d03_point",0.73,0.73,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",52.9076363549079,38.3948069439088,75.0547177398314
+"England",30,"coadmin","b050_a050_d03_point",0.73,0.73,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",41.3840741793624,30.1114501223115,58.4918083032988
+"England",20,"coadmin","b050_a050_d03_point",0.73,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",38.824131073105,24.587572662211,66.7283504368316
+"England",30,"coadmin","b050_a050_d03_point",0.73,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",30.336318078757,19.2756142584349,51.9127668904966

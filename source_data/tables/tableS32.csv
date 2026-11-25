@@ -1,0 +1,8 @@
+Scenario,Duration (days),Timely entry,Pathway parameter $\sigma$,20-year nasal benefit at 0% / 90% maternal coverage,Decline,30-year nasal benefit at 0% / 90% maternal coverage,Decline
+Duration 120 d (recalibrated),120,90%,1,1534 / 640.3,58.3%,1580 / 672.1,57.5%
+Duration 180 d (recalibrated),180,90%,1,1534 / 582.9,62.0%,1580 / 612.7,61.2%
+Duration 240 d (recalibrated),240,90%,1,1534 / 547.9,64.3%,1580 / 575.2,63.6%
+Timely entry 75% (fixed biology),120,75%,1,1534 / 799,47.9%,1580 / 836.6,47.1%
+Timely entry 90% (fixed biology),120,90%,1,1534 / 640.3,58.3%,1580 / 672.1,57.5%
+Timely entry 100% (fixed biology),120,100%,1,1534 / 532.6,65.3%,1580 / 559.9,64.6%
+Acquisition plus course (recalibrated),120,90%,0.3,1534 / 665.7,56.6%,1580 / 708.4,55.2%

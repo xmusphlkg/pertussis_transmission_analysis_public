@@ -1,0 +1,17 @@
+Setting,History,Objective difference,Fitting WAPE (%),Later window,Later WAPE (%),Later predicted/observed
+Australia,Matched baseline,+0.000,26.3,Included in fitting,—,—
+Australia,365-day contact recovery,+0.000,26.3,Included in fitting,—,—
+England,Matched baseline,+0.000,34.2,Included in fitting,—,—
+England,365-day contact recovery,-1.679,37.0,Included in fitting,—,—
+Sweden,Matched baseline,+0.000,34.8,2025,317.6,4.176
+Sweden,365-day contact recovery,-1.193,33.6,2025,312.1,4.121
+Japan,Matched baseline,+0.000,26.6,2024,114.2,2.142
+Japan,365-day contact recovery,-0.309,26.7,2024,125.5,2.255
+New Zealand,Matched baseline,+0.000,27.7,2025,172.3,2.723
+New Zealand,365-day contact recovery,+1.898,27.6,2025,182.2,2.822
+China,Matched baseline,+0.000,111.5,2025,29.8,0.757
+China,365-day contact recovery,-10.804,109.3,2025,36.9,1.104
+Brazil,Matched baseline,+0.000,86.5,2025,23.8,1.019
+Brazil,365-day contact recovery,-5.227,81.9,2025,26.4,1.232
+Thailand,Matched baseline,+0.000,72.2,2024,77.6,0.799
+Thailand,365-day contact recovery,-0.145,70.3,2024,78.0,0.797

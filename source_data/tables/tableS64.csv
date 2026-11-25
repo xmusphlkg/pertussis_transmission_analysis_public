@@ -1,0 +1,17 @@
+Setting,Horizon (years),Valuation records,Records with a positive-price nasal interval,Route within nasal interval,Range of joint cost boundaries (Int$/dose)
+Australia,20,4,4,With Tdap,1.636 to 2.170
+Australia,30,4,4,Standalone,5.620 to 7.365
+England,20,4,4,Standalone,0.858 to 2.158
+England,30,4,4,Standalone,0.382 to 1.035
+Sweden,20,4,4,Standalone,0.959 to 2.464
+Sweden,30,4,4,Standalone,0.451 to 1.147
+Japan,20,4,4,Standalone,1.008 to 3.957
+Japan,30,4,4,Standalone,0.368 to 1.250
+New Zealand,20,4,4,Standalone,0.583 to 0.991
+New Zealand,30,4,4,Standalone,0.770 to 1.298
+China,20,16,16,Standalone,0.159 to 0.341
+China,30,16,16,Standalone,0.131 to 0.282
+Brazil,20,10,10,Standalone,0.202 to 0.672
+Brazil,30,10,10,Standalone,0.0012 to 0.0048
+Thailand,20,6,0,Standard,−0.0080 to −0.0045
+Thailand,30,6,6,Standalone,0.0501 to 0.0724

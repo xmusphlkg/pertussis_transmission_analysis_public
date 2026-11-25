@@ -1,0 +1,10 @@
+{
+  "country": "Sweden",
+  "history": "baseline",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/Sweden/baseline",
+  "seconds": 63.43452180176973,
+  "reused_projection_trajectories": 3,
+  "history_replays": 1,
+  "new_projection_integrations": 23,
+  "matched_conditions": 2
+}

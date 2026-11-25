@@ -1,0 +1,9 @@
+Setting,Fitted years,Observation interval,Training WAPE,Later year,Later WAPE,Later predicted/observed total,Later age TV
+Australia,2016–2025,Monthly,26.3%,NA,NA,NA,NA
+England,2016–2025,Annual/quarterly,34.2%,NA,NA,NA,NA
+Sweden,2016–2024,Monthly,34.8%,2025,317.6%,4.176,0.105
+Japan,2018–2023,Weekly,26.6%,2024,114.2%,2.142,0.211
+New Zealand,2016–2024,Monthly,27.7%,2025,172.3%,2.723,NA
+China,2016–2024,Monthly,111.4%,2025,29.8%,0.757,NA
+Brazil,2010–2024,Monthly,86.5%,2025,23.8%,1.019,0.215
+Thailand,2016–2023,Monthly,72.2%,2024,77.6%,0.799,0.216

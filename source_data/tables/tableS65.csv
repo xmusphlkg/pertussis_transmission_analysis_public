@@ -1,0 +1,76 @@
+Setting,Horizon (years),Morbidity,Nasal cost interval (Int$/dose),Selected route,Maternal (%),Nasal (%),Tdap (%)
+Australia,20,Reported,0.0000 to 2.170,With Tdap,60,75,75
+Australia,20,Reported,2.170 to ∞,Standard,60,0,75
+Australia,20,"Symptomatic, differentiated",0.0000 to 8.708,With Tdap,60,75,75
+Australia,20,"Symptomatic, differentiated",8.708 to ∞,Standard,60,0,75
+Australia,30,Reported,0.0000 to 4.325,Standalone,60,90,75
+Australia,30,Reported,4.325 to 7.365,Standalone,60,75,75
+Australia,30,Reported,7.365 to ∞,Standard,60,0,75
+Australia,30,"Symptomatic, differentiated",0.0000 to 16.872,Standalone,60,90,75
+Australia,30,"Symptomatic, differentiated",16.872 to 27.237,Standalone,60,75,75
+Australia,30,"Symptomatic, differentiated",27.237 to ∞,Standard,60,0,90
+England,20,Reported,0.0000 to 1.994,Standalone,73,90,0
+England,20,Reported,1.994 to 2.158,Standalone,73,50,0
+England,20,Reported,2.158 to ∞,Standard,73,0,0
+England,20,"Symptomatic, differentiated",0.0000 to 21.776,Standalone,73,90,0
+England,20,"Symptomatic, differentiated",21.776 to 22.513,Standalone,73,50,0
+England,20,"Symptomatic, differentiated",22.513 to ∞,Standard,73,0,0
+England,30,Reported,0.0000 to 1.035,Standalone,73,90,0
+England,30,Reported,1.035 to ∞,Standard,73,0,0
+England,30,"Symptomatic, differentiated",0.0000 to 10.542,Standalone,73,90,0
+England,30,"Symptomatic, differentiated",10.542 to ∞,Standard,73,0,0
+Sweden,20,Reported,0.0000 to 2.464,Standalone,50,90,90
+Sweden,20,Reported,2.464 to ∞,Standard,50,0,90
+Sweden,20,"Symptomatic, differentiated",0.0000 to 19.166,Standalone,90,90,90
+Sweden,20,"Symptomatic, differentiated",19.166 to ∞,Standard,90,0,90
+Sweden,30,Reported,0.0000 to 1.147,Standalone,50,90,90
+Sweden,30,Reported,1.147 to ∞,Standard,50,0,90
+Sweden,30,"Symptomatic, differentiated",0.0000 to 10.377,Standalone,70,90,90
+Sweden,30,"Symptomatic, differentiated",10.377 to ∞,Standard,90,0,90
+Japan,20,Reported,0.0000 to 3.957,Standalone,0,90,0
+Japan,20,Reported,3.957 to ∞,Standard,0,0,0
+Japan,20,"Symptomatic, differentiated",0.0000 to 17.658,Standalone,0,90,0
+Japan,20,"Symptomatic, differentiated",17.658 to ∞,Standard,0,0,0
+Japan,30,Reported,0.0000 to 1.250,Standalone,0,50,0
+Japan,30,Reported,1.250 to ∞,Standard,0,0,0
+Japan,30,"Symptomatic, differentiated",0.0000 to 3.332,Standalone,0,50,0
+Japan,30,"Symptomatic, differentiated",3.332 to ∞,Standard,0,0,0
+New Zealand,20,Reported,0.0000 to 0.653,Standalone,75,90,80
+New Zealand,20,Reported,0.653 to 0.991,Standalone,75,80,80
+New Zealand,20,Reported,0.991 to ∞,Standard,75,0,80
+New Zealand,20,"Symptomatic, differentiated",0.0000 to 5.298,With Tdap,75,90,90
+New Zealand,20,"Symptomatic, differentiated",5.298 to 6.678,Standalone,75,80,80
+New Zealand,20,"Symptomatic, differentiated",6.678 to ∞,Standard,75,0,80
+New Zealand,30,Reported,0.0000 to 1.094,Standalone,75,90,80
+New Zealand,30,Reported,1.094 to 1.298,Standalone,75,80,80
+New Zealand,30,Reported,1.298 to ∞,Standard,75,0,80
+New Zealand,30,"Symptomatic, differentiated",0.0000 to 9.108,With Tdap,75,90,90
+New Zealand,30,"Symptomatic, differentiated",9.108 to ∞,Standard,75,0,90
+China,20,Reported,0.0000 to 0.340,Standalone,0,90,0
+China,20,Reported,0.340 to 0.340,Standalone,0,70,0
+China,20,Reported,0.340 to 0.341,Standalone,0,50,0
+China,20,Reported,0.341 to ∞,Standard,0,0,0
+China,20,"Symptomatic, differentiated",0.0000 to 0.809,Standalone,0,90,0
+China,20,"Symptomatic, differentiated",0.809 to 0.810,Standalone,0,70,0
+China,20,"Symptomatic, differentiated",0.810 to 0.816,Standalone,0,50,0
+China,20,"Symptomatic, differentiated",0.816 to ∞,Standard,0,0,0
+China,30,Reported,0.0000 to 0.281,Standalone,0,90,0
+China,30,Reported,0.281 to 0.282,Standalone,0,70,0
+China,30,Reported,0.282 to ∞,Standard,0,0,0
+China,30,"Symptomatic, differentiated",0.0000 to 0.586,Standalone,0,90,0
+China,30,"Symptomatic, differentiated",0.586 to 0.590,Standalone,0,70,0
+China,30,"Symptomatic, differentiated",0.590 to 0.592,Standalone,0,50,0
+China,30,"Symptomatic, differentiated",0.592 to ∞,Standard,0,0,0
+Brazil,20,Reported,0.0000 to 0.672,Standalone,75,90,0
+Brazil,20,Reported,0.672 to ∞,Standard,75,0,0
+Brazil,20,"Symptomatic, differentiated",0.0000 to 11.896,Standalone,75,90,0
+Brazil,20,"Symptomatic, differentiated",11.896 to ∞,Standard,75,0,0
+Brazil,30,Reported,0.0000 to 0.0048,Standalone,75,90,0
+Brazil,30,Reported,0.0048 to ∞,Standard,75,0,0
+Brazil,30,"Symptomatic, differentiated",0.0000 to ∞,Standard,75,0,0
+Thailand,20,Reported,0.0000 to ∞,Standard,50,0,0
+Thailand,20,"Symptomatic, differentiated",0.0000 to ∞,Standard,50,0,0
+Thailand,30,Reported,0.0000 to 0.0724,Standalone,50,90,0
+Thailand,30,Reported,0.0724 to ∞,Standard,50,0,0
+Thailand,30,"Symptomatic, differentiated",0.0000 to 1.808,Standalone,50,90,0
+Thailand,30,"Symptomatic, differentiated",1.808 to ∞,Standard,50,0,0

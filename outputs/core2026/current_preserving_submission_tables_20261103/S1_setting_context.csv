@@ -1,0 +1,9 @@
+country,population_2027,births_2027,current_maternal_coverage,current_adolescent_coverage,adolescent_age,unique_strategies,train_start,train_end,posttraining_years,posttraining_expected_observed,noninfant_mortality_main,cost_scope_note,price_scope_note
+Australia,27441670.804590058,302381.804614,0.6,0.75,12.0,6,2016,2025,NA,NA,unestimated,healthcare_cost_components_with_declared_proxies,modelled_vaccine_price_item
+England,59322622.99404908,555519.2804251815,0.73,0.0,12.0,8,2016,2025,NA,NA,unestimated,healthcare_cost_components_with_declared_proxies,modelled_vaccine_price_item
+Sweden,10764542.676518036,95575.68699,0.5,0.9,15.0,3,2016,2024,2025.0,4.175585845004639,unestimated,healthcare_cost_components_with_declared_proxies,modelled_vaccine_price_item
+Japan,122744255.68891723,745975.7795199999,0.0,0.0,12.0,16,2018,2023,2024.0,2.141687664020536,unestimated,healthcare_cost_components_with_declared_proxies,maternal_bundle_includes_administration
+New_Zealand,5327054.002714226,57518.61551,0.75,0.8,11.0,4,2016,2024,2025.0,2.7227913500091088,unestimated,healthcare_cost_components_with_declared_proxies,modelled_vaccine_price_item
+China,1418653101.970439,8529970.085706,0.0,0.0,12.0,16,2016,2024,2025.0,0.7574365999767593,unestimated,direct_cost_includes_transport,modelled_vaccine_price_item
+Brazil,215245020.6459945,2461644.962181,0.75,0.0,12.0,8,2010,2024,2025.0,1.018622902725615,national_CFR,healthcare_cost_components_with_declared_proxies,modelled_vaccine_price_item
+Thailand,71927884.76041734,561325.0087639999,0.5,0.0,12.0,12,2016,2023,2024.0,0.7991412621565464,national_CFR,healthcare_cost_components_with_declared_proxies,modelled_vaccine_price_item

@@ -1,0 +1,10 @@
+country,programme,value,period,kind,source_id
+England,maternal,0.73,FY2025-2026,national_annual_observed,EN_ANNUAL
+England,maternal,0.723,Apr-Jun2026,national_quarter_observed,EN_QUARTER
+Sweden,maternal,0.68,2025 deliveryyear,register_yes_proportion_unknown_in_denominator,SE_M2025
+Sweden,adolescent,0.93,2025 age16 atDec31,cumulative_dose5_by16_not_annual_age15,SE_A2025
+New_Zealand,maternal,0.641,2025,official_annual_anchor_underlying_methods_not_fully_public,NZ_FIG22
+Australia,adolescent,0.834,2024 females_turning15,cumulative_adolescent_dose_byyearend,AU_AIR2024
+Australia,adolescent,0.809,2024 males_turning15,cumulative_adolescent_dose_byyearend,AU_AIR2024
+Australia,adolescent,0.738,2024 females_turning13,cumulative_adolescent_dose_byyearend_not_annual_age12,AU_AIR2024
+Australia,adolescent,0.705,2024 males_turning13,cumulative_adolescent_dose_byyearend_not_annual_age12,AU_AIR2024

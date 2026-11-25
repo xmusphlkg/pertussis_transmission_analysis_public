@@ -1,0 +1,5 @@
+country,alias,requested_expansion_target,strategy_id,actual_maternal_coverage,actual_adolescent_coverage
+Brazil,current,0.7,current,0.75,0.0
+Brazil,current+M,0.7,current,0.75,0.0
+Brazil,current+A,0.7,current_Mkeep_A0.7,0.75,0.7
+Brazil,current+MA,0.7,current_Mkeep_A0.7,0.75,0.7

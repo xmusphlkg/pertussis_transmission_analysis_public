@@ -1,0 +1,15 @@
+{
+  "country": "Thailand",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/Thailand/baseline",
+  "draw_id": 0,
+  "scenario_id": "baseline",
+  "reporting": {
+    "reporting_logit_<1": -5.321879668203955,
+    "reporting_logit_1-4": -6.024069850553871,
+    "reporting_logit_5-9": -7.400134522903532,
+    "reporting_logit_10-19": -8.0,
+    "reporting_logit_20-59": -8.0,
+    "reporting_logit_60+": -7.559813680477703,
+    "breakthrough_reporting_ratio": 0.0244084485428265
+  }
+}

@@ -1,0 +1,7 @@
+"country","horizon","route","profile_id","maternal_baseline","maternal_coverage","nasal_coverage","tdap_coverage","strategy_id","comparator","infant_yll_averted","yll_q025","yll_q975"
+"Thailand",20,"coadmin","b050_a050_d03_point",0.5,0.5,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",3.80489935852052,0.531284676617646,10.6233310315225
+"Thailand",30,"coadmin","b050_a050_d03_point",0.5,0.5,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",11.7558101126627,1.63757486967361,32.8587308746496
+"Thailand",20,"coadmin","b050_a050_d03_point",0.5,0.7,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.7_A0.9","current_M0.7_A0.9",3.1288850744469,0.453806176201377,8.4025514035635
+"Thailand",30,"coadmin","b050_a050_d03_point",0.5,0.7,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.7_A0.9","current_M0.7_A0.9",9.7427585134389,1.41196140279966,26.2252851431927
+"Thailand",20,"coadmin","b050_a050_d03_point",0.5,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",2.39811895803692,0.364147638923525,6.51336813568877
+"Thailand",30,"coadmin","b050_a050_d03_point",0.5,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",6.88758711573241,1.04582133686352,18.6552084452066

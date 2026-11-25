@@ -1,0 +1,31 @@
+{
+  "profile_ids": [
+    "b025_a000_d03_point",
+    "b025_a050_d03_point",
+    "b025_a100_d03_point",
+    "b050_a000_d03_point",
+    "b050_a050_d03_point",
+    "b050_a100_d03_point",
+    "b100_a000_d03_point",
+    "b100_a050_d03_point",
+    "b100_a100_d03_point",
+    "b025_a050_d01_point",
+    "b050_a050_d01_point",
+    "b025_a050_d06_point",
+    "b050_a050_d06_point",
+    "b100_a050_d06_point",
+    "b050_a050_d10_point",
+    "b050_a050_d03_ci95_lower",
+    "b050_a050_d03_ci95_upper"
+  ],
+  "countries": [
+    "Australia",
+    "England",
+    "Sweden",
+    "Japan",
+    "New_Zealand",
+    "China",
+    "Brazil",
+    "Thailand"
+  ]
+}

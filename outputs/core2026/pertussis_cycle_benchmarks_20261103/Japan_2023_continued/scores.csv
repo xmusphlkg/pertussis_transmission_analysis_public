@@ -1,0 +1,6 @@
+country,cutoff,year,resolution,method,total_test_intervals,matched_intervals,missing_intervals,observed_total_matched,model_wape_matched,benchmark_wape_matched,model_wape_all_test_intervals,source_years,fit_stationary
+Japan,2023,2024,weekly_iso,four_year_lag,52,52,0,4080.0,1.1417736741190283,1.3083333333333333,1.1417736741190283,2020,True
+Japan,2023,2024,weekly_iso,last_training_year,52,52,0,4080.0,1.1417736741190283,0.7720588235294118,1.1417736741190283,2023,True
+Japan,2023,2024,weekly_iso,pre_pandemic_mean_2017_2019_available_years,52,52,0,4080.0,1.1417736741190283,2.549019607843137,1.1417736741190283,2018|2019,True
+Japan,2023,2024,weekly_iso,three_training_year_mean,52,52,0,4080.0,1.1417736741190283,0.8316993464052288,1.1417736741190283,2021|2022|2023,True
+Japan,2023,2024,weekly_iso,three_training_year_median,52,52,0,4080.0,1.1417736741190283,0.8394607843137255,1.1417736741190283,2021|2022|2023,True

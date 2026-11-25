@@ -1,0 +1,18 @@
+{
+  "best_start": 0,
+  "all_starts_finished": true,
+  "fit_converged": true,
+  "gradient_checks": [
+    {
+      "step": 5e-05,
+      "objective": 805.7979311059113,
+      "max_projected_gradient": 0.03384153387742117
+    },
+    {
+      "step": 1e-05,
+      "objective": 805.7979311059113,
+      "max_projected_gradient": 0.008441270438197535
+    }
+  ],
+  "selection": "local coordinate polish of the largest projected training gradient"
+}

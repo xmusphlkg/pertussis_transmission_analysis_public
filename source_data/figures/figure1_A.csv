@@ -1,0 +1,17 @@
+"country","horizon","route","nasal_coverage","maternal_coverage","tdap_coverage","comparator","strategy_id","profile_id","yll_averted","yll_averted_q025","yll_averted_q975"
+"Australia",20,"standalone",0.9,0.6,0.75,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",7.42574347177552,2.9495607747592,14.3335467142394
+"Australia",30,"standalone",0.9,0.6,0.75,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",27.6557492847332,10.9997128821568,53.2986978615962
+"Brazil",20,"standalone",0.9,0.75,0,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",862.558011544313,697.757308749555,1066.09279051264
+"Brazil",30,"standalone",0.9,0.75,0,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",-0.510725213886463,-2.74694033015272,1.73693029912763
+"China",20,"standalone",0.9,0,0,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",1916.63198358962,759.485592628584,3608.24355864219
+"China",30,"standalone",0.9,0,0,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",1975.58554289883,783.154108966242,3718.53994450475
+"England",20,"standalone",0.9,0.73,0,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",96.7167498934861,70.915445388886,134.641689136846
+"England",30,"standalone",0.9,0.73,0,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",66.9899323787085,49.6924033776479,91.4136178901047
+"Japan",20,"standalone",0.9,0,0,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",364.673012186033,287.045157416895,446.869038587252
+"Japan",30,"standalone",0.9,0,0,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",-9.69632265191888,-35.8218250568408,47.3888120862318
+"New_Zealand",20,"standalone",0.9,0.75,0.8,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",1.70370266349966,1.20424489073623,2.68030105318876
+"New_Zealand",30,"standalone",0.9,0.75,0.8,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",2.86596695088234,2.007666891202,4.58142902971949
+"Sweden",20,"standalone",0.9,0.5,0.9,"current","bpze1_b050_a050_d03_point_standalone__current","b050_a050_d03_point",13.8996839514708,9.31324426488881,23.8535521632467
+"Sweden",30,"standalone",0.9,0.5,0.9,"current","bpze1_b050_a050_d03_point_standalone__current","b050_a050_d03_point",8.18438815487318,5.49129222832402,14.0181089617739
+"Thailand",20,"standalone",0.9,0.5,0,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",1.65426898159518,0.249162533785532,4.42886058609011
+"Thailand",30,"standalone",0.9,0.5,0,"current","bpze1_b050_a050_d03_point_standalone__current_Mkeep_A0.9","b050_a050_d03_point",14.3209356251041,2.04608200363684,39.4090964132777

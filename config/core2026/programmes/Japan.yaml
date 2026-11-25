@@ -1,0 +1,315 @@
+schema: core2026-programme-v1
+country: Japan
+iso3: JPN
+status: provisional
+sources:
+  wuenic_2025:
+    citation: WHO/UNICEF Estimates of National Immunization Coverage, DTP1/DTP3, 2025
+      revision; repository export used by core2026.
+    url: https://immunizationdata.who.int/
+    ledger: coverage_series_external_validation
+  coverage_pre1990_assumption:
+    citation: Modeling assumption for pre-1990 coverage where the M2 ledger has policy
+      context but no annual national uptake series; replace when historical survey/registry
+      data are assembled.
+    url: data/processed/m2_vaccination_history/README.md
+    ledger: coverage_pre_1990_open_item
+  coverage_projection_2050:
+    citation: Core2026 projection assumption after the last observed WUENIC year;
+      held near the recent national level for forward simulation.
+    url: config/core2026/programmes/README.md
+    ledger: projection_assumption
+  ledger_schedule:
+    citation: 'M2 Japan ledger: 1975 interruption, 1981 national aP replacement, 1995
+      schedule and 2012 DPT-IPV combination.'
+    url: data/processed/m2_vaccination_history/china_japan.md
+    ledger: Japan event ledger
+  ledger_gap:
+    citation: 'M2 Japan ledger: 1975-1981 disruption and delayed primary administration.'
+    url: data/processed/m2_vaccination_history/china_japan.md
+    ledger: Japan interruption caveat
+  timeliness_assumption:
+    citation: Shared whole-month timeliness prior used for the core2026 input bundle;
+      country-specific dose-date distributions are not yet available.
+    url: config/core2026/programmes/README.md
+    ledger: timeliness_open_item
+primary_product:
+- start: '1970-01-01'
+  product: wP
+  sources:
+  - ledger_schedule
+  evidence_grade: C
+- start: '1981-01-01'
+  product: aP
+  sources:
+  - ledger_schedule
+  evidence_grade: A
+coverage_series:
+  dtp1:
+  - from: 1970
+    to: 1974
+    interpolate: &id001
+      '1970': 0.7
+      '1974': 0.8
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1975
+    to: 1981
+    value: 0.0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1982
+    to: 1989
+    interpolate: &id002
+      '1982': 0.45
+      '1989': 0.75
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 2024
+    wuenic: DTPCV1
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 2025
+    to: 2050
+    value: 0.95
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  dtp3:
+  - from: 1970
+    to: 1974
+    interpolate: *id001
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1975
+    to: 1981
+    value: 0.0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1982
+    to: 1989
+    interpolate: *id002
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 2024
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 2025
+    to: 2050
+    value: 0.95
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  dtp2:
+    derived_mean:
+    - dtp1
+    - dtp3
+  late_primary:
+  - from: 1970
+    to: 1976
+    value: 0.0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1977
+    to: 1981
+    value: 0.3
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1982
+    to: 1989
+    interpolate:
+      '1982': 0.45
+      '1989': 0.75
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 1992
+    value: 0.75
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1993
+    to: 2050
+    value: 0.0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  booster_15m:
+  - from: 1970
+    to: 1974
+    value: 0.7
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1975
+    to: 1981
+    value: 0
+    sources:
+    - ledger_gap
+    evidence_grade: A
+  - from: 1982
+    to: 1989
+    value: 0.6
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 2024
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.95
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+infant_doses:
+# Infant doses stop after the 1975 interruption; from 1975 to 1989 the
+# primary series was given after age 2 (late_primary_2y below). Infant starts
+# resume from 1990 (December 1988 policy, ramped through the early 1990s).
+- name: primary_1_legacy
+  kind: dose1
+  age_months: 3
+  start: '1970-01-01'
+  end: '1975-01-01'
+  coverage: dtp1
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_2_legacy
+  kind: dose2
+  age_months: 4
+  start: '1970-01-01'
+  end: '1975-01-01'
+  coverage: dtp2
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_3_legacy
+  kind: dose3
+  age_months: 5
+  start: '1970-01-01'
+  end: '1975-01-01'
+  coverage: dtp3
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: booster_legacy
+  kind: toddler_booster
+  age_months: 15
+  start: '1970-01-01'
+  end: '1975-01-01'
+  coverage: booster_15m
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_1
+  kind: dose1
+  age_months: 3
+  start: '1990-01-01'
+  end: null
+  coverage: dtp1
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_2
+  kind: dose2
+  age_months: 4
+  start: '1990-01-01'
+  end: null
+  coverage: dtp2
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_3
+  kind: dose3
+  age_months: 5
+  start: '1990-01-01'
+  end: null
+  coverage: dtp3
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: booster_12_18m
+  kind: toddler_booster
+  age_months: 15
+  start: '1990-01-01'
+  end: null
+  coverage: booster_15m
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+cohort_doses:
+# Ledger: after 1975 primary immunisation "was given at ages over 2 years";
+# 1982-1988 doses "were given to 2-year-olds" (40.3 million doses, Kuno-Sakai
+# & Kimura 2004). Encoded as one completed series at mean age 2.5 years for
+# birth cohorts 1974-1989; the age is grade A/B, the uptake is an assumption.
+- name: late_primary_2y
+  kind: late_primary
+  age_years: 2.5
+  start: '1977-01-01'
+  end: '1993-01-01'
+  birth_year_start: 1974
+  birth_year_end: 1990
+  coverage: late_primary
+  sources:
+  - ledger_schedule
+  evidence_grade: C
+maternal: []
+timeliness:
+  delay_pmf_months:
+  - 0.75
+  - 0.15
+  - 0.06
+  - 0.04
+  sources:
+  - timeliness_assumption
+  evidence_grade: D
+sensitivity_variants:
+  japan_1975_1981:
+    description: Complete-gap alternative to the late-primary baseline; cohorts reaching
+      age 2 in 1977-1981 receive no pertussis vaccine.
+    coverage_gap: 1975-1981
+    operations:
+    - kind: set_coverage_segment
+      series: late_primary
+      from: 1977
+      to: 1981
+      value: 0.0
+  japan_primary_start_age:
+    description: Late primary series at mean age 3.5 instead of 2.5 years (ledger reports
+      first doses at 24-48 months in 1981-1988).
+    operations:
+    - kind: set_dose_field
+      block: cohort_doses
+      name: late_primary_2y
+      field: age_years
+      value: 3.5
+  japan_late_primary_high_coverage:
+    description: High-coverage alternative for the 1982-1989 late primary series,
+      motivated by the 40.3 million recorded doses divided by an approximate four-dose series.
+    operations:
+    - kind: set_coverage_segment
+      series: late_primary
+      from: 1982
+      to: 1989
+      value: 0.9
+notes: From 1975 to 1989 the primary series is a late cohort series at mean age 2.5
+  years (late_primary_2y); infant doses resume in 1990. 11-12-year DT is not a pertussis
+  dose.

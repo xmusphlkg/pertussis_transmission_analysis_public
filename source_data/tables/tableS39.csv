@@ -1,0 +1,33 @@
+Setting,Route,Years,Infant reported cases averted,Infant admissions averted,Infant deaths averted (95% UI),Discounted infant YLL averted (95% UI)
+Australia,Standalone,20,−1.1,−1.2,−0.006 (−0.017 to 0.001),7.4 (2.9 to 14.3)
+Australia,Standalone,30,891.6,650.5,1.272 (0.506 to 2.451),27.7 (11.0 to 53.3)
+Australia,With Tdap,20,−30.5,−22.4,−0.045 (−0.085 to −0.018),5.8 (2.3 to 11.3)
+Australia,With Tdap,30,664.5,484.9,0.950 (0.378 to 1.828),21.8 (8.7 to 42.0)
+England,Standalone,20,303.6,224.0,4.098 (3.005 to 5.703),96.7 (70.9 to 134.6)
+England,Standalone,30,156.4,115.9,2.158 (1.625 to 2.876),67.0 (49.7 to 91.4)
+England,With Tdap,20,167.4,123.3,2.240 (1.625 to 3.179),52.9 (38.4 to 75.1)
+England,With Tdap,30,112.5,82.9,1.510 (1.100 to 2.130),41.4 (30.1 to 58.5)
+Sweden,Standalone,20,40.6,26.6,0.553 (0.370 to 0.950),13.9 (9.3 to 23.9)
+Sweden,Standalone,30,13.2,8.7,0.181 (0.121 to 0.309),8.2 (5.5 to 14.0)
+Sweden,With Tdap,20,35.7,23.4,0.486 (0.326 to 0.834),12.3 (8.3 to 21.2)
+Sweden,With Tdap,30,12.5,8.2,0.171 (0.115 to 0.291),7.5 (5.1 to 12.8)
+Japan,Standalone,20,341.6,254.5,16.076 (12.655 to 19.687),364.7 (287.0 to 446.9)
+Japan,Standalone,30,−143.3,−110.6,−8.135 (−11.007 to −4.741),−9.7 (−35.8 to 47.4)
+Japan,With Tdap,20,649.1,486.6,31.491 (24.724 to 38.563),612.0 (480.0 to 749.2)
+Japan,With Tdap,30,−231.8,−174.8,−11.590 (−14.422 to −9.112),−60.4 (−80.3 to −38.3)
+New Zealand,Standalone,20,3.1,1.6,0.010 (0.008 to 0.013),1.7 (1.2 to 2.7)
+New Zealand,Standalone,30,14.3,7.5,0.041 (0.030 to 0.060),2.9 (2.0 to 4.6)
+New Zealand,With Tdap,20,9.3,4.8,0.027 (0.020 to 0.038),1.7 (1.2 to 2.7)
+New Zealand,With Tdap,30,16.9,8.8,0.048 (0.035 to 0.071),2.6 (1.8 to 4.1)
+China,Standalone,20,"7,408.1","5,529.2",69.939 (27.710 to 131.674),"1,916.6 (759.5 to 3,608.2)"
+China,Standalone,30,"7,835.0","5,847.2",73.921 (29.312 to 139.119),"1,975.6 (783.2 to 3,718.5)"
+China,With Tdap,20,"6,293.3","4,694.3",59.197 (23.561 to 111.209),"1,646.3 (655.7 to 3,091.9)"
+China,With Tdap,30,"6,546.0","4,882.7",61.567 (24.508 to 115.652),"1,686.7 (671.8 to 3,167.5)"
+Brazil,Standalone,20,"3,456.2","2,507.1",45.036 (36.438 to 55.663),"862.6 (697.8 to 1,066.1)"
+Brazil,Standalone,30,−928.5,−676.2,−12.410 (−15.342 to −10.029),−0.5 (−2.7 to 1.7)
+Brazil,With Tdap,20,580.6,423.2,7.801 (6.307 to 9.645),185.5 (150.0 to 229.4)
+Brazil,With Tdap,30,570.8,417.1,7.794 (6.312 to 9.639),185.7 (150.2 to 229.6)
+Thailand,Standalone,20,−12.5,−9.3,−0.113 (−0.343 to −0.013),1.7 (0.2 to 4.4)
+Thailand,Standalone,30,99.0,72.1,0.720 (0.104 to 1.968),14.3 (2.0 to 39.4)
+Thailand,With Tdap,20,8.1,5.9,0.060 (0.009 to 0.165),3.8 (0.5 to 10.6)
+Thailand,With Tdap,30,82.3,60.2,0.626 (0.087 to 1.748),11.8 (1.6 to 32.9)

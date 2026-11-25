@@ -1,0 +1,10 @@
+{
+  "country": "China",
+  "history": "baseline",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/China/baseline",
+  "seconds": 59.00876663532108,
+  "reused_projection_trajectories": 3,
+  "history_replays": 1,
+  "new_projection_integrations": 21,
+  "matched_conditions": 2
+}

@@ -1,0 +1,20 @@
+{
+  "best_start": 0,
+  "all_starts_finished": true,
+  "fit_converged": true,
+  "gradient_checks": [
+    {
+      "step": 5e-05,
+      "objective": 670.9028205155262,
+      "max_projected_gradient": 0.010516638440094539
+    },
+    {
+      "step": 1e-05,
+      "objective": 670.9028205155262,
+      "max_projected_gradient": 0.010555180551818921
+    }
+  ],
+  "status": "completed_local_fit",
+  "optimizer_success": true,
+  "selection": "single legacy-coordinate start, training posterior objective only"
+}

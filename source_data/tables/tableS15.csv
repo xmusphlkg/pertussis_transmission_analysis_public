@@ -1,0 +1,11 @@
+Quantity,Value
+Whole-group point ratio,0.05699
+Bootstrap median,0.05288
+Bootstrap 2.5th percentile,0.002605
+Bootstrap 97.5th percentile,0.2775
+Bootstrap maximum,11.41
+"Ratios above one / 20,000",28
+All-zero BPZE1 resamples,0
+All-zero placebo resamples,0
+Leave-one-participant-out minimum,0.01696
+Leave-one-participant-out maximum,0.0844

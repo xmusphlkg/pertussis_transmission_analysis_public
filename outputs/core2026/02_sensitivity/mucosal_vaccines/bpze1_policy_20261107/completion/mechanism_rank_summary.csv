@@ -1,0 +1,13 @@
+route,bridge_strength,horizon,settings,acquisition_larger_adolescent_gain,onward_larger_daly_gain,onward_daly_interval_above_zero,acquisition_larger_daly_settings
+standalone,0.25,20,8,8,8,6,
+standalone,0.25,30,8,8,7,6,New_Zealand
+coadmin,0.25,20,8,8,6,6,New_Zealand|Thailand
+coadmin,0.25,30,8,8,7,6,New_Zealand
+standalone,0.5,20,8,8,6,6,New_Zealand|Thailand
+standalone,0.5,30,8,8,6,5,Japan|New_Zealand
+coadmin,0.5,20,8,8,6,6,New_Zealand|Thailand
+coadmin,0.5,30,8,8,7,4,New_Zealand
+standalone,1,20,8,8,5,5,Australia|New_Zealand|Thailand
+standalone,1,30,8,8,5,5,Japan|New_Zealand|Brazil
+coadmin,1,20,8,8,6,6,New_Zealand|Thailand
+coadmin,1,30,8,8,5,5,Japan|New_Zealand|Brazil

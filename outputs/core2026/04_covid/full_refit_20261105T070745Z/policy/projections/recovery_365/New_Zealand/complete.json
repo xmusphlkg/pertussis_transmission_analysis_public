@@ -1,0 +1,15 @@
+{
+  "country": "New_Zealand",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/New_Zealand/recovery_365",
+  "draw_id": 0,
+  "scenario_id": "recovery_365",
+  "reporting": {
+    "reporting_logit_<1": -1.755152334531868,
+    "reporting_logit_1-4": -2.495389215318077,
+    "reporting_logit_5-9": -3.410727450028304,
+    "reporting_logit_10-19": -3.56989578036919,
+    "reporting_logit_20-59": -3.830721745670504,
+    "reporting_logit_60+": -3.8395240334854903,
+    "breakthrough_reporting_ratio": 0.0601505086685374
+  }
+}

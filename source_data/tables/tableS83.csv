@@ -1,0 +1,25 @@
+Setting,Transmission condition,Horizon (years),Comparator maternal / Tdap coverage (%),Common nasal cost boundary (Int$/dose),Draw-specific 2.5th–97.5th percentile range
+England,Local pooled,20,73 / 0,1.783,0.765 to 2.922
+England,Local pooled,30,73 / 0,1.251,0.581 to 2.294
+England,Local replicate 1,20,73 / 0,1.623,0.764 to 2.913
+England,Local replicate 1,30,73 / 0,1.158,0.547 to 1.871
+England,Local replicate 2,20,73 / 0,1.943,0.785 to 2.931
+England,Local replicate 2,30,73 / 0,1.344,0.827 to 2.549
+Japan,Adopted fit,20,0 / 0,3.957,3.167 to 4.752
+Japan,Adopted fit,30,0 / 0,−0.0506,−0.237 to 0.359
+Japan,Full refit: baseline,20,0 / 0,3.957,3.167 to 4.752
+Japan,Full refit: baseline,30,0 / 0,−0.0506,−0.237 to 0.359
+Japan,Full refit: 365-day recovery,20,0 / 0,2.503,1.979 to 3.071
+Japan,Full refit: 365-day recovery,30,0 / 0,0.927,0.653 to 1.401
+Brazil,Adopted fit,20,75 / 0,0.672,0.547 to 0.836
+Brazil,Adopted fit,30,75 / 0,0.0048,−0.0015 to 0.0111
+Brazil,Full refit: baseline,20,75 / 0,0.672,0.547 to 0.836
+Brazil,Full refit: baseline,30,75 / 0,0.0048,−0.0015 to 0.0111
+Brazil,Local pooled,20,75 / 0,0.586,0.167 to 1.070
+Brazil,Local pooled,30,75 / 0,0.0961,−0.0447 to 0.325
+Brazil,Local replicate 1,20,75 / 0,0.605,0.242 to 1.021
+Brazil,Local replicate 1,30,75 / 0,0.0916,−0.0495 to 0.269
+Brazil,Local replicate 2,20,75 / 0,0.567,0.146 to 1.100
+Brazil,Local replicate 2,30,75 / 0,0.100,−0.0350 to 0.343
+Brazil,Full refit: 365-day recovery,20,75 / 0,0.719,0.585 to 0.892
+Brazil,Full refit: 365-day recovery,30,75 / 0,0.117,0.0949 to 0.145

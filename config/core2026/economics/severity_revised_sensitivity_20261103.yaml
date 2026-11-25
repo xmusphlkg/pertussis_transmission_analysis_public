@@ -1,0 +1,555 @@
+schema: core2026-severity-priors-v1
+countries:
+  Australia:
+    status: use_calibrated_reference_risk
+    notes: Risks calibrated from ACR root-cause mortality (CDI 2022;46:3 Table 5) and NNDSS linked hospitalisation
+      data; see analysis/clinical_death_source_verification_20261026.md.
+  England:
+    status: use_calibrated_reference_risk
+    notes: Risks calibrated from UKHSA linked enhanced surveillance (HES/ONS); see analysis/clinical_death_source_verification_20261026.md.
+  Brazil:
+    status: national_data
+    notes: SINAN microdata 2016-2025; case selection A379, CLASSI_FIN=1, NDUPLIC_N≠2, not deleted, 27
+      UFs. Hospitalisation denominator = confirmed cases with known hospitalisation status (CS_HOSPITA
+      known). CFR denominator = recorded outcomes (EVOLUCAO known). Monthly age bins m00-m11 aggregated
+      into preferred split. Rows 20-59y and 60+y have zero pertussis-attributed deaths; Laplace prior
+      used.
+    entries:
+    - quantity: hospitalisation_proportion
+      basis: per_confirmed_case
+      age_start_years: 0.0
+      age_end_years: 0.1667
+      distribution: beta
+      params:
+        alpha: 1301.5
+        beta: 187.5
+      point: 0.875
+      source:
+        citation: SINAN 2016-2025, scripts/build_brazil_severity_20261028.py
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: rows m00+m01 aggregated; hosp=1301, n_known=1488 (18 unknown excluded)
+        period: 2016-2025
+        verification: fulltext
+      notes: m00(confirmed=758, hosp=648) + m01(confirmed=748, hosp=653)
+    - quantity: hospitalisation_proportion
+      basis: per_confirmed_case
+      age_start_years: 0.1667
+      age_end_years: 1.0
+      distribution: beta
+      params:
+        alpha: 3479.5
+        beta: 1528.5
+      point: 0.695
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: rows m02-m11 aggregated; hosp=3479, n_known=5007 (72 unknown excluded)
+        period: 2016-2025
+        verification: fulltext
+    - quantity: hospitalisation_proportion
+      basis: per_confirmed_case
+      age_start_years: 1.0
+      age_end_years: 5.0
+      distribution: beta
+      params:
+        alpha: 881.5
+        beta: 1869.5
+      point: 0.32
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: row 1-4; hosp=881, n_known=2750 (66 unknown excluded)
+        period: 2016-2025
+        verification: fulltext
+    - quantity: hospitalisation_proportion
+      basis: per_confirmed_case
+      age_start_years: 5.0
+      age_end_years: 10.0
+      distribution: beta
+      params:
+        alpha: 187.5
+        beta: 1214.5
+      point: 0.134
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: row 5-9; hosp=187, n_known=1401 (41 unknown excluded)
+        period: 2016-2025
+        verification: fulltext
+    - quantity: hospitalisation_proportion
+      basis: per_confirmed_case
+      age_start_years: 10.0
+      age_end_years: 20.0
+      distribution: beta
+      params:
+        alpha: 219.5
+        beta: 3507.5
+      point: 0.059
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: row 10-19; hosp=219, n_known=3726 (86 unknown excluded)
+        period: 2016-2025
+        verification: fulltext
+    - quantity: hospitalisation_proportion
+      basis: per_confirmed_case
+      age_start_years: 20.0
+      age_end_years: 60.0
+      distribution: beta
+      params:
+        alpha: 218.5
+        beta: 2909.5
+      point: 0.07
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: row 20-59; hosp=218, n_known=3127 (85 unknown excluded)
+        period: 2016-2025
+        verification: fulltext
+    - quantity: hospitalisation_proportion
+      basis: per_confirmed_case
+      age_start_years: 60.0
+      age_end_years: 120.0
+      distribution: beta
+      params:
+        alpha: 71.5
+        beta: 331.5
+      point: 0.177
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: row 60+; hosp=71, n_known=402 (6 unknown excluded)
+        period: 2016-2025
+        verification: fulltext
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 0.0
+      age_end_years: 0.1667
+      distribution: beta
+      params:
+        alpha: 42.5
+        beta: 1362.5
+      point: 0.0299
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: rows m00+m01; pertussis_deaths=42, recorded_outcomes=1404
+        period: 2016-2025
+        verification: fulltext
+      notes: Pertussis-attributed deaths only; other-cause deaths excluded from numerator
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 0.1667
+      age_end_years: 1.0
+      distribution: beta
+      params:
+        alpha: 44.5
+        beta: 4684.5
+      point: 0.0093
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: rows m02-m11 aggregated; pertussis_deaths=44, recorded_outcomes=4728
+        period: 2016-2025
+        verification: fulltext
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 1.0
+      age_end_years: 5.0
+      distribution: beta
+      params:
+        alpha: 4.5
+        beta: 2633.5
+      point: 0.00152
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: row 1-4; pertussis_deaths=4, recorded_outcomes=2637
+        period: 2016-2025
+        verification: fulltext
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 5.0
+      age_end_years: 10.0
+      distribution: beta
+      params:
+        alpha: 1.5
+        beta: 1371.5
+      point: 0.000729
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: row 5-9; pertussis_deaths=1, recorded_outcomes=1372
+        period: 2016-2025
+        verification: fulltext
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 10.0
+      age_end_years: 20.0
+      distribution: beta
+      params:
+        alpha: 2.5
+        beta: 3671.5
+      point: 0.000545
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: row 10-19; pertussis_deaths=2, recorded_outcomes=3673
+        period: 2016-2025
+        verification: fulltext
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 20.0
+      age_end_years: 60.0
+      distribution: beta
+      params:
+        alpha: 0.5
+        beta: 3091.5
+      point: 0.0
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: row 20-59; pertussis_deaths=0, recorded_outcomes=3091
+        period: 2016-2025
+        verification: fulltext
+      notes: Zero pertussis deaths; 2 other-cause deaths excluded; Laplace beta prior (alpha=0.5)
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 60.0
+      age_end_years: 120.0
+      distribution: beta
+      params:
+        alpha: 0.5
+        beta: 389.5
+      point: 0.0
+      source:
+        citation: SINAN 2016-2025
+        url: data/processed/brazil_severity_20261028/brazil_severity_pooled_2016_2025.csv
+        locator: row 60+; pertussis_deaths=0, recorded_outcomes=389
+        period: 2016-2025
+        verification: fulltext
+      notes: Zero pertussis deaths; 6 other-cause deaths excluded; Laplace beta prior (alpha=0.5)
+  China:
+    status: literature
+    gaps:
+    - quantity: hospitalisation_proportion
+      age_groups: all
+      status: no_source
+      reason: 'Population-based hospitalization rate study (PMID 39652276: "Population-based active surveillance
+        of pertussis hospitalization rates in two cities of China") returned CAPTCHA/403 at time of retrieval
+        and is listed as unreachable. Chengdu hospital cohort (Peng et al. 2025 Front Pediatr; 643 hospitalised
+        children) gives case mix within admitted patients only, not a population-level hospitalization
+        proportion.'
+      borrowing_rule: use Brazil national per-confirmed-case hospitalisation data for all ages
+    - quantity: cfr
+      age_groups: all
+      status: no_source
+      reason: 'National age-specific CFR inaccessible. National total 2024: 31 pertussis deaths (cited
+        in Peng et al. 2025 Introduction), but total annual 2024 cases and age breakdown unavailable from
+        accessible literature. CCDCW PDF returned 403/404.'
+      borrowing_rule: use Australia calibrated reference risk
+    entries:
+    - quantity: los_days
+      basis: per_hospitalised_case
+      age_start_years: 0.0
+      age_end_years: 0.5
+      distribution: lognormal
+      params:
+        meanlog: 2.197
+        sdlog: 0.18
+      point: 9.0
+      source:
+        citation: 'Peng X et al. Epidemiological and clinical characteristics of children with pertussis:
+          a 6-year retrospective cohort study in Chengdu, China. Front Pediatr. 2025. PMID 40933697.'
+        url: https://pmc.ncbi.nlm.nih.gov/articles/PMC12417492/
+        locator: Table 3; <6 months group; median LOS 9 days (IQR 7-10)
+        period: 2018-2023
+        verification: fulltext
+      notes: Hospital cohort only (n=351 under 6m of 643 total); sdlog approximated from IQR 7-10 via
+        log-normal quantile method. Not applicable to community cases.
+    - quantity: los_days
+      basis: per_hospitalised_case
+      age_start_years: 0.5
+      age_end_years: 18.0
+      distribution: lognormal
+      params:
+        meanlog: 2.079
+        sdlog: 0.2
+      point: 8.0
+      source:
+        citation: Peng X et al. Front Pediatr. 2025. PMID 40933697.
+        url: https://pmc.ncbi.nlm.nih.gov/articles/PMC12417492/
+        locator: Table 3; >=6 months group; median LOS 8 days (IQR 6.5-10); overall mean 8.6 (SD 2.8)
+        period: 2018-2023
+        verification: fulltext
+      notes: Paediatric hospital cohort; applies to <18y; no adult LOS data
+  Japan:
+    status: literature
+    gaps:
+    - quantity: hospitalisation_proportion
+      age_groups: all
+      status: no_source
+      reason: JIHS IASR vol 47 no. 551 (2026) PDF (id-info.jihs.go.jp/en/surveillance/iasr/ pathogens/vol47/551/551e.pdf)
+        is image-only; text extraction failed. IASR 496e.pdf similarly image-only. No alternate accessible
+        text source found for Japan age-specific hospitalization rates.
+      borrowing_rule: use Brazil national per-confirmed-case hospitalisation data for all ages
+    - quantity: cfr
+      age_groups: all
+      status: no_source
+      reason: Same document access issue as hospitalization_proportion.
+      borrowing_rule: use England calibrated reference risk
+    entries: []
+  New_Zealand:
+    status: literature
+    gaps:
+    - quantity: hospitalisation_proportion
+      age_groups: <2m, 2-11m (preferred split)
+      status: no_source_for_split
+      reason: PHF Science reports use <1y aggregate boundary; cannot split into <2m and 2-11m without
+        assumption. Entry below is for <1y only.
+    - quantity: hospitalisation_proportion
+      age_groups: 1-4y, 5-9y, 10-19y, 20-59y, 60+y
+      status: no_source
+      reason: PHF Science epidemic reports do not provide these age groups.
+      borrowing_rule: use Brazil national per-confirmed-case hospitalisation data where national data
+        are absent
+    - quantity: cfr
+      age_groups: all
+      status: no_source
+      reason: No deaths reported in PHF Science surveillance reports covering Oct 19-Dec 11, 2024 epidemic
+        period. Historical New Zealand ESR annual reports were inaccessible (PDFs image-only, text extraction
+        failed).
+      borrowing_rule: use England calibrated reference risk
+    entries:
+    - quantity: hospitalisation_proportion
+      basis: per_confirmed_case
+      age_start_years: 0.0
+      age_end_years: 1.0
+      distribution: beta
+      params:
+        alpha: 13.5
+        beta: 12.5
+      point: 0.52
+      source:
+        citation: PHF Science New Zealand Pertussis Report, cumulative epidemic data to 11 December 2024.
+        url: https://www.phfscience.nz/media/ecwbsaof/2024-12-12-pertussis-report.pdf
+        locator: 'p.1: ''25 cases (5.1%) aged less than 1 year, of which 13 (52.0%) were hospitalised'''
+        period: 2024-10-19 to 2024-12-11
+        verification: abstract_only
+      notes: Age group is <1y (source boundary), spanning both preferred model groups (<2m and 2-11m).
+        Small sample (n=25); epidemic still in progress at time of report. Concurrent reports show range
+        43-75% hospitalisation for <1y across different 4-weekly periods.
+  Sweden:
+    status: literature
+    gaps:
+    - quantity: cfr
+      age_groups: all
+      status: no_source
+      reason: No accessible Swedish national CFR data by age group found.
+      borrowing_rule: use England calibrated reference risk
+    - quantity: hospitalisation_proportion
+      age_groups: 6 months and older
+      status: no_age_matched_national_source_in_this_revision
+      reason: Aronsson study covers only surviving infants younger than 6 months.
+      borrowing_rule: Retain explicitly labelled Brazil national age-specific hospital donor.
+    entries:
+    - quantity: hospitalisation_proportion
+      basis: per_confirmed_case
+      age_start_years: 0.0
+      age_end_years: 0.5
+      distribution: beta
+      params:
+        alpha: 218.5
+        beta: 127.5
+      point: 0.6318840579710145
+      source:
+        citation: Aronsson B et al. Acta Paediatrica. DOI 10.1111/apa.70300; online 2025-09-15; print
+          2026;115:2566-2571.
+        url: https://onlinelibrary.wiley.com/doi/10.1111/apa.70300
+        locator: Methods 2.1; Results 3.1 and 3.2; Table 1
+        period: 2009-2015
+        verification: fulltext
+        accessed: '2026-11-03'
+      notes: Historical sensitivity among 345 included surviving laboratory-confirmed infants aged <6
+        months; 218 hospitalised for at least one night. Deaths excluded; two further cases excluded for
+        missing source-of-infection information. Beta(218.5,127.5) uses Jeffreys half-count prior and
+        represents sampling uncertainty within this cohort, not temporal/selection transportability. Constant
+        within <6 months is an assumption. Ages 6-11 months use explicit Brazil hospital donor; no extrapolation
+        of this Swedish fraction above 6 months.
+  Thailand:
+    status: national_data
+    notes: 'CFR from Thailand DDC Annual Epidemiological Surveillance Report 2024 (Annual_2567.pdf), Table
+      11 (cases by age group, p.300) and Table 12 (deaths by age group, p.303). Age boundaries follow
+      source; the first source group (<28 days) differs from preferred <2 months; the second (1-11 months)
+      starts at 28 days. Cannot align to preferred <2m / 2-11m split without assumption — source boundaries
+      used as-is. Hospitalisation proportion: no population-level national data accessible. Best available:
+      Siriraj Children Hospital Bangkok surveillance (Vijarnsorn et al. 2019 IJID PMID 30684746): ~79-80%
+      hospital admission in confirmed paediatric cases — hospital-based setting, not population-level;
+      not included as a quantitative entry.'
+    gaps:
+    - quantity: hospitalisation_proportion
+      age_groups: all
+      status: no_source
+      reason: National DDC tables do not report hospitalisation proportions by age group in the accessible
+        text or image tables. Place-of-treatment table (Table 15) could not be reliably parsed without
+        column headers.
+      borrowing_rule: use Brazil national per-confirmed-case hospitalisation data for all ages
+    entries:
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 0.0
+      age_end_years: 0.0767
+      distribution: beta
+      params:
+        alpha: 0.5
+        beta: 5.5
+      point: 0.0
+      source:
+        citation: Thailand DDC Annual Epidemiological Surveillance Report 2024 (Annual_2567). Bureau of
+          Epidemiology, DDC, Ministry of Public Health.
+        url: data/raw/country_health_age_20261027/Thailand/Annual_2567.pdf
+        locator: Table 11 p.300 (cases) and Table 12 p.303 (deaths); pertussis row; column <28 Day
+        period: '2024'
+        verification: fulltext
+      notes: 5 cases, 0 deaths. Source boundary <28 days (0.0767y) ≠ preferred <2 months (0.1667y). Denominator
+        = all notified cases (not recorded-outcome subset). Laplace prior.
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 0.0767
+      age_end_years: 1.0
+      distribution: beta
+      params:
+        alpha: 1.5
+        beta: 374.5
+      point: 0.00267
+      source:
+        citation: Thailand DDC Annual Epidemiological Surveillance Report 2024 (Annual_2567).
+        url: data/raw/country_health_age_20261027/Thailand/Annual_2567.pdf
+        locator: Table 11 p.300, Table 12 p.303; pertussis row; column 1-11 Months
+        period: '2024'
+        verification: fulltext
+      notes: 375 cases, 1 death. Source boundary 1-11m (28 days to <12 months) differs from preferred
+        2-11m (0.1667y to 1.0y); the 1st month band (28d-2m) is subsumed here. Cannot split without assumption.
+        Single year of data; small numerator.
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 1.0
+      age_end_years: 5.0
+      distribution: beta
+      params:
+        alpha: 0.5
+        beta: 480.5
+      point: 0.0
+      source:
+        citation: Thailand DDC Annual Epidemiological Surveillance Report 2024 (Annual_2567).
+        url: data/raw/country_health_age_20261027/Thailand/Annual_2567.pdf
+        locator: Table 11 p.300, Table 12 p.303; ages 1+, 2+, 3+, 4+ aggregated
+        period: '2024'
+        verification: fulltext
+      notes: 480 cases (1+=222, 2+=115, 3+=79, 4+=64), 0 deaths; Laplace prior
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 5.0
+      age_end_years: 10.0
+      distribution: beta
+      params:
+        alpha: 0.5
+        beta: 166.5
+      point: 0.0
+      source:
+        citation: Thailand DDC Annual Epidemiological Surveillance Report 2024 (Annual_2567).
+        url: data/raw/country_health_age_20261027/Thailand/Annual_2567.pdf
+        locator: Table 11 p.300, Table 12 p.303; ages 5+, 6+, 7-9 aggregated
+        period: '2024'
+        verification: fulltext
+      notes: 166 cases (5+=46, 6+=39, 7-9=81), 0 deaths; Laplace prior
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 10.0
+      age_end_years: 15.0
+      distribution: beta
+      params:
+        alpha: 0.5
+        beta: 77.5
+      point: 0.0
+      source:
+        citation: Thailand DDC Annual Epidemiological Surveillance Report 2024 (Annual_2567).
+        url: data/raw/country_health_age_20261027/Thailand/Annual_2567.pdf
+        locator: Table 11 p.300, Table 12 p.303; age 10-14
+        period: '2024'
+        verification: fulltext
+      notes: 77 cases, 0 deaths; source group 10-14y; Laplace prior
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 15.0
+      age_end_years: 25.0
+      distribution: beta
+      params:
+        alpha: 0.5
+        beta: 44.5
+      point: 0.0
+      source:
+        citation: Thailand DDC Annual Epidemiological Surveillance Report 2024 (Annual_2567).
+        url: data/raw/country_health_age_20261027/Thailand/Annual_2567.pdf
+        locator: Table 11 p.300, Table 12 p.303; age 15-24
+        period: '2024'
+        verification: fulltext
+      notes: 44 cases, 0 deaths. Source group 15-24y straddles preferred model boundary at 20y; cannot
+        split without assumption. Laplace prior.
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 25.0
+      age_end_years: 65.0
+      distribution: beta
+      params:
+        alpha: 0.5
+        beta: 107.5
+      point: 0.0
+      source:
+        citation: Thailand DDC Annual Epidemiological Surveillance Report 2024 (Annual_2567).
+        url: data/raw/country_health_age_20261027/Thailand/Annual_2567.pdf
+        locator: Table 11 p.300, Table 12 p.303; ages 25-34, 35-44, 45-54, 55-64 aggregated
+        period: '2024'
+        verification: fulltext
+      notes: 107 cases (25-34=49, 35-44=25, 45-54=20, 55-64=13), 0 deaths. Source group 55-64y straddles
+        preferred model boundary at 60y; Laplace prior.
+    - quantity: cfr
+      basis: per_confirmed_case
+      age_start_years: 65.0
+      age_end_years: 120.0
+      distribution: beta
+      params:
+        alpha: 0.5
+        beta: 21.5
+      point: 0.0
+      source:
+        citation: Thailand DDC Annual Epidemiological Surveillance Report 2024 (Annual_2567).
+        url: data/raw/country_health_age_20261027/Thailand/Annual_2567.pdf
+        locator: Table 11 p.300, Table 12 p.303; age 65+
+        period: '2024'
+        verification: fulltext
+      notes: 21 cases, 0 deaths; Laplace prior; note small sample size
+revision_20261103:
+  purpose: Correct source subgroup and age boundary; historical survivor-cohort sensitivity, not validated
+    current national severity.
+  original_source: config/core2026/economics/severity_priors_provenance_20261102.yaml
+  noninfant_mortality_main: Unestimated in six countries; calibrated infant mortality unchanged.
+  optional_noninfant_overlay:
+    name: Brazil_recorded_outcome_CFR_transfer
+    countries:
+    - Australia
+    - England
+    - Sweden
+    - Japan
+    - New_Zealand
+    - China
+    age_start_years: 1.0
+    implementation: scripts.revise_clinical_inputs_20261103.sample_noninfant_risk_endpoints
+    status: structural_cross_country_transfer_sensitivity_not_national_estimate
+    multiplier_scenarios:
+    - 0.5
+    - 1.0
+    - 2.0
+    multiplier_interpretation: Analyst-selected stress tests, not confidence limits or probabilities.
+    limitation: Brazil denominator is confirmed cases with recorded outcomes; transport to other surveillance
+      endpoints is an explicit unvalidated assumption.

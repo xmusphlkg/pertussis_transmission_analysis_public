@@ -1,0 +1,9 @@
+Setting,Infant mortality source,Noninfant mortality in primary analysis,Hospitalisation probability source
+Australia,Australian calibrated infant risks,Unestimated,Brazilian age-specific donor
+England,England calibrated infant risks,Unestimated,Brazilian age-specific donor
+Sweden,England infant risk transfer,Unestimated,Swedish historical <6-month cohort; Brazilian donor at older ages
+Japan,England infant risk transfer,Unestimated,Brazilian age-specific donor
+New Zealand,England infant risk transfer,Unestimated,Earlier New Zealand infant estimate; Brazilian donor at older ages
+China,Australian infant risk transfer,Unestimated,Brazilian age-specific donor
+Brazil,National recorded-outcome CFR,National recorded-outcome CFR,National known-hospitalisation-status data
+Thailand,National age-specific CFR,National age-specific CFR,Brazilian age-specific donor

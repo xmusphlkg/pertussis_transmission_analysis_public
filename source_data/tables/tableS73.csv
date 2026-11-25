@@ -1,0 +1,25 @@
+Setting,Clinical AUC anchor,AUC ratio,Maternal coverage (%),Nasal coverage (%),Maximum nasal cost (Int$/dose)
+Australia,Lower AUC endpoint,0.00261,60,75,2.380
+Australia,Point estimate,0.05699,60,75,1.684
+Australia,Upper AUC endpoint,0.27746,60,75,1.558
+England,Lower AUC endpoint,0.00261,73,70,2.397
+England,Point estimate,0.05699,73,50,2.158
+England,Upper AUC endpoint,0.27746,73,90,1.531
+Sweden,Lower AUC endpoint,0.00261,50,90,2.812
+Sweden,Point estimate,0.05699,50,90,2.464
+Sweden,Upper AUC endpoint,0.27746,50,90,1.647
+Japan,Lower AUC endpoint,0.00261,0,90,5.090
+Japan,Point estimate,0.05699,0,90,3.957
+Japan,Upper AUC endpoint,0.27746,0,90,−0.318
+New Zealand,Lower AUC endpoint,0.00261,75,80,1.321
+New Zealand,Point estimate,0.05699,75,80,0.991
+New Zealand,Upper AUC endpoint,0.27746,75,90,0.482
+China,Lower AUC endpoint,0.00261,0,50,0.403
+China,Point estimate,0.05699,0,50,0.341
+China,Upper AUC endpoint,0.27746,0,50,0.215
+Brazil,Lower AUC endpoint,0.00261,75,70,0.737
+Brazil,Point estimate,0.05699,75,90,0.672
+Brazil,Upper AUC endpoint,0.27746,75,90,0.370
+Thailand,Lower AUC endpoint,0.00261,50,90,0.0096
+Thailand,Point estimate,0.05699,50,90,−0.0080
+Thailand,Upper AUC endpoint,0.27746,50,50,−0.0075

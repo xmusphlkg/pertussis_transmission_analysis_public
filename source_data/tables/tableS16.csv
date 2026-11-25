@@ -1,0 +1,4 @@
+Metric,Estimate,Bootstrap percentile 95 lower,Bootstrap percentile 95 upper
+late positive risk ratio,0.625,0.3224,1.069
+whole group arithmetic auc ratio,0.05699,0.002605,0.2775
+positive subset arithmetic auc ratio descriptive,0.09118,0.005108,0.4133

@@ -1,0 +1,18 @@
+{
+  "best_start": 0,
+  "all_starts_finished": true,
+  "fit_converged": true,
+  "gradient_checks": [
+    {
+      "step": 0.001,
+      "objective": 502.81635972246096,
+      "max_projected_gradient": 0.00040788270894154266
+    },
+    {
+      "step": 0.0005,
+      "objective": 502.81635972246096,
+      "max_projected_gradient": 0.0009063036259249202
+    }
+  ],
+  "selection": "post-hoc single-start sensitivity, never an externally validated national model"
+}

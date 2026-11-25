@@ -1,0 +1,7 @@
+"country","horizon","route","profile_id","maternal_baseline","maternal_coverage","nasal_coverage","tdap_coverage","strategy_id","comparator","infant_yll_averted","yll_q025","yll_q975"
+"Australia",20,"coadmin","b050_a050_d03_point",0.6,0.6,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",5.8300065644699,2.31756845569749,11.264287115784
+"Australia",30,"coadmin","b050_a050_d03_point",0.6,0.6,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",21.816540027625,8.68030561567746,41.9889976009394
+"Australia",20,"coadmin","b050_a050_d03_point",0.6,0.7,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.7_A0.9","current_M0.7_A0.9",5.13631673426136,1.9951758449583,9.91315573698688
+"Australia",30,"coadmin","b050_a050_d03_point",0.6,0.7,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.7_A0.9","current_M0.7_A0.9",18.9920761172064,7.43597797134056,36.5752311369592
+"Australia",20,"coadmin","b050_a050_d03_point",0.6,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",3.76617912092494,1.38930110431047,7.90057701321606
+"Australia",30,"coadmin","b050_a050_d03_point",0.6,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",13.5470810022157,5.02999879584827,28.2338987444877

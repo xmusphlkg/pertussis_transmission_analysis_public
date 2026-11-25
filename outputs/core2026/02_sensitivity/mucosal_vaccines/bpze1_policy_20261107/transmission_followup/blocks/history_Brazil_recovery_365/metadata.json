@@ -1,0 +1,23 @@
+{
+  "status": "completed",
+  "job": {
+    "kind": "history",
+    "country": "Brazil",
+    "history": "recovery_365",
+    "label": "history_Brazil_recovery_365",
+    "nasal_coverage": 0.9,
+    "n_draws": 1000,
+    "source_replicate": -1,
+    "draw_id": -1
+  },
+  "nasal_profiles": [
+    "b050_a000_d03_point",
+    "b050_a050_d03_point",
+    "b050_a100_d03_point"
+  ],
+  "zero_effect_max_difference": 0.0,
+  "standard_current_replayed": true,
+  "paired_standard_components_reconstructed": false,
+  "nasal_coverage": 0.9,
+  "maternal_coverage": 0.75
+}

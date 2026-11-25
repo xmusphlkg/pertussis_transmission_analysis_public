@@ -1,0 +1,8 @@
+Scenario,Duration (days),Timely entry,Pathway parameter $\sigma$,60-day VE,90-day VE,120-day VE,180-day VE
+Duration 120 d (recalibrated),120,90%,1,86.2%,85.5%,84.7%,81.8%
+Duration 180 d (recalibrated),180,90%,1,86.2%,85.9%,85.6%,83.9%
+Duration 240 d (recalibrated),240,90%,1,86.2%,86.1%,85.9%,85.0%
+Timely entry 75% (fixed biology),120,75%,1,71.8%,71.3%,70.6%,68.2%
+Timely entry 90% (fixed biology),120,90%,1,86.2%,85.5%,84.7%,81.8%
+Timely entry 100% (fixed biology),120,100%,1,95.8%,95.0%,94.1%,90.9%
+Acquisition plus course (recalibrated),120,90%,0.3,86.2%,85.5%,84.7%,81.8%

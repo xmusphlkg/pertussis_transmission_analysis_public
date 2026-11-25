@@ -1,0 +1,5 @@
+country,alias,requested_expansion_target,strategy_id,actual_maternal_coverage,actual_adolescent_coverage
+Sweden,current,0.7,current,0.5,0.9
+Sweden,current+M,0.7,current_M0.7_Akeep,0.7,0.9
+Sweden,current+A,0.7,current,0.5,0.9
+Sweden,current+MA,0.7,current_M0.7_Akeep,0.7,0.9

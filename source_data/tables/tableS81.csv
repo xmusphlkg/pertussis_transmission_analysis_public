@@ -1,0 +1,10 @@
+Setting,Intervals,Fit years,"Fit WAPE, %",Later year,"Later WAPE, %",Predicted/observed,"Peak delay, days",Peak year,Peak at edge,Total bias
+Australia,monthly,2016–2025,26.32,Not available,—,—,—,Not available,—,Not available
+England,Annual / quarterly,2016–2025,34.22,Not available,—,—,—,Not available,—,Not available
+Sweden,monthly,2016–2024,34.81,2025,317.6,4.176,0,2025,True,overprediction
+Japan,weekly,2018–2023,26.62,2024,114.2,2.142,63,2024,True,overprediction
+New Zealand,monthly,2016–2024,27.73,2025,172.3,2.723,59,2025,True,overprediction
+China,monthly,2016–2024,111.4,2025,29.81,0.7574,120,2025,True,underprediction
+Brazil,monthly,2010–2024,86.54,2025,23.8,1.019,0,2025,True,overprediction
+Thailand,monthly,2016–2023,72.15,2024,77.62,0.7991,213,2024,True,underprediction
+Japan (separate rapid-report extension),weekly,2018–2023,26.62,2025,82,0.2091,-168,2025,False,underprediction

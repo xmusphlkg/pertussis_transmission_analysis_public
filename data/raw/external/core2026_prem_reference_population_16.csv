@@ -1,0 +1,145 @@
+country,contactdata_country,age_bin,population
+Brazil,Brazil,"[00,05)",14289993
+Brazil,Brazil,"[05,10)",14714050
+Brazil,Brazil,"[10,15)",15689423
+Brazil,Brazil,"[15,20)",17043820
+Brazil,Brazil,"[20,25)",17022313
+Brazil,Brazil,"[25,30)",16409295
+Brazil,Brazil,"[30,35)",16858062
+Brazil,Brazil,"[35,40)",17204848
+Brazil,Brazil,"[40,45)",15702597
+Brazil,Brazil,"[45,50)",13919203
+Brazil,Brazil,"[50,55)",12757572
+Brazil,Brazil,"[55,60)",11461621
+Brazil,Brazil,"[60,65)",9335761
+Brazil,Brazil,"[65,70)",7288184
+Brazil,Brazil,"[70,75)",5304438
+Brazil,Brazil,"[75,80)",7035115
+China,China,"[00,05)",82832536
+China,China,"[05,10)",80530944
+China,China,"[10,15)",77715286
+China,China,"[15,20)",74503800
+China,China,"[20,25)",85502189
+China,China,"[25,30)",101347754
+China,China,"[30,35)",126191430
+China,China,"[35,40)",99479184
+China,China,"[40,45)",92484264
+China,China,"[45,50)",114227816
+China,China,"[50,55)",118770840
+China,China,"[55,60)",95420349
+China,China,"[60,65)",72964803
+China,China,"[65,70)",69956093
+China,China,"[70,75)",45440868
+China,China,"[75,80)",56622621
+New_Zealand,New Zealand,"[00,05)",311223
+New_Zealand,New Zealand,"[05,10)",322695
+New_Zealand,New Zealand,"[10,15)",332742
+New_Zealand,New Zealand,"[15,20)",308766
+New_Zealand,New Zealand,"[20,25)",327684
+New_Zealand,New Zealand,"[25,30)",358378
+New_Zealand,New Zealand,"[30,35)",357338
+New_Zealand,New Zealand,"[35,40)",322717
+New_Zealand,New Zealand,"[40,45)",295186
+New_Zealand,New Zealand,"[45,50)",316610
+New_Zealand,New Zealand,"[50,55)",319190
+New_Zealand,New Zealand,"[55,60)",310312
+New_Zealand,New Zealand,"[60,65)",277478
+New_Zealand,New Zealand,"[65,70)",234675
+New_Zealand,New Zealand,"[70,75)",203048
+New_Zealand,New Zealand,"[75,80)",326468
+Sweden,Sweden,"[00,05)",610773
+Sweden,Sweden,"[05,10)",600675
+Sweden,Sweden,"[10,15)",590977
+Sweden,Sweden,"[15,20)",550785
+Sweden,Sweden,"[20,25)",548526
+Sweden,Sweden,"[25,30)",697511
+Sweden,Sweden,"[30,35)",713257
+Sweden,Sweden,"[35,40)",641645
+Sweden,Sweden,"[40,45)",619027
+Sweden,Sweden,"[45,50)",648334
+Sweden,Sweden,"[50,55)",655491
+Sweden,Sweden,"[55,60)",647859
+Sweden,Sweden,"[60,65)",567507
+Sweden,Sweden,"[65,70)",538578
+Sweden,Sweden,"[70,75)",544201
+Sweden,Sweden,"[75,80)",1007364
+Thailand,Thailand,"[00,05)",3641174
+Thailand,Thailand,"[05,10)",3827782
+Thailand,Thailand,"[10,15)",4028327
+Thailand,Thailand,"[15,20)",4196743
+Thailand,Thailand,"[20,25)",4612849
+Thailand,Thailand,"[25,30)",4941954
+Thailand,Thailand,"[30,35)",4590575
+Thailand,Thailand,"[35,40)",5136266
+Thailand,Thailand,"[40,45)",5462827
+Thailand,Thailand,"[45,50)",5415884
+Thailand,Thailand,"[50,55)",5434854
+Thailand,Thailand,"[55,60)",4991920
+Thailand,Thailand,"[60,65)",4281866
+Thailand,Thailand,"[65,70)",3168330
+Thailand,Thailand,"[70,75)",2238051
+Thailand,Thailand,"[75,80)",3320132
+United_Kingdom,UK,"[00,05)",3902390
+United_Kingdom,UK,"[05,10)",3877197
+United_Kingdom,UK,"[10,15)",3818844
+United_Kingdom,UK,"[15,20)",3589499
+United_Kingdom,UK,"[20,25)",3963084
+United_Kingdom,UK,"[25,30)",4382048
+United_Kingdom,UK,"[30,35)",4548666
+United_Kingdom,UK,"[35,40)",4313289
+United_Kingdom,UK,"[40,45)",3956276
+United_Kingdom,UK,"[45,50)",4234774
+United_Kingdom,UK,"[50,55)",4656561
+United_Kingdom,UK,"[55,60)",4541289
+United_Kingdom,UK,"[60,65)",3850149
+United_Kingdom,UK,"[65,70)",3266793
+United_Kingdom,UK,"[70,75)",3267170
+United_Kingdom,UK,"[75,80)",5531049
+Australia,Australia,"[00,05)",1573179
+Australia,Australia,"[05,10)",1612954
+Australia,Australia,"[10,15)",1580385
+Australia,Australia,"[15,20)",1532813
+Australia,Australia,"[20,25)",1750017
+Australia,Australia,"[25,30)",1908890
+Australia,Australia,"[30,35)",1852168
+Australia,Australia,"[35,40)",1787929
+Australia,Australia,"[40,45)",1669947
+Australia,Australia,"[45,50)",1708100
+Australia,Australia,"[50,55)",1551463
+Australia,Australia,"[55,60)",1500379
+Australia,Australia,"[60,65)",1394894
+Australia,Australia,"[65,70)",1235560
+Australia,Australia,"[70,75)",1087080
+Australia,Australia,"[75,80)",1715372
+Japan,Japan,"[00,05)",4833557
+Japan,Japan,"[05,10)",5429919
+Japan,Japan,"[10,15)",5658822
+Japan,Japan,"[15,20)",5742583
+Japan,Japan,"[20,25)",6097908
+Japan,Japan,"[25,30)",6138691
+Japan,Japan,"[30,35)",6627233
+Japan,Japan,"[35,40)",7539249
+Japan,Japan,"[40,45)",8302725
+Japan,Japan,"[45,50)",9492837
+Japan,Japan,"[50,55)",8414592
+Japan,Japan,"[55,60)",7730702
+Japan,Japan,"[60,65)",7400751
+Japan,Japan,"[65,70)",8298396
+Japan,Japan,"[70,75)",9007830
+Japan,Japan,"[75,80)",18325537
+South_Korea,South Korea,"[00,05)",1797075
+South_Korea,South Korea,"[05,10)",2245232
+South_Korea,South Korea,"[10,15)",2255940
+South_Korea,South Korea,"[15,20)",2499845
+South_Korea,South Korea,"[20,25)",3306742
+South_Korea,South Korea,"[25,30)",3661160
+South_Korea,South Korea,"[30,35)",3324899
+South_Korea,South Korea,"[35,40)",3944010
+South_Korea,South Korea,"[40,45)",3923496
+South_Korea,South Korea,"[45,50)",4197013
+South_Korea,South Korea,"[50,55)",4140421
+South_Korea,South Korea,"[55,60)",4181218
+South_Korea,South Korea,"[60,65)",3844412
+South_Korea,South Korea,"[65,70)",2712805
+South_Korea,South Korea,"[70,75)",2005859
+South_Korea,South Korea,"[75,80)",3525631

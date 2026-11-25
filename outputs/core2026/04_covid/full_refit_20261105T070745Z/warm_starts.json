@@ -1,0 +1,82 @@
+[
+  {
+    "country": "Australia",
+    "scenario_id": "baseline",
+    "fit_directory": "outputs/core2026/covid_refit_20261104/Australia/baseline"
+  },
+  {
+    "country": "Australia",
+    "scenario_id": "recovery_365",
+    "fit_directory": "outputs/core2026/covid_refit_20261104/Australia/recovery_365"
+  },
+  {
+    "country": "England",
+    "scenario_id": "baseline",
+    "fit_directory": "outputs/core2026/covid_refit_20261104/England/baseline"
+  },
+  {
+    "country": "England",
+    "scenario_id": "recovery_365",
+    "fit_directory": "outputs/core2026/covid_refit_20261104/England/recovery_365"
+  },
+  {
+    "country": "Brazil",
+    "scenario_id": "baseline",
+    "fit_directory": "outputs/core2026/covid_refit_20261104/Brazil/baseline"
+  },
+  {
+    "country": "Brazil",
+    "scenario_id": "recovery_365",
+    "fit_directory": "outputs/core2026/covid_refit_20261104/Brazil/recovery_365"
+  },
+  {
+    "country": "Thailand",
+    "scenario_id": "baseline",
+    "fit_directory": "outputs/core2026/covid_refit_20261104/Thailand/baseline"
+  },
+  {
+    "country": "Thailand",
+    "scenario_id": "recovery_365",
+    "fit_directory": "outputs/core2026/covid_refit_20261104/Thailand/recovery_365"
+  },
+  {
+    "country": "Japan",
+    "scenario_id": "baseline",
+    "fit_directory": "outputs/core2026/covid_refit_full_20261104/Japan/baseline"
+  },
+  {
+    "country": "Japan",
+    "scenario_id": "recovery_365",
+    "fit_directory": "outputs/core2026/covid_refit_full_20261104/Japan/recovery_365"
+  },
+  {
+    "country": "Sweden",
+    "scenario_id": "baseline",
+    "fit_directory": "outputs/core2026/covid_refit_full_20261104/Sweden/baseline"
+  },
+  {
+    "country": "Sweden",
+    "scenario_id": "recovery_365",
+    "fit_directory": "outputs/core2026/covid_refit_full_20261104/Sweden/recovery_365"
+  },
+  {
+    "country": "New_Zealand",
+    "scenario_id": "baseline",
+    "fit_directory": "outputs/core2026/covid_refit_full_20261104/New_Zealand/baseline"
+  },
+  {
+    "country": "New_Zealand",
+    "scenario_id": "recovery_365",
+    "fit_directory": "outputs/core2026/covid_refit_full_20261104/New_Zealand/recovery_365"
+  },
+  {
+    "country": "China",
+    "scenario_id": "baseline",
+    "fit_directory": "outputs/core2026/covid_refit_full_20261104/China/baseline"
+  },
+  {
+    "country": "China",
+    "scenario_id": "recovery_365",
+    "fit_directory": "outputs/core2026/covid_refit_full_20261104/China/recovery_365"
+  }
+]

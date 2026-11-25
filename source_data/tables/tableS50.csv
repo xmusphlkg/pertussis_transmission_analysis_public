@@ -1,0 +1,17 @@
+Setting,Perturbation,Years,Matched adolescent cases,DALY difference,Lower 95% UI,Upper 95% UI
+China,contact 0.8,20,1098,733.4,300.6,1360
+China,contact 0.8,30,1401,845.3,345.9,1568
+China,contact 1.2,20,454.6,1167,468.4,2199
+China,contact 1.2,30,383.6,1446,579.5,2721
+China,r0 0.8,20,1912,703.6,287.1,1276
+China,r0 0.8,30,1532,1095,443.6,2001
+China,r0 1.2,20,669.3,804.8,323,1512
+China,r0 1.2,30,781.5,948,381.1,1779
+Sweden,contact 0.8,20,86.79,3.372,2.396,5.436
+Sweden,contact 0.8,30,138.5,4.219,2.981,6.855
+Sweden,contact 1.2,20,135.5,4.967,3.463,8.242
+Sweden,contact 1.2,30,179.8,5.875,4.08,9.782
+Sweden,r0 0.8,20,246.1,2.58,1.836,4.191
+Sweden,r0 0.8,30,265.5,4.242,3.005,6.927
+Sweden,r0 1.2,20,118.9,5.459,3.799,9.041
+Sweden,r0 1.2,30,151.2,6.195,4.293,10.3

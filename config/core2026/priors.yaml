@@ -1,0 +1,331 @@
+# core2026 parameter priors and fixed values.
+#
+# scope:     structural (transmission model) | observation (reporting model)
+# estimated: true -> sampled/fitted per country; false -> fixed at `value`
+# Distributions are on the natural scale:
+#   lognormal: median, log_sd        beta: a, b        normal: mean, sd
+#   uniform: lower, upper
+# `bounds` are hard optimisation limits (finite support for the sampler).
+# `sources` refer to keys under `references`; each reference carries a
+# verification status so unverified citations are never presented as checked:
+#   fulltext   - methods/results read during the 2026-10-16 literature survey
+#   citation   - bibliographic record confirmed, numbers not re-read
+#   author     - must be confirmed by the author before manuscript use
+
+version: core2026-priors-v1
+
+parameters:
+  # --- Transmission -------------------------------------------------------
+  R0:
+    scope: structural
+    estimated: true
+    distribution: lognormal
+    median: 8.0
+    log_sd: 0.5
+    bounds: [2.0, 30.0]
+    note: >-
+      Naive-population R0 with the reference-year total contact matrix.
+      Published values depend strongly on model structure (about 2.4 with a
+      separate breakthrough class in Brett 2026; 5.5 or more from serology and
+      contacts; 12-17 classically), hence the wide prior.
+    sources: [anderson_may_1991, kretzschmar_2010, brett_2026]
+  seasonal_amplitude:
+    scope: structural
+    estimated: true
+    distribution: beta
+    a: 2.0
+    b: 6.0
+    bounds: [0.0, 0.6]
+    sources: []
+  seasonal_peak:
+    scope: structural
+    estimated: true
+    distribution: normal
+    mean: country      # set per country from the observed monthly profile
+    sd: 0.15
+    bounds: [-1.0, 2.0]
+    note: Fraction of the calendar year; circular, so bounds only bracket it.
+    sources: []
+  npi_scale:
+    scope: structural
+    estimated: true
+    distribution: lognormal
+    median: 1.0
+    log_sd: 0.35
+    bounds: [0.1, 3.0]
+    note: Multiplies the country NPI non-home contact reduction timeline.
+    sources: []
+  importation_per_million_per_year:
+    scope: structural
+    estimated: true
+    distribution: lognormal
+    median: 10.0
+    log_sd: 2.3
+    bounds: [0.01, 10000.0]
+    sources: []
+  rho_mild:
+    scope: structural
+    estimated: false
+    value: 0.5
+    sources: [choi_2016]
+
+  # --- Natural history ---------------------------------------------------
+  latent_days:
+    scope: structural
+    estimated: false
+    value: 8.0
+    sources: [korea_school_outbreak_2025]
+  infectious_days_typical:
+    scope: structural
+    estimated: false
+    value: 21.0
+    sources: [lavine_2011]
+  infectious_days_mild:
+    scope: structural
+    estimated: false
+    value: 14.0
+    sources: []
+
+  # --- Immunity ----------------------------------------------------------
+  natural_immunity_years:
+    scope: structural
+    estimated: true
+    distribution: lognormal
+    median: 30.0
+    log_sd: 0.5
+    bounds: [5.0, 150.0]
+    note: Mean of R + W (Erlang-2).
+    sources: [wearing_rohani_2009, wendelboe_2005, lavine_2013]
+  boosting_kappa:
+    scope: structural
+    estimated: true
+    distribution: lognormal
+    median: 2.0
+    log_sd: 0.8
+    bounds: [0.05, 50.0]
+    sources: [lavine_2011]
+  wP_years:
+    scope: structural
+    estimated: true
+    distribution: lognormal
+    median: 10.0
+    log_sd: 0.4
+    bounds: [2.0, 50.0]
+    sources: [wendelboe_2005, gambhir_2015]
+  aP_years:
+    scope: structural
+    estimated: true
+    distribution: lognormal
+    median: 6.0
+    log_sd: 0.45
+    bounds: [1.0, 30.0]
+    sources: [klein_2012, mcgirr_fisman_2015, choi_2026]
+  tdap_years:
+    scope: structural
+    estimated: true
+    distribution: lognormal
+    median: 3.0
+    log_sd: 0.45
+    bounds: [0.5, 20.0]
+    sources: [klein_2016, brett_2026]
+  maternal_days:
+    scope: structural
+    estimated: false
+    value: 90.0
+    sources: [amirthalingam_2014]
+  d1_protection_years:
+    scope: structural
+    estimated: false
+    value: 1.0
+    sources: []
+  d2_protection_years:
+    scope: structural
+    estimated: false
+    value: 2.0
+    sources: []
+
+  # --- Protection (leaky; VE against typical disease = 1 - sigma * pi) ----
+  sigma_maternal:
+    scope: structural
+    estimated: false
+    value: 0.3
+    note: With pi_maternal 0.3 gives VE 0.91 against infant typical disease.
+    sources: [amirthalingam_2014]
+  pi_maternal:
+    scope: structural
+    estimated: false
+    value: 0.3
+    sources: [amirthalingam_2014]
+  sigma_d1:
+    scope: structural
+    estimated: false
+    value: 1.0
+    sources: []
+  pi_d1:
+    scope: structural
+    estimated: false
+    value: 0.5
+    sources: [quinn_2014]
+  sigma_d2:
+    scope: structural
+    estimated: false
+    value: 1.0
+    sources: []
+  pi_d2:
+    scope: structural
+    estimated: false
+    value: 0.2
+    sources: [quinn_2014]
+  sigma_wP:
+    scope: structural
+    estimated: false
+    value: 0.17
+    sources: [gambhir_2015]
+  sigma_aP:
+    scope: structural
+    estimated: true
+    distribution: beta
+    a: 3.0
+    b: 7.0
+    bounds: [0.01, 0.99]
+    note: aP protects against disease more than against infection.
+    sources: [warfel_2014]
+  sigma_tdap:
+    scope: structural
+    estimated: false
+    value: tie_to_sigma_aP
+    sources: [warfel_2014]
+  pi_protected:
+    scope: structural
+    estimated: false
+    value: 0.15
+    sources: []
+  pi_wP_waned:
+    scope: structural
+    estimated: false
+    value: 0.3
+    sources: [choi_2016]
+  pi_aP_waned:
+    scope: structural
+    estimated: true
+    distribution: beta
+    a: 2.0
+    b: 3.0
+    bounds: [0.01, 0.99]
+    note: >-
+      Typical-course probability for waned aP-primed people; the cohort route
+      by which aP priming changes the age of reported disease.
+    sources: [domenech_de_celles_2018]
+
+  # --- Demography --------------------------------------------------------
+  nudge_years:
+    scope: structural
+    estimated: false
+    value: 0.25
+    sources: []
+
+  # --- Observation model (implemented in M3) ------------------------------
+  reporting_logit:
+    scope: observation
+    estimated: true
+    distribution: random_walk_logit
+    bands: ["<1", "1-4", "5-9", "10-19", "20-59", "60+"]
+    first_band_mean_logit: -1.4     # about 20% of typical infant cases
+    first_band_sd: 1.5
+    step_sd: 0.7
+    sources: [brett_2026, choi_2016]
+  breakthrough_reporting_ratio:
+    scope: observation
+    estimated: true
+    distribution: lognormal
+    median: 0.05
+    log_sd: 0.8
+    bounds: [0.001, 1.0]
+    sources: [brett_2026]
+  detection_multiplier:
+    scope: observation
+    estimated: true
+    distribution: lognormal_from_timeline
+    note: >-
+      One multiplier per non-reference period in
+      data/raw/pertussis_diagnostic_standards_timeline.csv; log-mean is the log
+      ratio of the period prior mean to the reference-period mean, log-sd is
+      (log upper - log lower) / 3.92.
+    sources: [brett_2026, qiao_zhao_2025]
+  nb_size:
+    scope: observation
+    estimated: true
+    distribution: lognormal
+    median: 10.0
+    log_sd: 1.0
+    bounds: [0.5, 1000.0]
+    sources: [brett_2026]
+  dirichlet_concentration:
+    scope: observation
+    estimated: true
+    distribution: lognormal
+    median: 200.0
+    log_sd: 1.0
+    bounds: [5.0, 100000.0]
+    note: Effective sample size of one country-year age composition.
+    sources: []
+
+references:
+  anderson_may_1991:
+    citation: "Anderson RM, May RM. Infectious Diseases of Humans. Oxford University Press; 1991."
+    verification: citation
+  kretzschmar_2010:
+    citation: "Kretzschmar M, Teunis PFM, Pebody RG. Incidence and reproduction numbers of pertussis. PLoS Med 2010;7(6):e1000291."
+    verification: author
+  brett_2026:
+    citation: "Quantifying the impact of vaccination on pertussis dynamics in Sweden. PLoS Comput Biol 2026;22. doi:10.1371/journal.pcbi.1014538"
+    verification: fulltext
+    note: Author list to be confirmed.
+  choi_2016:
+    citation: "Choi YH, Campbell H, Amirthalingam G, van Hoek AJ, Miller E. Investigating the pertussis resurgence in England and Wales, and options for future control. BMC Med 2016;14:121. doi:10.1186/s12916-016-0665-8"
+    verification: fulltext
+  choi_2026:
+    citation: "Choi YH, van Leeuwen E, Miller E. Exploring the cause of the pertussis resurgence in England following the COVID-19 pandemic. BMC Infect Dis 2026. doi:10.1186/s12879-026-12521-5"
+    verification: fulltext
+  qiao_zhao_2025:
+    citation: "Qiao, Zhao. Study on the resurgence of pertussis based on a stage-structured dynamic model. Infect Dis Model 2025. doi:10.1016/j.idm.2025.12.007"
+    verification: fulltext
+  domenech_de_celles_2018:
+    citation: "Domenech de Cellès M, Magpantay FMG, King AA, Rohani P. The impact of past vaccination coverage and immunity on pertussis resurgence. Sci Transl Med 2018;10:eaaj1748."
+    verification: citation
+  gambhir_2015:
+    citation: "Gambhir M, Clark TA, Cauchemez S, Tartof SY, Swerdlow DL, Ferguson NM. A change in vaccine efficacy and duration of protection explains recent rises in pertussis incidence in the United States. PLoS Comput Biol 2015;11(4):e1004138."
+    verification: citation
+  lavine_2011:
+    citation: "Lavine JS, King AA, Bjørnstad ON. Natural immune boosting in pertussis dynamics and the potential for long-term vaccine failure. PNAS 2011;108(17):7259-64."
+    verification: citation
+  lavine_2013:
+    citation: "Lavine JS et al. PLoS ONE 2013;8(8):e72086 (natural immunity duration)."
+    verification: author
+  wearing_rohani_2009:
+    citation: "Wearing HJ, Rohani P. Estimating the duration of pertussis immunity using epidemiological signatures. PLoS Pathog 2009;5(10):e1000647."
+    verification: author
+  wendelboe_2005:
+    citation: "Wendelboe AM, Van Rie A, Salmaso S, Englund JA. Duration of immunity against pertussis after natural infection or vaccination. Pediatr Infect Dis J 2005;24(5 Suppl):S58-61."
+    verification: author
+  klein_2012:
+    citation: "Klein NP, Bartlett J, Rowhani-Rahbar A, Fireman B, Baxter R. Waning protection after fifth dose of acellular pertussis vaccine in children. N Engl J Med 2012;367:1012-9."
+    verification: author
+  klein_2016:
+    citation: "Klein NP et al. Waning Tdap effectiveness in adolescents. Pediatrics 2016;137(3):e20153326."
+    verification: author
+  mcgirr_fisman_2015:
+    citation: "McGirr A, Fisman DN. Duration of pertussis immunity after DTaP immunization: a meta-analysis. Pediatrics 2015;135(2):331-43."
+    verification: author
+  warfel_2014:
+    citation: "Warfel JM, Zimmerman LI, Merkel TJ. Acellular pertussis vaccines protect against disease but fail to prevent infection and transmission in a nonhuman primate model. PNAS 2014;111(2):787-92."
+    verification: author
+  amirthalingam_2014:
+    citation: "Amirthalingam G et al. Effectiveness of maternal pertussis vaccination in England: an observational study. Lancet 2014;384:1521-8."
+    verification: author
+  quinn_2014:
+    citation: "Quinn HE et al. Pertussis disease and primary vaccination effectiveness by dose (Australia). Pediatrics 2014."
+    verification: author
+  korea_school_outbreak_2025:
+    citation: "Transmission dynamics and parameters for pertussis during school-based outbreak, South Korea, 2024. Emerg Infect Dis 2025;31(7)."
+    verification: citation

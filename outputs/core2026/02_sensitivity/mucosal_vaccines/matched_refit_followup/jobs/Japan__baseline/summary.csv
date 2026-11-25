@@ -1,0 +1,3 @@
+horizon,target_adolescent_cases_averted,onward_endpoint_adolescent_gain,acquisition_endpoint_adolescent_gain,status,unmatched_reason,country,history,nasal_coverage,mean_protection_years,fit_directory
+20,-102.64684321967664,-205.29368643935328,1051.894708334134,no_positive_endpoint_overlap,onward_endpoint_nonpositive,Japan,baseline,0.7,3.0,outputs/core2026/04_covid/full_refit_20261105T070745Z/Japan/baseline
+30,-164.83354306656216,-329.6670861331243,1978.9219855665506,no_positive_endpoint_overlap,onward_endpoint_nonpositive,Japan,baseline,0.7,3.0,outputs/core2026/04_covid/full_refit_20261105T070745Z/Japan/baseline

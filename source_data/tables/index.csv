@@ -1,0 +1,87 @@
+table,title,data_rows
+1,"Baseline pertussis vaccination coverage and modelled strategies by setting, 2027",8
+2,"Model calibration, retrospective assessment and projected infant burden under baseline vaccination",8
+S1,Country programmes and candidate coverage alternatives,8
+S2,Setting-specific evidence and extrapolation,8
+S3,"National programmes, observed uptake and prospective baseline coverage",8
+S4,Accounting for profile and coverage comparisons,16
+S5,Construction and reuse of intranasal trajectory comparisons,5
+S6,Age bins and population updates,54
+S7,Selected initialisation checks at fixed fitted parameters,16
+S8,"Model states, transmission equations and maternal-protection pathways",9
+S9,Mild-course infectiousness sensitivity,4
+S10,Calibration likelihood and observation-dispersion estimates,8
+S11,Pandemic contact-input phase boundaries,8
+S12,Restricted re-estimates of contact and import-recovery histories,24
+S13,Full-parameter re-estimates under baseline and extended recovery,16
+S14,Arithmetic AUC summaries by randomised arm,2
+S15,Resampling and influence of individual bacterial-load observations,10
+S16,Descriptive decomposition of the clinical AUC contrast,3
+S17,"Clinical studies, measured endpoints and their use in mucosal vaccination modelling",7
+S18,Construction groups for the 17 intranasal product profiles,6
+S19,Complete parameter matrix for the 17 intranasal product profiles,17
+S20,"Clinical evidence, assumed product properties and projected outcomes",5
+S21,Independent acquisition and onward-contribution strengths,16
+S22,Mechanism contrasts at matched adolescent case reductions,16
+S23,Matched adolescent outcomes under full-parameter fitted histories,32
+S24,Mechanism comparisons across matching targets and non-monotonic branches,4
+S25,Harmonised health-loss differences at equal assumed protection strength,8
+S26,Clinical and economic input scope,8
+S27,"Vaccination, delivery and treatment-cost input scope",8
+S28,Route-specific delivered-cost ceilings across setting-specific opportunity-cost valuations,20
+S29,DALY threshold evidence and currency conversion,8
+S30,Prospective maternal coverage anchors in New Zealand and Sweden,4
+S31,Coverage-anchor thresholds for the first programme expansion,4
+S32,Intranasal health benefits under alternative maternal-protection assumptions,7
+S33,Maternal vaccine effectiveness across infant clinical windows,7
+S34,Components of uncertainty,9
+S35,Sensitivity analyses,10
+S36,Biological and reported outcomes of adolescent Tdap expansion,6
+S37,Reported cases averted by age and follow-up period after adolescent Tdap expansion in Japan,4
+S38,Age-specific outcomes of expanding maternal or adolescent vaccination to 70% over 2027–2046,10
+S39,Incremental infant outcomes under the reference intranasal profile at 90% adolescent uptake,32
+S40,Cumulative outcomes through 50 years,26
+S41,Age-specific case effects over successive time windows,18
+S42,Epidemic peak timing under fitted histories,6
+S43,Japanese prospective transmission perturbations,30
+S44,"Brazilian start-year, duration and transmission scenarios",4
+S45,Daily and half-day integration of Brazilian long-term outcomes,4
+S46,Sensitivity of incremental infant protection to 17 vaccine profiles at 90% standalone uptake,16
+S47,Total and population-scaled mechanism contrasts,8
+S48,Effect allocation and age-specific outcomes at fixed coverage,24
+S49,Mechanism rankings across translation strengths and horizons,6
+S50,Matched mechanism contrasts under transmission and contact perturbations,16
+S51,Nasal outcomes under full-parameter refits,24
+S52,Infant outcomes under onward-transmission protection compared with acquisition protection,28
+S53,Paired population-health differences between protection mechanisms,24
+S54,Marginal nasal benefit across maternal coverage levels in China,4
+S55,Maternal–nasal interaction under alternative fitted histories and maternal protection,64
+S56,"Health gains per 1,000 additional doses when assumed maternal protection against typical disease is halved",14
+S57,"Infant outcomes after increasing maternal coverage to 90% under alternative mild-course mortality risks, 2027–2046",6
+S58,Common mortality: price boundaries and standard-programme health accounting,32
+S59,Components of discounted health gains under setting-specific and infant-only mortality assumptions,17
+S60,Relative health gains from programme expansion under a common infant-only mortality assumption,28
+S61,Conditional uncertainty and thresholds for the first expansion,8
+S62,Health gains and costs of the best expansion at each setting's highest source threshold,8
+S63,Nasal cost ceilings and selected coverage in the reference profile,32
+S64,Nasal adoption intervals across all sourced health valuations,16
+S65,Joint programme choices across nasal price intervals,75
+S66,Components of the nasal cost boundary over 20 years,16
+S67,Australian nasal price boundaries under hospital and unit-cost assumptions,20
+S68,Mortality burden and hospital-treatment savings,8
+S69,Nasal cost boundaries under two morbidity definitions,16
+S70,Discount-rate sensitivity for the reference product profile,16
+S71,Conditional decision uncertainty at zero nasal price,16
+S72,Protection duration and price-boundary coverage in Japan,8
+S73,Clinical AUC sensitivity and standalone nasal price boundaries,24
+S74,Retrospective predictive accuracy of the eight main fits,8
+S75,Seasonal surveillance benchmarks,6
+S76,Retrospective predictions at additional historical fitting cutoffs,35
+S77,Burden and epidemic peak timing in the 2024–2025 surveillance window,8
+S78,Future programme choices with persistent end-2025 ascertainment,8
+S79,Swedish programme choices under alternative full-parameter recovery histories,4
+S80,Historical case burden with contact and import restrictions removed,8
+S81,Predictive accuracy with explicit observation windows,9
+S82,"Temporal, age-composition and peak diagnostics",8
+S83,Fixed-coverage nasal cost boundaries across transmission conditions,24
+S84,Reference-profile health gains across transmission conditions,24

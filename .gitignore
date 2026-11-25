@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.nb[ci]
+.pytest_cache/
+.paper-workflow.lock
+.Rhistory
+.RData
+.Rproj.user/
+build/
+results/
+reproduction/
+outputs/core2026/05_evidence/mucosal_vaccines/clinical_sources/
+outputs/core2026/05_evidence/mucosal_vaccines/trial_reanalysis/participant_auc.csv
+outputs/core2026/05_evidence/mucosal_vaccines/trial_reanalysis/excluded_participants.csv
+outputs/core2026/05_evidence/mucosal_vaccines/trial_reanalysis/bootstrap_joint_effects.csv.gz

@@ -1,0 +1,9 @@
+"country","horizon","route","profile_id","maternal_baseline","maternal_coverage","nasal_coverage","tdap_coverage","strategy_id","comparator","infant_yll_averted","yll_q025","yll_q975"
+"Japan",20,"coadmin","b050_a050_d03_point",0,0,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",612.02913382664,480.010389551807,749.20416077544
+"Japan",30,"coadmin","b050_a050_d03_point",0,0,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",-60.4164262994789,-80.3289362871267,-38.273167624509
+"Japan",20,"coadmin","b050_a050_d03_point",0,0.5,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.5_A0.9","current_M0.5_A0.9",470.446535529604,351.160455291507,633.95898709182
+"Japan",30,"coadmin","b050_a050_d03_point",0,0.5,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.5_A0.9","current_M0.5_A0.9",-45.5683652148891,-56.032822835868,-35.8997692207258
+"Japan",20,"coadmin","b050_a050_d03_point",0,0.7,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.7_A0.9","current_M0.7_A0.9",387.469553687847,265.081461879127,602.154967748421
+"Japan",30,"coadmin","b050_a050_d03_point",0,0.7,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.7_A0.9","current_M0.7_A0.9",-37.8441751314899,-47.3453432011772,-29.5704485631964
+"Japan",20,"coadmin","b050_a050_d03_point",0,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",292.063756055898,166.32013457669,565.693332160268
+"Japan",30,"coadmin","b050_a050_d03_point",0,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",-27.6767002701316,-43.1250656586737,-18.8972809129219

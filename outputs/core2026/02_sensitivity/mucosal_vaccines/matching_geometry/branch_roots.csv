@@ -1,0 +1,8 @@
+strength,bracket_lower,bracket_upper,source,achieved_cases,matching_error,country,horizon,target_label,target_fraction,target_rule,target_cases,mechanism,branch,nasal_coverage
+0.1392766952422488,0.0,0.25,grid_sign_change,81.86842106224495,1.10602343283972e-07,Sweden,30,quarter_endpoint,0.25,endpoint,81.8684209516426,onward,0,0.9
+0.0839802954179076,0.0,0.25,grid_sign_change,81.86842101702341,6.538080299378636e-08,Sweden,30,quarter_endpoint,0.25,endpoint,81.8684209516426,acquisition,0,0.9
+0.5735460895071067,0.5,0.75,grid_sign_change,245.6052628965494,4.162157551945711e-08,Sweden,30,three_quarter_endpoint,0.75,endpoint,245.60526285492784,onward,0,0.9
+0.2861799574643742,0.25,0.5,grid_sign_change,245.60524888579076,1.3969137086178309e-05,Sweden,30,three_quarter_endpoint,0.75,endpoint,245.60526285492784,acquisition,0,0.9
+0.0294746691970381,0.0,0.25,grid_sign_change,289.576509962434,4.965792078337472e-05,Japan,30,half_sampled_peak,0.5,sampled_peak,289.57646030451315,onward,0,0.7
+0.5434151385441447,0.5,0.75,grid_sign_change,289.57645565781274,4.646700404009607e-06,Japan,30,half_sampled_peak,0.5,sampled_peak,289.57646030451315,onward,1,0.7
+0.0205509398316484,0.0,0.25,grid_sign_change,289.57628893821123,0.0001713663019131,Japan,30,half_sampled_peak,0.5,sampled_peak,289.57646030451315,acquisition,0,0.7

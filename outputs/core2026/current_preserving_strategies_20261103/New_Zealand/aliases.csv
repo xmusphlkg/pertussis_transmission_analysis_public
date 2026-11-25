@@ -1,0 +1,5 @@
+country,alias,requested_expansion_target,strategy_id,actual_maternal_coverage,actual_adolescent_coverage
+New_Zealand,current,0.7,current,0.75,0.8
+New_Zealand,current+M,0.7,current,0.75,0.8
+New_Zealand,current+A,0.7,current,0.75,0.8
+New_Zealand,current+MA,0.7,current,0.75,0.8

@@ -1,0 +1,29 @@
+Setting,Expansion towards 70%,Morbidity,Baseline DALYs,DALYs averted,"Baseline DALYs averted, %"
+Australia,Maternal,"Reported, uniform",592.9,25.25,4.258
+Australia,Maternal,"Symptomatic, differentiated",6654,57.4,0.8626
+England,Adolescent,"Reported, uniform",748.9,81.54,10.89
+England,Adolescent,"Symptomatic, differentiated",1.239e+04,1290,10.41
+Sweden,Maternal,"Reported, uniform",271.8,50.03,18.4
+Sweden,Maternal,"Symptomatic, differentiated",2571,73.94,2.877
+Japan,Maternal,"Reported, uniform",5018,2476,49.35
+Japan,Maternal,"Symptomatic, differentiated",4.144e+04,2909,7.021
+Japan,Adolescent,"Reported, uniform",5018,-67.18,-1.339
+Japan,Adolescent,"Symptomatic, differentiated",4.144e+04,-632.5,-1.526
+Japan,Combined,"Reported, uniform",5018,2447,48.76
+Japan,Combined,"Symptomatic, differentiated",4.144e+04,2344,5.658
+China,Maternal,"Reported, uniform",6.407e+04,3.398e+04,53.04
+China,Maternal,"Symptomatic, differentiated",2.424e+05,5.027e+04,20.74
+China,Adolescent,"Reported, uniform",6.407e+04,446.7,0.6972
+China,Adolescent,"Symptomatic, differentiated",2.424e+05,2436,1.005
+China,Combined,"Reported, uniform",6.407e+04,3.422e+04,53.41
+China,Combined,"Symptomatic, differentiated",2.424e+05,5.254e+04,21.67
+Brazil,Adolescent,"Reported, uniform",4841,605.9,12.52
+Brazil,Adolescent,"Symptomatic, differentiated",1.073e+05,1.368e+04,12.75
+Thailand,Maternal,"Reported, uniform",218.9,50.6,23.12
+Thailand,Maternal,"Symptomatic, differentiated",1.635e+04,241.9,1.48
+Thailand,Adolescent,"Reported, uniform",218.9,-0.604,-0.2759
+Thailand,Adolescent,"Symptomatic, differentiated",1.635e+04,-60.89,-0.3724
+Thailand,Combined,"Reported, uniform",218.9,50.01,22.85
+Thailand,Combined,"Symptomatic, differentiated",1.635e+04,159.5,0.9754
+New Zealand,No expansion (baseline ≥70%),"Reported, uniform",127.3,0,0
+New Zealand,No expansion (baseline ≥70%),"Symptomatic, differentiated",2241,0,0

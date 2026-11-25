@@ -1,0 +1,25 @@
+Setting,Transmission condition,Horizon (years),"Onward minus acquisition DALY gain, mean (95% UI)",Paired fraction above zero (%)
+England,Local pooled,20,27.90 (−1.31 to 62.00),96.7
+England,Local pooled,30,35.23 (−6.38 to 79.83),96.7
+England,Local replicate 1,20,24.45 (0.79 to 57.87),100.0
+England,Local replicate 1,30,34.07 (6.13 to 66.46),100.0
+England,Local replicate 2,20,31.36 (−1.88 to 63.78),93.5
+England,Local replicate 2,30,36.39 (−7.43 to 84.16),93.3
+Japan,Adopted fit,20,338.53 (266.90 to 413.53),100.0
+Japan,Adopted fit,30,2.34 (−4.44 to 19.39),48.6
+Japan,Full refit: baseline,20,338.53 (266.90 to 413.54),100.0
+Japan,Full refit: baseline,30,2.34 (−4.44 to 19.39),48.6
+Japan,Full refit: 365-day recovery,20,303.03 (238.50 to 370.14),100.0
+Japan,Full refit: 365-day recovery,30,11.86 (2.99 to 32.22),100.0
+Brazil,Adopted fit,20,197.60 (159.09 to 243.07),100.0
+Brazil,Adopted fit,30,28.76 (6.61 to 43.12),99.6
+Brazil,Full refit: baseline,20,197.61 (159.09 to 243.08),100.0
+Brazil,Full refit: baseline,30,28.76 (6.60 to 43.12),99.6
+Brazil,Local pooled,20,138.99 (63.28 to 258.11),100.0
+Brazil,Local pooled,30,81.95 (30.74 to 180.38),100.0
+Brazil,Local replicate 1,20,147.53 (75.79 to 258.61),100.0
+Brazil,Local replicate 1,30,78.99 (27.27 to 149.44),100.0
+Brazil,Local replicate 2,20,130.45 (60.25 to 255.32),100.0
+Brazil,Local replicate 2,30,84.91 (37.61 to 198.42),100.0
+Brazil,Full refit: 365-day recovery,20,141.06 (112.52 to 173.65),100.0
+Brazil,Full refit: 365-day recovery,30,72.20 (48.80 to 93.11),100.0

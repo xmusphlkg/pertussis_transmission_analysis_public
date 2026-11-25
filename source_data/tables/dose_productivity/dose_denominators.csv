@@ -1,0 +1,17 @@
+Burden,Mortality scope,Denominator,Comparisons,Maternal greater
+reported differentiated,included,discounted,14,14
+reported differentiated,included,physical,14,14
+reported differentiated,infant only,discounted,14,14
+reported differentiated,infant only,physical,14,14
+reported uniform,included,discounted,14,14
+reported uniform,included,physical,14,14
+reported uniform,infant only,discounted,14,14
+reported uniform,infant only,physical,14,14
+symptomatic differentiated,included,discounted,14,9
+symptomatic differentiated,included,physical,14,9
+symptomatic differentiated,infant only,discounted,14,9
+symptomatic differentiated,infant only,physical,14,9
+symptomatic uniform,included,discounted,14,7
+symptomatic uniform,included,physical,14,7
+symptomatic uniform,infant only,discounted,14,7
+symptomatic uniform,infant only,physical,14,7

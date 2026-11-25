@@ -1,0 +1,29 @@
+Comparison,Setting,Years,Infant reported cases,"Infant deaths, mean (95% UI)","Infant YLL, mean (95% UI)","Infant YLL + all-age YLD, mean"
+Equal strength,Australia,20,122.5,0.173 (0.069 to 0.335),4.16 (1.66 to 8.05),5.29
+Equal strength,Australia,30,463.8,0.658 (0.262 to 1.27),11.27 (4.48 to 21.79),25.53
+Equal strength,England,20,184.0,2.44 (1.74 to 3.52),48.69 (34.84 to 70.32),54.70
+Equal strength,England,30,55.90,0.720 (0.493 to 1.12),21.49 (15.03 to 32.11),21.36
+Equal strength,Sweden,20,16.24,0.221 (0.148 to 0.381),4.78 (3.19 to 8.23),5.01
+Equal strength,Sweden,30,26.73,0.363 (0.243 to 0.626),6.89 (4.60 to 11.87),7.22
+Equal strength,Japan,20,141.2,6.76 (5.31 to 8.30),135.2 (106.3 to 166.1),135.0
+Equal strength,Japan,30,−45.41,−2.74 (−3.87 to −1.24),−4.76 (−15.00 to 17.38),−10.16
+Equal strength,New Zealand,20,1.45,0.003 (0.002 to 0.008),0.213 (0.136 to 0.394),−0.374
+Equal strength,New Zealand,30,−8.51,−0.026 (−0.034 to −0.020),−0.057 (−0.106 to 0.044),−1.09
+Equal strength,China,20,"3,483.9",32.31 (12.72 to 60.19),"739.0 (290.8 to 1,376.3)",742.7
+Equal strength,China,30,"5,296.0",49.19 (19.40 to 91.70),"986.7 (388.8 to 1,838.8)",993.3
+Equal strength,Brazil,20,718.5,9.41 (7.62 to 11.62),176.2 (142.7 to 217.5),178.6
+Equal strength,Brazil,30,174.5,2.21 (1.79 to 2.74),66.02 (53.30 to 81.60),65.60
+Equal strength,Thailand,20,4.80,0.029 (0.004 to 0.079),1.38 (0.200 to 3.71),1.34
+Equal strength,Thailand,30,79.20,0.591 (0.084 to 1.64),9.16 (1.30 to 25.36),9.50
+Matched,Australia,20,36.26,0.052 (0.021 to 0.100),1.21 (0.481 to 2.32),2.98
+Matched,Australia,30,290.8,0.415 (0.165 to 0.800),7.83 (3.12 to 15.07),18.98
+Matched,England,20,126.9,1.69 (1.22 to 2.42),35.21 (25.40 to 50.34),39.49
+Matched,England,30,99.81,1.34 (0.973 to 1.89),48.31 (35.06 to 68.54),51.33
+Matched,Sweden,20,13.10,0.179 (0.120 to 0.306),4.33 (2.90 to 7.42),4.76
+Matched,Sweden,30,15.61,0.213 (0.143 to 0.365),4.95 (3.32 to 8.49),5.39
+Matched,New Zealand,20,5.77,0.016 (0.011 to 0.025),0.835 (0.583 to 1.34),1.04
+Matched,New Zealand,30,7.56,0.021 (0.015 to 0.033),1.14 (0.796 to 1.86),1.46
+Matched,China,20,"3,784.4",35.62 (14.17 to 66.93),"918.4 (365.0 to 1,726.3)",937.4
+Matched,China,30,"4,886.5",45.92 (18.30 to 86.21),"1,089.6 (433.6 to 2,047.2)","1,110.7"
+Matched,Brazil,20,952.6,12.54 (10.14 to 15.46),242.9 (196.5 to 299.4),246.7
+Matched,Thailand,30,65.62,0.486 (0.069 to 1.34),8.88 (1.26 to 24.57),9.20

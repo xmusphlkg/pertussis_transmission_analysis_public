@@ -1,0 +1,55 @@
+index,label,kind,lower_years,upper_years,ageing,mapping
+0,m00,monthly,0.0,0.08333333333333333,monthly calendar shift,bin-age overlap
+1,m01,monthly,0.08333333333333333,0.16666666666666666,monthly calendar shift,bin-age overlap
+2,m02,monthly,0.16666666666666666,0.25,monthly calendar shift,bin-age overlap
+3,m03,monthly,0.25,0.3333333333333333,monthly calendar shift,bin-age overlap
+4,m04,monthly,0.3333333333333333,0.4166666666666667,monthly calendar shift,bin-age overlap
+5,m05,monthly,0.4166666666666667,0.5,monthly calendar shift,bin-age overlap
+6,m06,monthly,0.5,0.5833333333333334,monthly calendar shift,bin-age overlap
+7,m07,monthly,0.5833333333333334,0.6666666666666666,monthly calendar shift,bin-age overlap
+8,m08,monthly,0.6666666666666666,0.75,monthly calendar shift,bin-age overlap
+9,m09,monthly,0.75,0.8333333333333334,monthly calendar shift,bin-age overlap
+10,m10,monthly,0.8333333333333334,0.9166666666666666,monthly calendar shift,bin-age overlap
+11,m11,monthly,0.9166666666666666,1.0,monthly calendar shift,bin-age overlap
+12,m12,monthly,1.0,1.0833333333333333,monthly calendar shift,bin-age overlap
+13,m13,monthly,1.0833333333333333,1.1666666666666667,monthly calendar shift,bin-age overlap
+14,m14,monthly,1.1666666666666667,1.25,monthly calendar shift,bin-age overlap
+15,m15,monthly,1.25,1.3333333333333333,monthly calendar shift,bin-age overlap
+16,m16,monthly,1.3333333333333333,1.4166666666666667,monthly calendar shift,bin-age overlap
+17,m17,monthly,1.4166666666666667,1.5,monthly calendar shift,bin-age overlap
+18,m18,monthly,1.5,1.5833333333333333,monthly calendar shift,bin-age overlap
+19,m19,monthly,1.5833333333333333,1.6666666666666667,monthly calendar shift,bin-age overlap
+20,m20,monthly,1.6666666666666667,1.75,monthly calendar shift,bin-age overlap
+21,m21,monthly,1.75,1.8333333333333333,monthly calendar shift,bin-age overlap
+22,m22,monthly,1.8333333333333333,1.9166666666666667,monthly calendar shift,bin-age overlap
+23,m23,monthly,1.9166666666666667,2.0,monthly calendar shift,bin-age overlap
+24,y02,birth-year cohort,2.0,3.0,annual 1 January shift,bin-age overlap
+25,y03,birth-year cohort,2.0,4.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+26,y04,birth-year cohort,3.0,5.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+27,y05,birth-year cohort,4.0,6.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+28,y06,birth-year cohort,5.0,7.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+29,y07,birth-year cohort,6.0,8.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+30,y08,birth-year cohort,7.0,9.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+31,y09,birth-year cohort,8.0,10.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+32,y10,birth-year cohort,9.0,11.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+33,y11,birth-year cohort,10.0,12.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+34,y12,birth-year cohort,11.0,13.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+35,y13,birth-year cohort,12.0,14.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+36,y14,birth-year cohort,13.0,15.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+37,y15,birth-year cohort,14.0,16.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+38,y16,birth-year cohort,15.0,17.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+39,y17,birth-year cohort,16.0,18.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+40,y18,birth-year cohort,17.0,19.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+41,y19,birth-year cohort,18.0,20.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+42,y20,birth-year cohort,19.0,21.0,annual 1 January shift,"completed ages k−1 and k, birthday fraction f"
+43,20–24,adult,20.5,25.5,"continuous, rate 1/5 per year",bin-age overlap
+44,25–29,adult,25.5,30.5,"continuous, rate 1/5 per year",bin-age overlap
+45,30–34,adult,30.5,35.5,"continuous, rate 1/5 per year",bin-age overlap
+46,35–39,adult,35.5,40.5,"continuous, rate 1/5 per year",bin-age overlap
+47,40–44,adult,40.5,45.5,"continuous, rate 1/5 per year",bin-age overlap
+48,45–49,adult,45.5,50.5,"continuous, rate 1/5 per year",bin-age overlap
+49,50–54,adult,50.5,55.5,"continuous, rate 1/5 per year",bin-age overlap
+50,55–59,adult,55.5,60.5,"continuous, rate 1/5 per year",bin-age overlap
+51,60–64,adult,60.5,65.5,"continuous, rate 1/5 per year",bin-age overlap
+52,65–69,adult,65.5,70.5,"continuous, rate 1/5 per year",bin-age overlap
+53,70+,open adult,70.5,inf,no age-out,uniform 70.5–85 for observation mapping only

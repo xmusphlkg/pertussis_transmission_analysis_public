@@ -1,0 +1,27 @@
+Setting,Scenario,Years,Dalys averted,Dalys averted q025,Dalys averted q975,Deaths averted,Infant deaths averted
+Brazil,adopted more recovered,30,24.32,10.55,37.93,-12.57,-11.61
+Brazil,adopted more recovered,50,616.7,502.2,753.4,49.4,43.77
+Brazil,adopted more waned,30,112,88.52,137.6,-5.844,-5.599
+Brazil,adopted more waned,50,696.8,567.3,847.1,59.9,53.14
+Brazil,adopted unchanged,10,4.912,0.9851,9.251,-1.242,-1.236
+Brazil,adopted unchanged,20,967.9,787.8,1182,50.16,45.04
+Brazil,adopted unchanged,30,9.605,-3.664,22.86,-13.43,-12.41
+Brazil,adopted unchanged,40,254.7,206.5,312.2,4.899,3.725
+Brazil,adopted unchanged,50,605.7,493.1,739.8,48.87,43.26
+Brazil,baseline unchanged,30,9.61,-3.658,22.86,-13.43,-12.41
+Brazil,baseline unchanged,50,605.8,493.2,739.8,48.87,43.26
+Brazil,recovery 365 unchanged,30,217.1,175.9,264.4,0.9979,0.6713
+Brazil,recovery 365 unchanged,50,711.9,580.1,865.9,58.99,52.42
+Japan,adopted more recovered,30,-28.07,-56.14,27.09,-9.851,-9.851
+Japan,adopted more recovered,50,257.6,195.7,342.2,11.42,11.42
+Japan,adopted more waned,30,253.9,200.9,314.1,12,12
+Japan,adopted more waned,50,350.3,276.8,432.1,25.55,25.55
+Japan,adopted unchanged,10,-84.79,-107.9,-61.02,-4.421,-4.421
+Japan,adopted unchanged,20,374.3,296.7,456.5,16.08,16.08
+Japan,adopted unchanged,30,-8.61,-34.74,48.47,-8.135,-8.135
+Japan,adopted unchanged,40,462.7,365.9,569.7,31.65,31.65
+Japan,adopted unchanged,50,256.9,193.8,343.6,11.84,11.84
+Japan,baseline unchanged,30,-8.611,-34.74,48.47,-8.135,-8.135
+Japan,baseline unchanged,50,256.9,193.8,343.6,11.84,11.84
+Japan,recovery 365 unchanged,30,108.9,73.03,175.7,0.734,0.734
+Japan,recovery 365 unchanged,50,280.4,208.8,383.7,14.93,14.93

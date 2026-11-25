@@ -1,0 +1,243 @@
+schema: core2026-programme-v1
+country: Thailand
+iso3: THA
+status: migration_test_country_specific_assumptions
+sensitivity_priority: high
+sources:
+  wuenic_2025:
+    citation: WHO/UNICEF Estimates of National Immunization Coverage, DTP1/DTP3, 2025
+      revision; repository export used by core2026.
+    url: https://immunizationdata.who.int/
+    ledger: coverage_series_external_validation
+  coverage_pre1990_assumption:
+    citation: Modeling assumption for pre-1990 coverage where the M2 ledger has policy
+      context but no annual national uptake series; replace when historical survey/registry
+      data are assembled.
+    url: data/processed/m2_vaccination_history/README.md
+    ledger: coverage_pre_1990_open_item
+  coverage_projection_2050:
+    citation: Core2026 projection assumption after the last observed WUENIC year;
+      held near the recent national level for forward simulation.
+    url: config/core2026/programmes/README.md
+    ledger: projection_assumption
+  ledger_schedule:
+    citation: 'M2 Thailand ledger: WHO EPI dates, public DTwP schedule and private/professional
+      aP caveats.'
+    url: data/processed/m2_vaccination_history/new_zealand_sweden_thailand_uk.md
+    ledger: Thailand event ledger
+  ledger_gap:
+    citation: 'M2 Thailand ledger: conflicting dose 4/5 dates, WHO 1991/2000 versus
+      literature 1987/1992.'
+    url: data/processed/m2_vaccination_history/new_zealand_sweden_thailand_uk.md
+    ledger: Thailand dose-date conflict
+  timeliness_assumption:
+    citation: Shared whole-month timeliness prior used for the core2026 input bundle;
+      country-specific dose-date distributions are not yet available.
+    url: config/core2026/programmes/README.md
+    ledger: timeliness_open_item
+  national_policy:
+    url: https://www.ddc.moph.go.th/uploads/publish/1518520240108084839.pdf
+    citation: 'DDC January 2024 guidance: one aP dose per pregnancy at 20–32 weeks,
+      national benefit from 2024'
+    ledger: country_health_migration_20261027
+  migration_assumption:
+    url: analysis/country_health_migration_20261027.md
+    citation: Exploratory scenario assumption; uptake levels are not observed national
+      estimates; nominal monthly spacing for Japan doses 2–3
+    ledger: country_health_migration_20261027
+  age_case_source_verification:
+    url: analysis/country_age_source_verification_20261027.md
+    citation: Independent checks of official national age and month cells with original-file
+      SHA256; 2026-10-27
+    ledger: analysis/country_age_verification/decisions.csv
+primary_product:
+- start: '1970-01-01'
+  product: wP
+  sources:
+  - ledger_schedule
+  evidence_grade: A
+coverage_series:
+  dtp1:
+  - from: 1970
+    to: 1989
+    interpolate: &id001
+      '1970': 0.45
+      '1977': 0.6
+      '1982': 0.7
+      '1989': 0.75
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 2024
+    wuenic: DTPCV1
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 2025
+    to: 2050
+    value: 0.9
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  dtp3:
+  - from: 1970
+    to: 1989
+    interpolate: *id001
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 2024
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 2025
+    to: 2050
+    value: 0.9
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  dtp2:
+    derived_mean:
+    - dtp1
+    - dtp3
+  booster_18m:
+  - from: 1970
+    to: 1990
+    value: 0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1991
+    to: 2024
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.85
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  preschool:
+  - from: 1970
+    to: 1999
+    value: 0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 2000
+    to: 2024
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.8
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  maternal:
+  - from: 1970
+    to: 2023
+    value: 0.0
+    sources:
+    - national_policy
+    evidence_grade: D
+  - from: 2024
+    to: 2050
+    value: 0.5
+    sources:
+    - national_policy
+    evidence_grade: D
+infant_doses:
+- name: primary_1
+  kind: dose1
+  age_months: 2
+  start: '1970-01-01'
+  end: null
+  coverage: dtp1
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_2
+  kind: dose2
+  age_months: 4
+  start: '1970-01-01'
+  end: null
+  coverage: dtp2
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_3
+  kind: dose3
+  age_months: 6
+  start: '1970-01-01'
+  end: null
+  coverage: dtp3
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: booster_18m
+  kind: toddler_booster
+  age_months: 18
+  start: '1991-01-01'
+  end: null
+  coverage: booster_18m
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+cohort_doses:
+- name: booster_4y
+  kind: child_booster
+  age_years: 4.0
+  start: '2000-01-01'
+  end: null
+  coverage: preschool
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+maternal:
+- start: '2024-01-01'
+  end: null
+  coverage: maternal
+  effective_share: 0.9
+  sources:
+  - national_policy
+  evidence_grade: D
+timeliness:
+  delay_pmf_months:
+  - 0.75
+  - 0.15
+  - 0.06
+  - 0.04
+  sources:
+  - timeliness_assumption
+  evidence_grade: D
+sensitivity_variants:
+  thailand_dose4_date:
+    description: WHO A date 1991 versus peer-reviewed 1987.
+    alternative_toddler_booster_start: '1987-01-01'
+    operations:
+    - kind: set_dose_field
+      block: infant_doses
+      name: booster_18m
+      field: start
+      value: '1987-01-01'
+  thailand_dose5_date:
+    description: WHO A date 2000 versus peer-reviewed 1992.
+    alternative_preschool_start: '1992-01-01'
+    operations:
+    - kind: set_dose_field
+      block: cohort_doses
+      name: booster_4y
+      field: start
+      value: '1992-01-01'
+  thailand_private_ap:
+    description: Private-sector DTaP after approximately 1998; not applied to national
+      EPI core.
+notes: Core uses WHO national EPI dates 1991 and 2000; public programme remains wP.

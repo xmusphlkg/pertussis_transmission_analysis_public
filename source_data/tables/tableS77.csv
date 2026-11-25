@@ -1,0 +1,9 @@
+Setting,Window,Observation role,Observed cases,Predicted cases,Predicted/observed,WAPE (%),Peak delay (days)
+Australia,2024–2025,Fitting,"82,544","87,132.2",1.056,27.7,+0.0
+England,2024–2025,Fitting,"15,553","21,668.3",1.393,39.5,+0.0
+Sweden,2024–2025,Fitting (2024) and later observations (2025),"3,328","6,155.8",1.850,104.9,+91.5
+Japan,2024–2025,Later observations; mixed data vintages,"79,375","24,481.8",0.308,83.7,-168.0
+New Zealand,2024–2025,Fitting (2024) and later observations (2025),"4,466","9,246.4",2.070,113.8,+90.0
+China,2024–2025,Fitting (2024) and later observations (2025),"530,000","164,283.9",0.310,69.4,-30.5
+Brazil,2024–2025,Fitting (2024) and later observations (2025),"10,444","18,680.2",1.789,107.8,-244.5
+Thailand,2024 only,Later observations,"1,275","1,018.9",0.799,77.6,+213.0

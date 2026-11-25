@@ -1,0 +1,9 @@
+"country","horizon","route","profile_id","maternal_baseline","maternal_coverage","nasal_coverage","tdap_coverage","strategy_id","comparator","infant_yll_averted","yll_q025","yll_q975"
+"China",20,"coadmin","b050_a050_d03_point",0,0,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",1646.34883168035,655.713126555421,3091.85974218708
+"China",30,"coadmin","b050_a050_d03_point",0,0,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_Mkeep_A0.9","current_Mkeep_A0.9",1686.67298199787,671.814845457399,3167.4948331887
+"China",20,"coadmin","b050_a050_d03_point",0,0.5,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.5_A0.9","current_M0.5_A0.9",1132.01546835952,452.755886419215,2118.92020881942
+"China",30,"coadmin","b050_a050_d03_point",0,0.5,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.5_A0.9","current_M0.5_A0.9",1168.00263991396,467.145664907584,2186.5011428561
+"China",20,"coadmin","b050_a050_d03_point",0,0.7,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.7_A0.9","current_M0.7_A0.9",909.979870224281,361.651960421985,1761.80577659739
+"China",30,"coadmin","b050_a050_d03_point",0,0.7,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.7_A0.9","current_M0.7_A0.9",940.67398985867,373.797053868649,1821.23509541707
+"China",20,"coadmin","b050_a050_d03_point",0,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",679.29423175248,253.946491312364,1400.05519669322
+"China",30,"coadmin","b050_a050_d03_point",0,0.9,0.9,0.9,"bpze1_b050_a050_d03_point_coadmin__current_M0.9_A0.9","current_M0.9_A0.9",703.052238315219,262.830111974863,1449.08379338539

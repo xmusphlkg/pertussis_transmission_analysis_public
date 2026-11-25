@@ -1,0 +1,41 @@
+{
+  "input_files": [
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Australia__baseline/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Australia__baseline/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Australia__recovery_365/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Australia__recovery_365/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Brazil__baseline/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Brazil__baseline/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Brazil__recovery_365/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Brazil__recovery_365/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/China__baseline/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/China__baseline/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/China__recovery_365/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/China__recovery_365/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/England__baseline/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/England__baseline/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/England__recovery_365/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/England__recovery_365/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Japan__baseline/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Japan__baseline/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Japan__recovery_365/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Japan__recovery_365/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/New_Zealand__baseline/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/New_Zealand__baseline/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/New_Zealand__recovery_365/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/New_Zealand__recovery_365/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Sweden__baseline/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Sweden__baseline/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Sweden__recovery_365/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Sweden__recovery_365/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Thailand__baseline/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Thailand__baseline/summary.csv",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Thailand__recovery_365/manifest.json",
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/jobs/Thailand__recovery_365/summary.csv",
+    "outputs/core2026/02_sensitivity/review_revision/matched_summary.csv",
+    "scripts/analyse_matched_refit_followup_20261113.py"
+  ],
+  "output_files": [
+    "outputs/core2026/02_sensitivity/mucosal_vaccines/matched_refit_followup/matched_refit_summary.csv"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "country": "Brazil",
+  "history": "recovery_365",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/Brazil/recovery_365",
+  "seconds": 39.21075918339193,
+  "reused_projection_trajectories": 3,
+  "history_replays": 1,
+  "new_projection_integrations": 13,
+  "matched_conditions": 1
+}

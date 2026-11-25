@@ -1,0 +1,150 @@
+{
+  "status": "conditional_current_preserving_monthly_valuation",
+  "n_draws": 1000,
+  "decision_set": "independent_coverage_grid_no_reduction_of_encoded_programmes",
+  "countries": [
+    {
+      "country": "Australia",
+      "start_year": 2027,
+      "risk_path": "outputs/core2026/v2_australia_mortality_20261102/risk_draws.csv.gz",
+      "inpatient_basis": "age_matched_episode_plus_borrowed_child_LOS_day_cost",
+      "hospital_scope": "Sweden_historical_survivor_under_6m_else_explicit_country_or_Brazil_donor",
+      "fixed_transmission": true,
+      "reference": "current",
+      "morbidity_factorial": [
+        "reported_uniform",
+        "reported_differentiated",
+        "symptomatic_uniform",
+        "symptomatic_differentiated"
+      ],
+      "mortality_overlay": "borrowed_noninfant_CFR_sensitivity_not_national_estimate",
+      "rate": 0.03
+    },
+    {
+      "country": "England",
+      "start_year": 2027,
+      "risk_path": "outputs/core2026/programme_scenarios_20261029/England_risk_2001_2023/risk_draws.csv.gz",
+      "inpatient_basis": "explicit_episode_cost_age_extrapolation",
+      "hospital_scope": "Sweden_historical_survivor_under_6m_else_explicit_country_or_Brazil_donor",
+      "fixed_transmission": true,
+      "reference": "current",
+      "morbidity_factorial": [
+        "reported_uniform",
+        "reported_differentiated",
+        "symptomatic_uniform",
+        "symptomatic_differentiated"
+      ],
+      "mortality_overlay": "borrowed_noninfant_CFR_sensitivity_not_national_estimate",
+      "rate": 0.03
+    },
+    {
+      "country": "Sweden",
+      "start_year": 2027,
+      "risk_path": "outputs/core2026/programme_scenarios_20261029/England_risk_2001_2023/risk_draws.csv.gz",
+      "inpatient_basis": "day_cost_times_borrowed_child_LOS",
+      "hospital_scope": "Sweden_historical_survivor_under_6m_else_explicit_country_or_Brazil_donor",
+      "fixed_transmission": true,
+      "reference": "current",
+      "morbidity_factorial": [
+        "reported_uniform",
+        "reported_differentiated",
+        "symptomatic_uniform",
+        "symptomatic_differentiated"
+      ],
+      "mortality_overlay": "borrowed_noninfant_CFR_sensitivity_not_national_estimate",
+      "rate": 0.03
+    },
+    {
+      "country": "Japan",
+      "start_year": 2027,
+      "risk_path": "outputs/core2026/programme_scenarios_20261029/England_risk_2001_2023/risk_draws.csv.gz",
+      "inpatient_basis": "day_cost_times_borrowed_child_LOS",
+      "hospital_scope": "Sweden_historical_survivor_under_6m_else_explicit_country_or_Brazil_donor",
+      "fixed_transmission": true,
+      "reference": "current",
+      "morbidity_factorial": [
+        "reported_uniform",
+        "reported_differentiated",
+        "symptomatic_uniform",
+        "symptomatic_differentiated"
+      ],
+      "mortality_overlay": "borrowed_noninfant_CFR_sensitivity_not_national_estimate",
+      "rate": 0.03
+    },
+    {
+      "country": "New_Zealand",
+      "start_year": 2027,
+      "risk_path": "outputs/core2026/programme_scenarios_20261029/England_risk_2001_2023/risk_draws.csv.gz",
+      "inpatient_basis": "day_cost_times_borrowed_child_LOS",
+      "hospital_scope": "Sweden_historical_survivor_under_6m_else_explicit_country_or_Brazil_donor",
+      "fixed_transmission": true,
+      "reference": "current",
+      "morbidity_factorial": [
+        "reported_uniform",
+        "reported_differentiated",
+        "symptomatic_uniform",
+        "symptomatic_differentiated"
+      ],
+      "mortality_overlay": "borrowed_noninfant_CFR_sensitivity_not_national_estimate",
+      "rate": 0.03
+    },
+    {
+      "country": "China",
+      "start_year": 2027,
+      "risk_path": "outputs/core2026/v2_australia_mortality_20261102/risk_draws.csv.gz",
+      "inpatient_basis": "explicit_episode_cost_age_extrapolation",
+      "hospital_scope": "Sweden_historical_survivor_under_6m_else_explicit_country_or_Brazil_donor",
+      "fixed_transmission": true,
+      "reference": "current",
+      "morbidity_factorial": [
+        "reported_uniform",
+        "reported_differentiated",
+        "symptomatic_uniform",
+        "symptomatic_differentiated"
+      ],
+      "mortality_overlay": "borrowed_noninfant_CFR_sensitivity_not_national_estimate",
+      "rate": 0.03
+    },
+    {
+      "country": "Brazil",
+      "start_year": 2027,
+      "risk_path": "None",
+      "inpatient_basis": "explicit_episode_cost_age_extrapolation",
+      "hospital_scope": "Sweden_historical_survivor_under_6m_else_explicit_country_or_Brazil_donor",
+      "fixed_transmission": true,
+      "reference": "current",
+      "morbidity_factorial": [
+        "reported_uniform",
+        "reported_differentiated",
+        "symptomatic_uniform",
+        "symptomatic_differentiated"
+      ],
+      "mortality_overlay": "existing_national_CFR_no_overlay",
+      "rate": 0.03
+    },
+    {
+      "country": "Thailand",
+      "start_year": 2027,
+      "risk_path": "None",
+      "inpatient_basis": "day_cost_times_borrowed_child_LOS",
+      "hospital_scope": "Sweden_historical_survivor_under_6m_else_explicit_country_or_Brazil_donor",
+      "fixed_transmission": true,
+      "reference": "current",
+      "morbidity_factorial": [
+        "reported_uniform",
+        "reported_differentiated",
+        "symptomatic_uniform",
+        "symptomatic_differentiated"
+      ],
+      "mortality_overlay": "existing_national_CFR_no_overlay",
+      "rate": 0.03
+    }
+  ],
+  "currency": "2024_international_dollars",
+  "limitations": [
+    "fixed candidate transmission parameters",
+    "historical Swedish survivor-cohort hospital risk",
+    "unvalidated donor transfer in noninfant mortality sensitivity",
+    "cost assumptions and age extrapolations"
+  ]
+}

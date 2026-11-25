@@ -1,0 +1,17 @@
+Setting,Route,Alternatives per profile,Profiles,Nasal trajectories
+Australia,coadmin,6,17,102
+Australia,standalone,6,17,102
+England,coadmin,6,17,102
+England,standalone,6,17,102
+Sweden,coadmin,3,17,51
+Sweden,standalone,3,17,51
+Japan,coadmin,12,17,204
+Japan,standalone,12,17,204
+New_Zealand,coadmin,4,17,68
+New_Zealand,standalone,4,17,68
+China,coadmin,12,17,204
+China,standalone,12,17,204
+Brazil,coadmin,6,17,102
+Brazil,standalone,6,17,102
+Thailand,coadmin,9,17,153
+Thailand,standalone,9,17,153

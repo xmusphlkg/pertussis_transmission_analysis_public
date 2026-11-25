@@ -1,0 +1,17 @@
+country,scenario,scenario_rows,threshold_horizon_contexts,optimal_set_changes,baseline_set_fully_replaced,affected_contexts
+Australia,delivery_sensitivity,84,14,0,0,0
+Brazil,delivery_sensitivity,156,26,0,0,0
+China,delivery_sensitivity,216,36,0,0,0
+England,delivery_sensitivity,84,14,0,0,0
+Japan,delivery_sensitivity,84,14,0,0,0
+New_Zealand,delivery_sensitivity,84,14,0,0,0
+Sweden,delivery_sensitivity,84,14,0,0,0
+Thailand,delivery_sensitivity,108,18,0,0,0
+Australia,independent_price_grid,6174,14,167,167,6
+Brazil,independent_price_grid,11466,26,0,0,0
+China,independent_price_grid,15876,36,84,84,2
+England,independent_price_grid,6174,14,0,0,0
+Japan,independent_price_grid,6174,14,882,882,14
+New_Zealand,independent_price_grid,6174,14,314,314,4
+Sweden,independent_price_grid,6174,14,294,294,4
+Thailand,independent_price_grid,7938,18,0,0,0

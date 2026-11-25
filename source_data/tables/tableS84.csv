@@ -1,0 +1,25 @@
+Setting,Transmission condition,Horizon (years),Nasal coverage (%),"DALYs averted, mean (95% UI)","Infant deaths averted, mean"
+England,Local pooled,20,70,72.46 (31.19 to 117.96),2.553
+England,Local pooled,30,70,67.08 (31.40 to 127.46),2.331
+England,Local replicate 1,20,70,65.92 (31.05 to 116.78),2.312
+England,Local replicate 1,30,70,61.81 (29.57 to 103.39),2.152
+England,Local replicate 2,20,70,79.01 (31.58 to 120.32),2.794
+England,Local replicate 2,30,70,72.35 (44.42 to 133.78),2.509
+Japan,Adopted fit,20,90,374.33 (296.70 to 456.52),16.076
+Japan,Adopted fit,30,90,−8.61 (−34.74 to 48.47),−8.135
+Japan,Full refit: baseline,20,90,374.33 (296.70 to 456.52),16.076
+Japan,Full refit: baseline,30,90,−8.61 (−34.74 to 48.47),−8.135
+Japan,Full refit: 365-day recovery,20,90,239.68 (188.39 to 299.20),8.424
+Japan,Full refit: 365-day recovery,30,90,108.87 (73.03 to 175.72),0.734
+Brazil,Adopted fit,20,90,"967.91 (787.76 to 1,181.92)",45.036
+Brazil,Adopted fit,30,90,9.61 (−3.66 to 22.86),−12.410
+Brazil,Full refit: baseline,20,90,"967.91 (787.76 to 1,181.92)",45.036
+Brazil,Full refit: baseline,30,90,9.61 (−3.66 to 22.86),−12.410
+Brazil,Local pooled,20,70,"658.08 (189.03 to 1,191.68)",28.383
+Brazil,Local pooled,30,70,139.14 (−63.89 to 463.98),−3.307
+Brazil,Local replicate 1,20,70,"679.29 (278.80 to 1,132.42)",29.543
+Brazil,Local replicate 1,30,70,132.88 (−71.16 to 385.59),−3.874
+Brazil,Local replicate 2,20,70,"636.87 (170.20 to 1,217.07)",27.223
+Brazil,Local replicate 2,30,70,145.40 (−48.04 to 487.59),−2.740
+Brazil,Full refit: 365-day recovery,20,90,"1,035.88 (844.81 to 1,265.27)",48.334
+Brazil,Full refit: 365-day recovery,30,90,217.08 (175.85 to 264.37),0.671

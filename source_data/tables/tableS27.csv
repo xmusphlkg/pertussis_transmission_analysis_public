@@ -1,0 +1,9 @@
+Setting,Vaccination and delivery cost scope,Treatment cost scope
+Australia,Assumed acquisition and delivery values,WHO service proxies plus an assumed infant episode cost
+England,Historical maternal list price and service payments applied to maternal and adolescent doses,Historical disease costs with age transfer
+Sweden,Cross-country acquisition and delivery assumptions,WHO general-service proxies
+Japan,Maternal bundled vaccination cost; adolescent and separate delivery assumptions,WHO general-service proxies
+New Zealand,Acquisition analogies and delivery assumptions,WHO general-service proxies
+China,Regional price analogy and delivery assumptions,"Zhejiang direct costs including transport, extrapolated nationally"
+Brazil,Regional acquisition proxy and assumed delivery cost,Payment proxy and modelled inpatient cost
+Thailand,Assumed product prices and delivery costs,WHO general-service proxies

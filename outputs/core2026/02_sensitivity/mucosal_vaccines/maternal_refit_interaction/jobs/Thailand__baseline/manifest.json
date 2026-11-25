@@ -1,0 +1,22 @@
+{
+  "country": "Thailand",
+  "history": "baseline",
+  "fit_directory": "outputs/core2026/04_covid/full_refit_20261105T070745Z/Thailand/baseline",
+  "seconds": 19.506971194408834,
+  "new_projection_integrations": 8,
+  "history_replays": 1,
+  "reproduction_checks": [
+    {
+      "arm": "low_maternal_no_nasal",
+      "maximum_absolute_onset_difference": 1.862645149230957e-09
+    },
+    {
+      "arm": "low_maternal_nasal",
+      "maximum_absolute_onset_difference": 1.862645149230957e-09
+    }
+  ],
+  "low_maternal_coverage": 0.5,
+  "high_maternal_coverage": 0.9,
+  "nasal_coverage": 0.7,
+  "mean_nasal_protection_years": 3.0
+}

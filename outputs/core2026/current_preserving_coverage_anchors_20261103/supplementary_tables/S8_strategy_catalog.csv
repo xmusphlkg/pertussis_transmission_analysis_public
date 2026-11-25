@@ -1,0 +1,10 @@
+country,strategy_id,maternal_target,adolescent_target,maternal_coverage,adolescent_coverage,original_maternal_coverage,original_adolescent_coverage,adolescent_target_age
+New_Zealand,current,NA,NA,0.6410000000000001,0.8,0.6410000000000001,0.8,11.0
+New_Zealand,current_Mkeep_A0.9,NA,0.9,0.6410000000000001,0.9,0.6410000000000001,0.8,11.0
+New_Zealand,current_M0.7_Akeep,0.7,NA,0.7,0.8,0.6410000000000001,0.8,11.0
+New_Zealand,current_M0.7_A0.9,0.7,0.9,0.7,0.9,0.6410000000000001,0.8,11.0
+New_Zealand,current_M0.9_Akeep,0.9,NA,0.9,0.8,0.6410000000000001,0.8,11.0
+New_Zealand,current_M0.9_A0.9,0.9,0.9,0.9,0.9,0.6410000000000001,0.8,11.0
+Sweden,current,NA,NA,0.68,0.9,0.68,0.9,15.0
+Sweden,current_M0.7_Akeep,0.7,NA,0.7,0.9,0.68,0.9,15.0
+Sweden,current_M0.9_Akeep,0.9,NA,0.9,0.9,0.68,0.9,15.0

@@ -1,0 +1,259 @@
+schema: core2026-programme-v1
+country: Brazil
+iso3: BRA
+status: provisional
+sensitivity_priority: high
+sources:
+  wuenic_2025:
+    citation: WHO/UNICEF Estimates of National Immunization Coverage, DTP1/DTP3, 2025
+      revision; repository export used by core2026.
+    url: https://immunizationdata.who.int/
+    ledger: coverage_series_external_validation
+  coverage_pre1990_assumption:
+    citation: Modeling assumption for pre-1990 coverage where the M2 ledger has policy
+      context but no annual national uptake series; replace when historical survey/registry
+      data are assembled.
+    url: data/processed/m2_vaccination_history/README.md
+    ledger: coverage_pre_1990_open_item
+  coverage_projection_2050:
+    citation: Core2026 projection assumption after the last observed WUENIC year;
+      held near the recent national level for forward simulation.
+    url: config/core2026/programmes/README.md
+    ledger: projection_assumption
+  ledger_schedule:
+    citation: 'M2 Brazil ledger: PNI whole-cell schedule, boosters and combination-product
+      changes.'
+    url: data/processed/m2_vaccination_history/australia_brazil.md
+    ledger: Brazil event ledger
+  ledger_maternal:
+    citation: 'M2 Brazil ledger: national maternal dTpa introduction in November 2014
+      and timing changes.'
+    url: data/processed/m2_vaccination_history/australia_brazil.md
+    ledger: Brazil maternal programme
+  timeliness_assumption:
+    citation: Shared whole-month timeliness prior used for the core2026 input bundle;
+      country-specific dose-date distributions are not yet available.
+    url: config/core2026/programmes/README.md
+    ledger: timeliness_open_item
+primary_product:
+- start: '1970-01-01'
+  product: wP
+  sources:
+  - ledger_schedule
+  evidence_grade: B
+coverage_series:
+  dtp1:
+  - from: 1970
+    to: 1989
+    interpolate: &id001
+      '1970': 0.55
+      '1977': 0.7
+      '1989': 0.8
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 2024
+    wuenic: DTPCV1
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 2025
+    to: 2050
+    value: 0.94
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  dtp3:
+  - from: 1970
+    to: 1989
+    interpolate: *id001
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 1993
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 1994
+    to: 1994
+    value: 0.5
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 1995
+    to: 1995
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 1996
+    to: 1996
+    value: 0.75
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 1997
+    to: 2024
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: A
+  - from: 2025
+    to: 2050
+    value: 0.94
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  dtp2:
+    derived_mean:
+    - dtp1
+    - dtp3
+  booster_15m:
+  - from: 1970
+    to: 1989
+    value: 0.6
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 1990
+    to: 2024
+    wuenic: DTPCV3
+    sources:
+    - wuenic_2025
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.88
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  preschool:
+  - from: 1970
+    to: 2003
+    value: 0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 2004
+    to: 2024
+    value: 0.7
+    sources:
+    - ledger_schedule
+    evidence_grade: C
+  - from: 2025
+    to: 2050
+    value: 0.75
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+  maternal:
+  - from: 1970
+    to: 2013
+    value: 0
+    sources:
+    - coverage_pre1990_assumption
+    evidence_grade: D
+  - from: 2014
+    to: 2024
+    interpolate:
+      '2014': 0.3
+      '2018': 0.55
+      '2024': 0.7
+    sources:
+    - ledger_maternal
+    evidence_grade: B
+  - from: 2025
+    to: 2050
+    value: 0.75
+    sources:
+    - coverage_projection_2050
+    evidence_grade: D
+infant_doses:
+- name: primary_1
+  kind: dose1
+  age_months: 2
+  start: '1970-01-01'
+  end: null
+  coverage: dtp1
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_2
+  kind: dose2
+  age_months: 4
+  start: '1970-01-01'
+  end: null
+  coverage: dtp2
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: primary_3
+  kind: dose3
+  age_months: 6
+  start: '1970-01-01'
+  end: null
+  coverage: dtp3
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+- name: booster_15m
+  kind: toddler_booster
+  age_months: 15
+  start: '1970-01-01'
+  end: null
+  coverage: booster_15m
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+cohort_doses:
+- name: preschool
+  kind: child_booster
+  age_years: 4.0
+  start: '2004-01-01'
+  end: null
+  coverage: preschool
+  sources:
+  - ledger_schedule
+  evidence_grade: D
+maternal:
+- start: '2014-11-01'
+  end: null
+  coverage: maternal
+  effective_share: 0.9
+  sources:
+  - ledger_maternal
+  evidence_grade: D
+timeliness:
+  delay_pmf_months:
+  - 0.75
+  - 0.15
+  - 0.06
+  - 0.04
+  sources:
+  - timeliness_assumption
+  evidence_grade: D
+sensitivity_variants:
+  brazil_maternal_start:
+    description: November 2013 wording in secondary literature versus November 2014
+      dated Ministry notice.
+    maternal_start: '2013-11-01'
+    operations:
+    - kind: set_dose_field
+      block: maternal
+      name: __period_start__
+      field: start
+      value: '2013-11-01'
+  brazil_booster_2004_age:
+    description: Historical source reports 4-6 years; core uses 4 years after standardisation.
+    preschool_age_years: 5.0
+    operations:
+    - kind: set_dose_field
+      block: cohort_doses
+      name: preschool
+      field: age_years
+      value: 5.0
+notes: Childhood pertussis remains wP in the national PNI; no national adolescent
+  Tdap is encoded.
